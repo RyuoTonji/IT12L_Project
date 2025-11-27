@@ -85,7 +85,7 @@
                                 <td class="py-2 px-4 text-right">{{ $day->order_count }}</td>
                                 <td class="py-2 px-4 text-right">₱{{ number_format($day->total_sales, 2) }}</td>
                                 <td class="py-2 px-4 text-right">
-                                    ${{ number_format($day->total_sales / $day->order_count, 2) }}
+                                    ₱{{ number_format($day->total_sales / $day->order_count, 2) }}
                                 </td>
                             </tr>
                         @empty
@@ -223,7 +223,7 @@
                                 const value = context.raw;
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                 const percentage = Math.round((value / total) * 100);
-                                return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                                return `${label}: ₱${value.toFixed(2)} (${percentage}%)`;
                             }
                         }
                     }

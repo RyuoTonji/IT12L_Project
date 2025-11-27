@@ -172,6 +172,7 @@
                         <!-- Form Actions -->
                         <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
                             <button type="submit"
+                                onclick="return confirm('Are you sure you want to save these changes?')"
                                 class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

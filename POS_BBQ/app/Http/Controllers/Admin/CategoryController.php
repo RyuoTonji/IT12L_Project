@@ -56,14 +56,8 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        // Check if category has menu items
-        if ($category->menuItems()->exists()) {
-            return redirect()->route('categories.index')
-                ->with('error', 'Cannot delete category with associated menu items');
-        }
-
         $category->delete();
 
-        return redirect()->route('categories.index')->with('success', 'Category deleted successfully');
+        return redirect()->route('categories.index')->with('success', 'Category archived successfully');
     }
 }
