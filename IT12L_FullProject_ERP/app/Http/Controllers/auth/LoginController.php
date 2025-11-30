@@ -5,66 +5,60 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use Illuminate\Support\Facades\Validator;
 
 class LoginController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('guest')->except('logout');
-    }
-
+    /**
+     * Show the login form
+     */
     public function showLoginForm()
     {
         return view('auth.login');
     }
 
-    public function showPhoneLoginForm()
-    {
-        return view('auth.login-phone');
-    }
-
+    /**
+     * Handle login request
+     */
     public function login(Request $request)
     {
-        $request->validate([
-            'email'    => 'required|string',
-            'password' => 'required|string',
+        // Validate input
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|min:6',
         ]);
 
-        // Detect if input is email or phone number
-        $field = filter_var($request->email, FILTER_VALIDATE_EMAIL) ? 'email' : 'contact_number';
+        if ($validator->fails()) {
+            return redirect()->back()
+                ->withErrors($validator)
+                ->withInput();
+        }
 
-        $credentials = [
-            $field    => $request->email,
-            'password' => $request->password,
-        ];
+        // Attempt to log the user in
+        $credentials = $request->only('email', 'password');
+        $remember = $request->has('remember');
 
-        if (Auth::attempt($credentials, $request->has('remember'))) {
+        if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
-            return redirect()->intended('/menu'); // Change to your home page
+
+            // Get the authenticated user
+            $user = Auth::user();
+
+            // Check if user is admin
+            if ($user->is_admin) {
+                return redirect()->route('admin.dashboard')
+                    ->with('success', 'Welcome back, Admin!');
+            }
+
+            // For regular users, redirect to home or intended page
+            // The cart sync will be handled by JavaScript on the frontend
+            return redirect()->intended(route('home'))
+                ->with('success', 'Welcome back!');
         }
 
-        // Check if user actually exists
-        $userExists = User::where('email', $request->email)
-                          ->orWhere('contact_number', $request->email)
-                          ->exists();
-
-        if (!$userExists) {
-            return back()->withErrors([
-                'email_not_found' => 'These credentials do not match our records.'
-            ])->withInput();
-        }
-
-        return back()->withErrors([
-            'wrong_password' => 'The password you’ve entered is incorrect'
-        ])->withInput();
-    }
-
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
+        // Authentication failed
+        return redirect()->back()
+            ->withErrors(['email' => 'Invalid credentials.'])
+            ->withInput();
     }
 }
