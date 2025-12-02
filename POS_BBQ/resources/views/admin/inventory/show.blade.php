@@ -25,10 +25,20 @@
                         <p>
                             <span
                                 class="px-2 py-1 rounded text-xs font-semibold
-                                {{ $inventory->quantity <= $inventory->reorder_level ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                    {{ $inventory->quantity <= $inventory->reorder_level ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
                                 {{ $inventory->quantity <= $inventory->reorder_level ? 'Low Stock' : 'In Stock' }}
                             </span>
                         </p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-600">Category</p>
+                        <p class="font-medium">{{ $inventory->category ?? '-' }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-sm text-gray-600">Supplier</p>
+                        <p class="font-medium">{{ $inventory->supplier ?? '-' }}</p>
                     </div>
 
                     <div>
@@ -78,7 +88,8 @@
                     </div>
 
                     <div class="md:col-span-2 flex items-end">
-                        <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
+                        <button type="button"
+                            onclick="showConfirm('Are you sure you want to update the stock for this item?', function() { this.form.submit(); }.bind(this))"
                             class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Update Stock</button>
                     </div>
                 </form>

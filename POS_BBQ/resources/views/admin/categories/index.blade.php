@@ -9,17 +9,7 @@
                     class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add Category</a>
             </div>
 
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
 
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                </div>
-            @endif
 
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white">
@@ -54,11 +44,13 @@
                                         class="text-blue-600 hover:text-blue-900 mr-2">View</a>
                                     <a href="{{ route('categories.edit', $category) }}"
                                         class="text-green-600 hover:text-green-900 mr-2">Edit</a>
-                                    <form action="{{ route('categories.destroy', $category) }}" method="POST" class="inline">
+                                    <form id="deleteCategoryForm{{ $category->id }}"
+                                        action="{{ route('categories.destroy', $category) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900"
-                                            onclick="return confirm('Are you sure you want to archive this category?')">Delete</button>
+                                        <button type="button"
+                                            onclick="showConfirm('Are you sure you want to archive this category?', function() { document.getElementById('deleteCategoryForm{{ $category->id }}').submit(); })"
+                                            class="text-red-600 hover:text-red-900">Delete</button>
                                     </form>
                                 </td>
                             </tr>

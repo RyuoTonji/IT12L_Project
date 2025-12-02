@@ -124,4 +124,44 @@ class ReportController extends Controller
 
         return view('admin.reports.staff', compact('staffPerformance', 'startDate', 'endDate'));
     }
+    public function daily(Request $request)
+    {
+        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
+        $carbonDate = Carbon::parse($date);
+
+        // 1. Shift Reports for the day
+        $shiftReports = \App\Models\ShiftReport::with('user')
+            ->whereDate('shift_date', $carbonDate)
+            ->get();
+
+        // 2. Aggregated Sales
+        $totalSales = Order::whereDate('created_at', $carbonDate)
+            ->where('payment_status', 'paid')
+            ->sum('total_amount');
+
+        // 3. Aggregated Refunds
+        $totalRefunds = \App\Models\Payment::whereDate('created_at', $carbonDate)
+            ->where('amount', '<', 0) // Assuming refunds are negative payments or handled separately
+            ->sum('amount'); // Adjust logic if refunds are stored differently
+
+        // 4. Inventory Activities (Stock In/Out)
+        $inventoryActivities = \App\Models\Activity::with('user')
+            ->whereDate('created_at', $carbonDate)
+            ->where('related_model', \App\Models\Inventory::class)
+            ->get();
+
+        // 5. Void Requests
+        $voidRequests = \App\Models\VoidRequest::with(['order', 'requester', 'approver'])
+            ->whereDate('created_at', $carbonDate)
+            ->get();
+
+        return view('admin.reports.daily', compact(
+            'date',
+            'shiftReports',
+            'totalSales',
+            'totalRefunds',
+            'inventoryActivities',
+            'voidRequests'
+        ));
+    }
 }

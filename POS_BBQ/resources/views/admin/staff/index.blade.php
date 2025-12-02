@@ -9,17 +9,7 @@
                     Staff</a>
             </div>
 
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
 
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                </div>
-            @endif
 
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white">
@@ -54,14 +44,14 @@
                                 <td class="py-2 px-4 text-center">
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            {{ $user->role == 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                                    {{ $user->role == 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
                                         {{ ucfirst($user->role) }}
                                     </span>
                                 </td>
                                 <td class="py-2 px-4 text-center">
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                            {{ $user->status == 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                    {{ $user->status == 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                         {{ ucfirst($user->status) }}
                                     </span>
                                 </td>
@@ -72,11 +62,13 @@
                                         class="text-green-600 hover:text-green-900 mr-2">Edit</a>
 
                                     @if($user->id !== auth()->id())
-                                        <form action="{{ route('staff.destroy', $user) }}" method="POST" class="inline">
+                                        <form id="deleteStaffForm{{ $user->id }}" action="{{ route('staff.destroy', $user) }}"
+                                            method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900"
-                                                onclick="return confirm('Are you sure you want to archive this staff member?')">Delete</button>
+                                            <button type="button"
+                                                onclick="showConfirm('Are you sure you want to archive this staff member?', function() { document.getElementById('deleteStaffForm{{ $user->id }}').submit(); })"
+                                                class="text-red-600 hover:text-red-900">Delete</button>
                                         </form>
                                     @endif
                                 </td>

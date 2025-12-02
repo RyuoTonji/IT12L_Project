@@ -5,8 +5,12 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a
-                        href="{{ Auth::user()->role == 'admin' ? route('admin.dashboard') : route('cashier.dashboard') }}">
+                    <a href="{{ 
+                        Auth::user()->role == 'admin' ? route('admin.dashboard') : 
+                        (Auth::user()->role == 'manager' ? route('manager.dashboard') : 
+                        (Auth::user()->role == 'inventory' ? route('inventory.dashboard') : 
+                        route('cashier.dashboard'))) 
+                    }}">
                         <img src="{{ asset('logo_white.jpg') }}" style="width: 50px; height: 50px;" alt="logo_white"
                             class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
@@ -16,6 +20,18 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     @if (Auth::user()->role == 'admin')
                         <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    @elseif (Auth::user()->role == 'manager')
+                        <x-nav-link :href="route('manager.dashboard')" :active="request()->routeIs('manager.dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('manager.reports')" :active="request()->routeIs('manager.reports')">
+                            {{ __('Reports') }}
+                        </x-nav-link>
+                    @elseif (Auth::user()->role == 'inventory')
+                        <x-nav-link :href="route('inventory.dashboard')"
+                            :active="request()->routeIs('inventory.dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
                     @else

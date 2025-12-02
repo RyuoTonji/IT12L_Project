@@ -32,6 +32,26 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select name="category" id="category"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <option value="">Select Category</option>
+                            <option value="Ingredient" {{ old('category', $inventory->category) == 'Ingredient' ? 'selected' : '' }}>Ingredient</option>
+                            <option value="Product" {{ old('category', $inventory->category) == 'Product' ? 'selected' : '' }}>Product</option>
+                            <option value="Other" {{ old('category', $inventory->category) == 'Other' ? 'selected' : '' }}>
+                                Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="supplier" class="block text-sm font-medium text-gray-700 mb-1">Supplier</label>
+                        <input type="text" name="supplier" id="supplier" value="{{ old('supplier', $inventory->supplier) }}"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
                         <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
                         <input type="number" name="quantity" id="quantity"
                             value="{{ old('quantity', $inventory->quantity) }}" step="0.01" min="0"
@@ -57,7 +77,8 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
+                    <button type="button"
+                        onclick="showConfirm('Are you sure you want to update this inventory item?', function() { this.form.submit(); }.bind(this))"
                         class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Update Inventory Item</button>
                 </div>
             </form>

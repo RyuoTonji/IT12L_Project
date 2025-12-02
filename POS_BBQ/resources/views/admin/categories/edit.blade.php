@@ -37,7 +37,8 @@
                 </div>
 
                 <div class="flex justify-end">
-                    <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
+                    <button type="button"
+                        onclick="showConfirm('Are you sure you want to update this category?', function() { this.form.submit(); }.bind(this))"
                         class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Update Category</button>
                 </div>
             </form>

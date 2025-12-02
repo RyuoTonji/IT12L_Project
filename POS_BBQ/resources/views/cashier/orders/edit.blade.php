@@ -35,8 +35,10 @@
                                 <option value="served" {{ $order->status == 'served' ? 'selected' : '' }}>Served</option>
                                 <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed
                                 </option>
-                                <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled
-                                </option>
+                                @if(Auth::user()->role == 'admin' || Auth::user()->role == 'manager')
+                                    <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled
+                                    </option>
+                                @endif
                             </select>
                         </div>
 
@@ -175,7 +177,7 @@
                     quantity: {{ $item->quantity }},
                     notes: "{{ $item->notes ?? '' }}",
                     itemId: {{ $item->id }}
-                    });
+                            });
             @endforeach
 
             // Handle category tab clicks
@@ -235,21 +237,21 @@
                 const itemIdField = item.itemId ? `<input type="hidden" name="items[${index}][id]" value="${item.itemId}">` : '';
 
                 newRow.innerHTML = `
-                    <td class="py-2 px-4">${item.name}</td>
-                    <td class="py-2 px-4 text-right">₱${item.price.toFixed(2)}</td>
-                    <td class="py-2 px-4 text-center">
-                        <input type="number" name="items[${index}][quantity]" value="${item.quantity}" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                        <input type="hidden" name="items[${index}][menu_item_id]" value="${item.id}">
-                        ${itemIdField}
-                    </td>
-                    <td class="py-2 px-4">
-                        <input type="text" name="items[${index}][notes]" value="${item.notes}" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                    </td>
-                    <td class="py-2 px-4 text-right item-subtotal">₱${(item.price * item.quantity).toFixed(2)}</td>
-                    <td class="py-2 px-4 text-center">
-                        <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
-                    </td>
-                `;
+                        <td class="py-2 px-4">${item.name}</td>
+                        <td class="py-2 px-4 text-right">₱${item.price.toFixed(2)}</td>
+                        <td class="py-2 px-4 text-center">
+                            <input type="number" name="items[${index}][quantity]" value="${item.quantity}" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            <input type="hidden" name="items[${index}][menu_item_id]" value="${item.id}">
+                            ${itemIdField}
+                        </td>
+                        <td class="py-2 px-4">
+                            <input type="text" name="items[${index}][notes]" value="${item.notes}" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        </td>
+                        <td class="py-2 px-4 text-right item-subtotal">₱${(item.price * item.quantity).toFixed(2)}</td>
+                        <td class="py-2 px-4 text-center">
+                            <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
+                        </td>
+                    `;
 
                 selectedItemsContainer.appendChild(newRow);
 

@@ -13,17 +13,7 @@
                 </div>
             </div>
 
-            @if(session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
-                </div>
-            @endif
 
-            @if(session('error'))
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                </div>
-            @endif
 
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white">
@@ -68,7 +58,7 @@
                                 <td class="py-2 px-4 text-center">
                                     <span
                                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                                                                                                            {{ $item->is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                                                                                                                    {{ $item->is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                         {{ $item->is_available ? 'Yes' : 'No' }}
                                     </span>
                                 </td>
@@ -77,11 +67,13 @@
                                         class="text-blue-600 hover:text-blue-900 mr-2">View</a>
                                     <a href="{{ route('menu.edit', $item) }}"
                                         class="text-green-600 hover:text-green-900 mr-2">Edit</a>
-                                    <form action="{{ route('menu.destroy', $item) }}" method="POST" class="inline">
+                                    <form id="deleteMenuForm{{ $item->id }}" action="{{ route('menu.destroy', $item) }}"
+                                        method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900"
-                                            onclick="return confirm('Are you sure you want to archive this item?')">Delete</button>
+                                        <button type="button"
+                                            onclick="showConfirm('Are you sure you want to archive this menu item?', function() { document.getElementById('deleteMenuForm{{ $item->id }}').submit(); })"
+                                            class="text-red-600 hover:text-red-900">Delete</button>
                                     </form>
                                 </td>
                             </tr>
