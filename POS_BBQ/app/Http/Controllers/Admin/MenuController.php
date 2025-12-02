@@ -123,26 +123,8 @@ class MenuController extends Controller
 
     public function destroy(MenuItem $menu)
     {
-        // Check if the menu item is used in any orders
-        $hasOrders = $menu->orderItems()->exists();
-
-        if ($hasOrders) {
-            return redirect()->route('menu.index')->with('error', 'Cannot delete menu item as it is used in orders');
-        }
-
-        // Delete image if it exists
-        if ($menu->image && Storage::disk('public')->exists($menu->image)) {
-            Storage::disk('public')->delete($menu->image);
-
-            // Also delete thumbnail if it exists
-            $thumbnailPath = str_replace('menu-items/', 'menu-items/thumbnails/', $menu->image);
-            if (Storage::disk('public')->exists($thumbnailPath)) {
-                Storage::disk('public')->delete($thumbnailPath);
-            }
-        }
-
         $menu->delete();
 
-        return redirect()->route('menu.index')->with('success', 'Menu item deleted successfully');
+        return redirect()->route('menu.index')->with('success', 'Menu item archived successfully');
     }
 }

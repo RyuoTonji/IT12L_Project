@@ -8,10 +8,23 @@ use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $inventoryItems = Inventory::all();
-        return view('admin.inventory.index', compact('inventoryItems'));
+        $query = Inventory::query();
+
+        if ($request->filled('supplier')) {
+            $query->where('supplier', 'like', '%' . $request->supplier . '%');
+        }
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        $inventoryItems = $query->get();
+        $suppliers = Inventory::select('supplier')->distinct()->whereNotNull('supplier')->pluck('supplier');
+        $categories = Inventory::select('category')->distinct()->whereNotNull('category')->pluck('category');
+
+        return view('admin.inventory.index', compact('inventoryItems', 'suppliers', 'categories'));
     }
 
     public function create()
@@ -23,6 +36,8 @@ class InventoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'supplier' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
             'quantity' => 'required|numeric|min:0',
             'unit' => 'required|string|max:50',
             'reorder_level' => 'required|numeric|min:0',
@@ -47,6 +62,8 @@ class InventoryController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'supplier' => 'nullable|string|max:255',
+            'category' => 'nullable|string|max:255',
             'quantity' => 'required|numeric|min:0',
             'unit' => 'required|string|max:50',
             'reorder_level' => 'required|numeric|min:0',

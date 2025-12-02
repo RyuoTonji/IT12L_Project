@@ -93,14 +93,8 @@ class StaffController extends Controller
                 ->with('error', 'You cannot delete your own account');
         }
 
-        // Check if user has associated orders
-        if ($staff->orders()->exists()) {
-            return redirect()->route('staff.index')
-                ->with('error', 'Cannot delete staff member with associated orders');
-        }
-
         $staff->delete();
 
-        return redirect()->route('staff.index')->with('success', 'Staff member deleted successfully');
+        return redirect()->route('staff.index')->with('success', 'Staff member archived successfully');
     }
 }

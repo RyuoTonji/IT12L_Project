@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run()
     {
-        // Create admin user
+        // Admin User
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@example.com',
@@ -19,7 +19,16 @@ class UserSeeder extends Seeder
             'status' => 'active',
         ]);
 
-        // Create cashier user
+        //Manager User
+        User::create([
+            'name' => 'Manager User',
+            'email' => 'manager@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'manager',
+            'status' => 'active',
+        ]);
+
+        // Cashier User
         User::create([
             'name' => 'Cashier User',
             'email' => 'cashier@example.com',
@@ -28,6 +37,7 @@ class UserSeeder extends Seeder
             'status' => 'active',
         ]);
 
+        //Inventory User
         User::create([
             'name' => 'Inventory User',
             'email' => 'inventory@example.com',
@@ -35,5 +45,6 @@ class UserSeeder extends Seeder
             'role' => 'inventory',
             'status' => 'active',
         ]);
+
     }
 }

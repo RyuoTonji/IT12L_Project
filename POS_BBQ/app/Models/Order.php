@@ -4,14 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\LogsDeletes;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes, LogsDeletes;
 
     protected $fillable = [
-        'table_id', 'user_id', 'customer_name', 'order_type',
-        'status', 'total_amount', 'payment_status'
+        'table_id',
+        'user_id',
+        'customer_name',
+        'order_type',
+        'status',
+        'total_amount',
+        'payment_status'
     ];
 
     public function table()
@@ -27,6 +34,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function voidRequests()
+    {
+        return $this->hasMany(VoidRequest::class);
     }
 
     public function payments()

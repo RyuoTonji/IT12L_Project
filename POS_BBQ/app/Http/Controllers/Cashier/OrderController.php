@@ -8,6 +8,8 @@ use App\Models\OrderItem;
 use App\Models\MenuItem;
 use App\Models\Table;
 use App\Models\Category;
+use App\Models\Activity;
+use App\Models\VoidRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -18,8 +20,8 @@ class OrderController extends Controller
     public function index()
     {
         $orders = Order::with(['table', 'user'])
-                ->latest()
-                ->paginate(10);
+            ->latest()
+            ->paginate(10);
 
         return view('cashier.orders.index', compact('orders'));
     }
@@ -27,9 +29,11 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         $tables = Table::where('status', 'available')->get();
-        $categories = Category::with(['menuItems' => function ($query) {
-            $query->where('is_available', true);
-        }])->get();
+        $categories = Category::with([
+            'menuItems' => function ($query) {
+                $query->where('is_available', true);
+            }
+        ])->get();
 
         $selectedTableId = $request->input('table_id');
         $selectedTable = null;
@@ -96,6 +100,16 @@ class OrderController extends Controller
                 $table->save();
             }
 
+            // Automated Activity Logging
+            Activity::create([
+                'user_id' => Auth::id(),
+                'action' => 'create_order',
+                'details' => "Created Order #{$order->id} ({$order->order_type}) - Total: {$order->total_amount}",
+                'status' => 'info',
+                'related_id' => $order->id,
+                'related_model' => Order::class,
+            ]);
+
             DB::commit();
 
             return redirect()->route('orders.show', $order)->with('success', 'Order created successfully');
@@ -122,9 +136,11 @@ class OrderController extends Controller
 
         $order->load(['orderItems.menuItem', 'table']);
 
-        $categories = Category::with(['menuItems' => function ($query) {
-            $query->where('is_available', true);
-        }])->get();
+        $categories = Category::with([
+            'menuItems' => function ($query) {
+                $query->where('is_available', true);
+            }
+        ])->get();
 
         return view('cashier.orders.edit', compact('order', 'categories'));
     }
@@ -137,8 +153,13 @@ class OrderController extends Controller
                 ->with('error', 'Cannot update completed or cancelled orders');
         }
 
+        $allowedStatuses = 'new,preparing,ready,served,completed';
+        if (Auth::user()->role === 'admin' || Auth::user()->role === 'manager') {
+            $allowedStatuses .= ',cancelled';
+        }
+
         $request->validate([
-            'status' => 'required|in:new,preparing,ready,served,completed,cancelled',
+            'status' => 'required|in:' . $allowedStatuses,
             'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|exists:order_items,id',
             'items.*.menu_item_id' => 'required|exists:menu_items,id',
@@ -220,6 +241,16 @@ class OrderController extends Controller
             $order->total_amount = $total;
             $order->save();
 
+            // Automated Activity Logging
+            Activity::create([
+                'user_id' => Auth::id(),
+                'action' => 'update_order',
+                'details' => "Updated Order #{$order->id} - Status: {$newStatus}, Total: {$total}",
+                'status' => 'info',
+                'related_id' => $order->id,
+                'related_model' => Order::class,
+            ]);
+
             DB::commit();
 
             return redirect()->route('orders.show', $order)->with('success', 'Order updated successfully');
@@ -235,12 +266,17 @@ class OrderController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function updateStatus(Request $request, Order $order)
     {
+        $allowedStatuses = 'preparing,ready,served,completed';
+        if (Auth::user()->role === 'admin' || Auth::user()->role === 'manager') {
+            $allowedStatuses .= ',cancelled';
+        }
+
         $request->validate([
-            'status' => 'required|in:preparing,ready,served,completed,cancelled',
+            'status' => 'required|in:' . $allowedStatuses,
         ]);
 
         try {
@@ -262,6 +298,16 @@ class OrderController extends Controller
                     $table->save();
                 }
             }
+
+            // Automated Activity Logging
+            Activity::create([
+                'user_id' => Auth::id(),
+                'action' => 'update_order_status',
+                'details' => "Updated Order #{$order->id} status to {$newStatus}",
+                'status' => 'info',
+                'related_id' => $order->id,
+                'related_model' => Order::class,
+            ]);
 
             DB::commit();
 
@@ -289,6 +335,11 @@ class OrderController extends Controller
 
     public function destroy(Order $order)
     {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'manager') {
+            return redirect()->route('orders.index')
+                ->with('error', 'Unauthorized action.');
+        }
+
         // Only allow deletion of orders that are new
         if ($order->status != 'new') {
             return redirect()->route('orders.index')
@@ -312,6 +363,16 @@ class OrderController extends Controller
             // Delete the order
             $order->delete();
 
+            // Automated Activity Logging
+            Activity::create([
+                'user_id' => Auth::id(),
+                'action' => 'void_order',
+                'details' => "Voided Order #{$order->id}",
+                'status' => 'warning', // Warning for void actions
+                'related_id' => $order->id,
+                'related_model' => Order::class,
+            ]);
+
             DB::commit();
 
             return redirect()->route('orders.index')->with('success', 'Order deleted successfully');
@@ -320,5 +381,27 @@ class OrderController extends Controller
             DB::rollBack();
             return back()->with('error', 'Error deleting order: ' . $e->getMessage());
         }
+    }
+    public function requestVoid(Request $request, Order $order)
+    {
+        $request->validate([
+            'reason' => 'nullable|string|max:255',
+            'reason_tags' => 'nullable|array',
+        ]);
+
+        // Check if a pending request already exists
+        if ($order->voidRequests()->where('status', 'pending')->exists()) {
+            return back()->with('error', 'A void request is already pending for this order.');
+        }
+
+        VoidRequest::create([
+            'order_id' => $order->id,
+            'requester_id' => Auth::id(),
+            'reason' => $request->reason,
+            'reason_tags' => $request->reason_tags,
+            'status' => 'pending',
+        ]);
+
+        return back()->with('success', 'Void request submitted successfully. Waiting for manager approval.');
     }
 }

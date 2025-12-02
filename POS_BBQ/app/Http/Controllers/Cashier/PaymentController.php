@@ -5,16 +5,18 @@ namespace App\Http\Controllers\Cashier;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\Order;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
     public function index()
     {
         $payments = Payment::with(['order'])
-                    ->latest()
-                    ->paginate(10);
+            ->latest()
+            ->paginate(10);
 
         return view('cashier.payments.index', compact('payments'));
     }
@@ -29,7 +31,7 @@ class PaymentController extends Controller
         }
 
         $order = Order::with(['orderItems.menuItem', 'payments'])
-                ->findOrFail($orderId);
+            ->findOrFail($orderId);
 
         // Check if order is already paid
         if ($order->payment_status === 'paid') {
@@ -87,7 +89,7 @@ class PaymentController extends Controller
 
             $payment->save();
 
-                        // Update order payment status if fully paid
+            // Update order payment status if fully paid
             $newPaidAmount = $order->payments->sum('amount') + $request->amount;
 
             if ($newPaidAmount >= $order->total_amount) {
@@ -100,6 +102,16 @@ class PaymentController extends Controller
 
                 $order->save();
             }
+
+            // Automated Activity Logging
+            Activity::create([
+                'user_id' => Auth::id(),
+                'action' => 'process_payment',
+                'details' => "Processed payment for Order #{$order->id} - Amount: {$payment->amount} ({$payment->payment_method})",
+                'status' => 'info',
+                'related_id' => $payment->id,
+                'related_model' => Payment::class,
+            ]);
 
             DB::commit();
 
@@ -120,6 +132,11 @@ class PaymentController extends Controller
 
     public function destroy(Payment $payment)
     {
+        if (Auth::user()->role !== 'admin' && Auth::user()->role !== 'manager') {
+            return redirect()->route('payments.index')
+                ->with('error', 'Unauthorized action.');
+        }
+
         // Only allow refunding payments if the order is not completed
         if ($payment->order->status === 'completed') {
             return redirect()->route('payments.index')
@@ -137,6 +154,16 @@ class PaymentController extends Controller
             $order = $payment->order;
             $order->payment_status = 'refunded';
             $order->save();
+
+            // Automated Activity Logging
+            Activity::create([
+                'user_id' => Auth::id(),
+                'action' => 'refund_payment',
+                'details' => "Refunded payment for Order #{$order->id} - Amount: {$payment->amount}",
+                'status' => 'warning', // Warning for refund actions
+                'related_id' => $payment->id,
+                'related_model' => Payment::class,
+            ]);
 
             DB::commit();
 

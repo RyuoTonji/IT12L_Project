@@ -22,6 +22,9 @@ class DashboardController extends Controller
         // Get total orders for today
         $todayOrders = Order::whereDate('created_at', today())->count();
 
+        // Get active orders (not completed or cancelled)
+        $activeOrders = Order::whereNotIn('status', ['completed', 'cancelled'])->count();
+
         // Get top selling items
         $topSellingItems = MenuItem::select('menu_items.name', DB::raw('SUM(order_items.quantity) as total_quantity'))
             ->join('order_items', 'menu_items.id', '=', 'order_items.menu_item_id')
@@ -29,6 +32,12 @@ class DashboardController extends Controller
             ->orderByDesc('total_quantity')
             ->limit(5)
             ->get();
+
+        // Get available menu items count
+        $menuItemsCount = MenuItem::where('is_available', true)->count();
+
+        // Get new stock items (added in last 7 days)
+        $newStockItems = Inventory::where('created_at', '>=', now()->subDays(7))->get();
 
         // Get recent orders
         $recentOrders = Order::with(['user', 'table'])
@@ -43,9 +52,12 @@ class DashboardController extends Controller
         return view('admin.dashboard', compact(
             'todaySales',
             'todayOrders',
+            'activeOrders',
             'topSellingItems',
             'recentOrders',
-            'lowStockItems'
+            'lowStockItems',
+            'menuItemsCount',
+            'newStockItems'
         ));
     }
 }

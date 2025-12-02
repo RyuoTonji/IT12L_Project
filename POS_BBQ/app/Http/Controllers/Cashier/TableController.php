@@ -38,14 +38,16 @@ class TableController extends Controller
     {
         // Get active order for this table if any
         $activeOrder = Order::where('table_id', $table->id)
-                    ->whereIn('status', ['new', 'preparing', 'ready', 'served'])
-                    ->with(['orderItems.menuItem'])
-                    ->first();
+            ->whereIn('status', ['new', 'preparing', 'ready', 'served'])
+            ->with(['orderItems.menuItem'])
+            ->first();
 
         // Get menu categories and items for creating new orders
-        $categories = Category::with(['menuItems' => function ($query) {
-            $query->where('is_available', true);
-        }])->get();
+        $categories = Category::with([
+            'menuItems' => function ($query) {
+                $query->where('is_available', true);
+            }
+        ])->get();
 
         return view('cashier.tables.show', compact('table', 'activeOrder', 'categories'));
     }
@@ -70,15 +72,8 @@ class TableController extends Controller
 
     public function destroy(Table $table)
     {
-        // Check if table has any orders
-        $hasOrders = $table->orders()->exists();
-
-        if ($hasOrders) {
-            return redirect()->route('tables.index')->with('error', 'Cannot delete table as it has associated orders');
-        }
-
         $table->delete();
 
-        return redirect()->route('tables.index')->with('success', 'Table deleted successfully');
+        return redirect()->route('tables.index')->with('success', 'Table archived successfully');
     }
 }

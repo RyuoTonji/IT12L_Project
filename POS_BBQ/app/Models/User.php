@@ -6,11 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\LogsDeletes;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes, LogsDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -61,5 +63,15 @@ class User extends Authenticatable
     public function isCashier()
     {
         return $this->role === 'cashier';
+    }
+
+    public function isManager()
+    {
+        return $this->role === 'manager';
+    }
+
+    public function isInventory()
+    {
+        return $this->role === 'inventory';
     }
 }

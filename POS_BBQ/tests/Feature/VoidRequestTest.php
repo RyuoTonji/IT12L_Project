@@ -1,0 +1,93 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Order;
+use App\Models\User;
+use App\Models\VoidRequest;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class VoidRequestTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_cashier_can_request_void()
+    {
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $order = Order::factory()->create(['user_id' => $cashier->id, 'status' => 'new']);
+
+        $response = $this->actingAs($cashier)
+            ->post(route('orders.request-void', $order), [
+                'reason' => 'Customer changed mind',
+            ]);
+
+        $response->assertSessionHas('success');
+        $this->assertDatabaseHas('void_requests', [
+            'order_id' => $order->id,
+            'requester_id' => $cashier->id,
+            'reason' => 'Customer changed mind',
+            'status' => 'pending',
+        ]);
+    }
+
+    public function test_manager_can_approve_void_request()
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $order = Order::factory()->create(['user_id' => $cashier->id, 'status' => 'new']);
+
+        $voidRequest = VoidRequest::create([
+            'order_id' => $order->id,
+            'requester_id' => $cashier->id,
+            'reason' => 'Mistake',
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($manager)
+            ->post(route('manager.void-requests.approve', $voidRequest));
+
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('void_requests', [
+            'id' => $voidRequest->id,
+            'status' => 'approved',
+            'approver_id' => $manager->id,
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => 'cancelled',
+        ]);
+    }
+
+    public function test_manager_can_reject_void_request()
+    {
+        $manager = User::factory()->create(['role' => 'manager']);
+        $cashier = User::factory()->create(['role' => 'cashier']);
+        $order = Order::factory()->create(['user_id' => $cashier->id, 'status' => 'new']);
+
+        $voidRequest = VoidRequest::create([
+            'order_id' => $order->id,
+            'requester_id' => $cashier->id,
+            'reason' => 'Mistake',
+            'status' => 'pending',
+        ]);
+
+        $response = $this->actingAs($manager)
+            ->post(route('manager.void-requests.reject', $voidRequest));
+
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('void_requests', [
+            'id' => $voidRequest->id,
+            'status' => 'rejected',
+            'approver_id' => $manager->id,
+        ]);
+
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'status' => 'new', // Status should not change
+        ]);
+    }
+}
