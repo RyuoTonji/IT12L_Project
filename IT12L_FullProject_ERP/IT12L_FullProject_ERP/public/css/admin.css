@@ -1,0 +1,356 @@
+/* ============================================================================
+   ADMIN PANEL - STYLES
+   ============================================================================ */
+
+/* ============================================================================
+   ADMIN LAYOUT
+   ============================================================================ */
+.admin-sidebar {
+    background: #2c3e50;
+    color: white;
+    min-height: 100vh;
+    padding: 20px 0;
+}
+
+.admin-sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.admin-sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+}
+
+/* ============================================================================
+   STATISTICS CARDS
+   ============================================================================ */
+.stat-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.stat-card .stat-icon {
+    opacity: 0.5;
+}
+
+.stat-card h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.stat-card h6 {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ============================================================================
+   ADMIN TABLES
+   ============================================================================ */
+.admin-table {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.admin-table thead {
+    background: #f8f9fa;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    letter-spacing: 0.5px;
+}
+
+.admin-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.admin-table .action-buttons {
+    white-space: nowrap;
+}
+
+.admin-table .action-buttons .btn {
+    margin: 0 2px;
+}
+
+/* ============================================================================
+   ADMIN FORMS
+   ============================================================================ */
+.admin-form .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.admin-form .form-control,
+.admin-form .form-select {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    padding: 0.625rem 0.875rem;
+}
+
+.admin-form .form-control:focus,
+.admin-form .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
+}
+
+/* ============================================================================
+   ADMIN CARDS
+   ============================================================================ */
+.admin-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.admin-card .card-header {
+    border-radius: 10px 10px 0 0;
+    font-weight: 600;
+    padding: 1rem 1.25rem;
+}
+
+/* ============================================================================
+   STATUS BADGES
+   ============================================================================ */
+.status-badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+
+/* ============================================================================
+   IMAGE PREVIEW
+   ============================================================================ */
+.image-preview-container {
+    position: relative;
+    display: inline-block;
+}
+
+.image-preview {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-remove-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #dc3545;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.image-remove-btn:hover {
+    background: #c82333;
+}
+
+/* ============================================================================
+   ACTION BUTTONS
+   ============================================================================ */
+.btn-group-action {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+/* ============================================================================
+   DATA TABLES
+   ============================================================================ */
+.datatable-wrapper {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.datatable-search {
+    max-width: 300px;
+    margin-bottom: 1rem;
+}
+
+/* ============================================================================
+   FILTERS
+   ============================================================================ */
+.filter-bar {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.filter-bar .form-control,
+.filter-bar .form-select {
+    max-width: 200px;
+}
+
+/* ============================================================================
+   MODALS
+   ============================================================================ */
+.modal-header {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.modal-footer {
+    background: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+/* ============================================================================
+   CHARTS
+   ============================================================================ */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 2rem;
+}
+
+/* ============================================================================
+   LOADING OVERLAY
+   ============================================================================ */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-overlay .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* ============================================================================
+   ALERTS
+   ============================================================================ */
+.admin-alert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   BREADCRUMBS
+   ============================================================================ */
+.admin-breadcrumb {
+    background: white;
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   PAGINATION
+   ============================================================================ */
+.pagination {
+    margin-bottom: 0;
+}
+
+.pagination .page-link {
+    color: #0d6efd;
+    border-radius: 6px;
+    margin: 0 2px;
+    border: 1px solid #dee2e6;
+}
+
+.pagination .page-link:hover {
+    background-color: #e9ecef;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+@media (max-width: 768px) {
+    .stat-card h2 {
+        font-size: 1.75rem;
+    }
+    
+    .admin-table {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group-action {
+        flex-direction: column;
+    }
+    
+    .filter-bar .form-control,
+    .filter-bar .form-select {
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* ============================================================================
+   UTILITIES
+   ============================================================================ */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.hover-shadow:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+}

@@ -16,18 +16,59 @@
 </head>
 <body class="bg-light">
     <!-- Simple Navigation for Guests -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="{{ route('home') }}">
-                <i class="fas fa-utensils"></i> BBQ Lagao & Beef Pares
-            </a>
-            
-            <div class="ms-auto">
-                <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm me-2">Login</a>
-                <a href="{{ route('register') }}" class="btn btn-light btn-sm">Register</a>
-            </div>
+   <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #A52A2A;">
+    <div class="container">
+        {{-- Brand --}}
+        <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
+            <img src="{{ asset('images/logo3.png') }}" alt="BBQ-Lagao Logo"
+                 style="max-width: 50px; height: auto !important;" class="me-2">
+            <span class="fw-semibold">BBQ Lagao & Beef Pares</span>
+        </a>
+
+        {{-- Toggler for mobile --}}
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#guestNavbar"
+                aria-controls="guestNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        {{-- Collapsible links --}}
+        <div class="collapse navbar-collapse" id="guestNavbar">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                {{-- Home --}}
+                <li class="nav-item">
+                    <a class="nav-link text-center text-lg-start" href="{{ route('home') }}">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                </li>
+
+                {{-- Cart --}}
+                <li class="nav-item">
+                    <a class="nav-link cart-link position-relative text-center text-lg-start"
+                       href="{{ route('cart.index') }}">
+                        <i class="fas fa-shopping-cart fa-lg"></i>
+                        <span class="cart-count" id="cart-count">0</span>
+                    </a>
+                </li>
+
+                {{-- Login --}}
+                <li class="nav-item">
+                    <a href="{{ route('login') }}" class="nav-link text-center text-lg-start">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </a>
+                </li>
+
+                {{-- Register --}}
+                <li class="nav-item">
+                    <a href="{{ route('register') }}" class="nav-link text-center text-lg-start">
+                        <i class="fas fa-user-plus"></i> Register
+                    </a>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
+
 
     <!-- Flash Messages -->
     @if(session('success'))

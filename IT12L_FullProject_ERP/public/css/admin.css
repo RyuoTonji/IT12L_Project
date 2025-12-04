@@ -114,7 +114,7 @@
 
 .admin-form .form-control:focus,
 .admin-form .form-select:focus {
-    border-color: #0d6efd;
+    border-color: #A52A2A;
     box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1);
 }
 
@@ -299,7 +299,7 @@
 }
 
 .pagination .page-link {
-    color: #0d6efd;
+    color: #A52A2A;
     border-radius: 6px;
     margin: 0 2px;
     border: 1px solid #dee2e6;
@@ -310,8 +310,8 @@
 }
 
 .pagination .page-item.active .page-link {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
+    background-color: #A52A2A;
+    border-color: #A52A2A;
 }
 
 /* ============================================================================
