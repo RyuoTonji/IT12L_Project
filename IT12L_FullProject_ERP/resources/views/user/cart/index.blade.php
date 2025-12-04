@@ -21,7 +21,7 @@
                 <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
                 <h4>Your cart is empty</h4>
                 <p class="text-muted">Start adding some delicious items!</p>
-                <a href="{{ route('home') }}" class="btn btn-primary">
+                <a href="{{ route('home') }}" class="btn btn-maroon">
                     <i class="fas fa-utensils"></i> Browse Menu
                 </a>
             </div>
@@ -62,7 +62,7 @@
 
             <div class="col-lg-4">
                 <div class="card sticky-top" style="top: 20px;">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header text-white" style="background-color: #A52A2A;">
                         <h5 class="mb-0">Order Summary</h5>
                     </div>
                     <div class="card-body">
@@ -75,7 +75,7 @@
                         
                         <div class="d-flex justify-content-between mb-3">
                             <strong>Total:</strong>
-                            <strong class="text-primary fs-4" id="cart-total-final">₱0.00</strong>
+                            <strong class="cart-total-final fs-4" id="cart-total-final">₱0.00</strong>
                         </div>
 
                         <div id="checkout-section">
@@ -84,7 +84,7 @@
                                     <form action="{{ route('checkout.index') }}" method="POST" id="checkout-form">
                                         @csrf
                                         <input type="hidden" name="cart_items" id="cart_items_hidden" value="">
-                                        <button type="submit" class="btn btn-primary w-100 btn-lg" id="checkout-btn">
+                                        <button type="submit" class="btn btn-maroon w-100 btn-lg" id="checkout-btn">
                                             <i class="fas fa-credit-card"></i> Proceed to Checkout
                                         </button>
                                     </form>
@@ -97,10 +97,11 @@
                                 <div class="alert alert-info mb-3">
                                     <i class="fas fa-info-circle"></i> Please login to checkout
                                 </div>
-                                <a href="{{ route('login') }}?redirect=checkout" class="btn btn-primary w-100 mb-2">
+                                <a href="{{ route('login') }}?redirect=checkout" class="btn btn-maroon w-100 mb-2">
                                     <i class="fas fa-sign-in-alt"></i> Login to Checkout
                                 </a>
-                                <a href="{{ route('register') }}" class="btn btn-outline-primary w-100 mb-2">
+
+                                <a href="{{ route('register') }}" class="btn btn-maroon-outline w-100 mb-2">
                                     <i class="fas fa-user-plus"></i> Register New Account
                                 </a>
                             @endauth

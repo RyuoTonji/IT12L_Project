@@ -1,12 +1,14 @@
 @extends('layouts.app')
+<link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
 
 @section('content')
-<div class="container my-4">
+<div class="container my-4" style="border-color: #A52A2A;">
     <!-- Branch Header -->
     <div class="card mb-4">
         <div class="card-body">
-            <h2>
-                <i class="fas fa-store text-primary"></i> {{ $branch->name }}
+            <h2 style="color: #A52A2A;">
+                <i class="fas fa-store" style="color: #A52A2A;"></i> {{ $branch->name }}
             </h2>
             <p class="mb-0">
                 <i class="fas fa-map-marker-alt text-danger"></i> {{ $branch->address }} | 
@@ -15,24 +17,40 @@
         </div>
     </div>
 
-    <!-- Category Filter -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5><i class="fas fa-filter"></i> Filter by Category</h5>
-            <div class="btn-group flex-wrap" role="group">
-                <a href="{{ route('browse', $branch->id) }}" 
-                   class="btn btn-outline-primary {{ !request('category') ? 'active' : '' }}">
-                    All Items
-                </a>
-                @foreach($categories as $category)
-                <a href="{{ url('/browse/' . $branch->id . '/category/' . $category->id) }}" 
-                   class="btn btn-outline-primary {{ request('category') == $category->id ? 'active' : '' }}">
-                    {{ $category->name }}
-                </a>
-                @endforeach
-            </div>
+   <!-- Category Filter -->
+@php
+    // Grab the category from the URL segment
+    $currentCategory = request()->segment(4);
+@endphp
+
+<!-- Category Filter -->
+<div class="card mb-4" style="border-color:#A52A2A;">
+    <div class="card-body">
+        <h5 style="color:#A52A2A;">
+            <i class="fas fa-filter" style="color:#A52A2A;"></i> Filter by Category
+        </h5>
+
+        <div class="btn-group flex-wrap" role="group">
+
+            <!-- All Items -->
+            <a href="{{ route('browse', $branch->id) }}"
+               class="btn {{ !$currentCategory ? 'btn-maroon-active' : 'btn-maroon-outline' }}">
+                All Items
+            </a>
+
+            <!-- Dynamic Categories -->
+            @foreach($categories as $category)
+            <a href="{{ url('/browse/' . $branch->id . '/category/' . $category->id) }}"
+               class="btn {{ $currentCategory == $category->id ? 'btn-maroon-active' : 'btn-maroon-outline' }}">
+                {{ $category->name }}
+            </a>
+            @endforeach
+
         </div>
     </div>
+</div>
+
+
 
     <!-- Products Grid -->
     <div class="row">
@@ -57,10 +75,10 @@
                         <i class="fas fa-tag"></i> {{ $product->category_name }}
                     </p>
                     <div class="mt-auto">
-                        <h4 class="text-primary mb-3">₱{{ number_format($product->price, 2) }}</h4>
+                        <h4 class="text-maroon mb-3">₱{{ number_format($product->price, 2) }}</h4>
                         
                         @if($product->is_available)
-                        <button class="btn btn-primary w-100 add-to-cart-btn" 
+                        <button class="btn btn-maroon w-100 add-to-cart-btn" 
                                 data-product="{{ json_encode([
                                     'id' => $product->id,
                                     'name' => $product->name,

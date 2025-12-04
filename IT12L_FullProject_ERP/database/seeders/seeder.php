@@ -48,62 +48,62 @@ try {
     // Products for both branches (branch_id: 1 and 2)
     $products = [
         // Rice Meals (category_id: 1)
-        [1, 1, 'Chicken BBQ with Rice', 99.00, null, 1],
-        [1, 1, 'Pork BBQ with Rice', 99.00, null, 1],
-        [1, 1, 'Beef Tapa with Rice', 120.00, null, 1],
-        [1, 1, 'Sisig with Rice', 110.00, null, 1],
+        [1, 1, 'Chicken BBQ with Rice', 99.00, 'products/chickenrice.png', 1],
+        [1, 1, 'Pork BBQ with Rice', 99.00, 'products/porkrice.png', 1],
+        [1, 1, 'Beef Tapa with Rice', 120.00, 'products/taparice.png', 1],
+        [1, 1, 'Sisig with Rice', 110.00, 'products/sisig.png', 1],
         
-        [2, 1, 'Chicken BBQ with Rice', 99.00, null, 1],
-        [2, 1, 'Pork BBQ with Rice', 99.00, null, 1],
-        [2, 1, 'Beef Tapa with Rice', 120.00, null, 1],
-        [2, 1, 'Sisig with Rice', 110.00, null, 1],
+        [2, 1, 'Chicken BBQ with Rice', 99.00, 'products/chickenrice.png', 1],
+        [2, 1, 'Pork BBQ with Rice', 99.00, 'products/porkrice.png', 1],
+        [2, 1, 'Beef Tapa with Rice', 120.00, 'products/taparice.png', 1],
+        [2, 1, 'Sisig with Rice', 110.00, 'products/sisig.png', 1],
         
         // Barbecue (category_id: 2)
-        [1, 2, 'Pork Isaw (Grilled pork intestines)', 65.00, null, 1],
-        [1, 2, 'Adidas (Grilled chicken feet)', 120.00, null, 1],
-        [1, 2, 'Chicken Isaw (Grilled chicken intestines)', 150.00, null, 1],
+        [1, 2, 'Pork Isaw (Grilled pork intestines)', 65.00, 'products/isaw.png', 1],
+        [1, 2, 'Adidas (Grilled chicken feet)', 120.00, 'products/adidas.png', 1],
+        [1, 2, 'Chicken Isaw (Grilled chicken intestines)', 150.00, 'products/chickenisaw.png', 1],
         
-        [2, 2, 'Pork Isaw (Grilled pork intestines)', 65.00, null, 1],
-        [2, 2, 'Adidas (Grilled chicken feet)', 120.00, null, 1],
-        [2, 2, 'Chicken Isaw (Grilled chicken intestines)', 150.00, null, 1],
+        [2, 2, 'Pork Isaw (Grilled pork intestines)', 65.00, 'products/isaw.png', 1],
+        [2, 2, 'Adidas (Grilled chicken feet)', 120.00, 'products/adidas.png', 1],
+        [2, 2, 'Chicken Isaw (Grilled chicken intestines)', 150.00, 'products/chickenisaw.png', 1],
         
         // Pares (category_id: 3)
-        [1, 3, 'Pares Classic', 85.00, null, 1],
-        [1, 3, 'Beef Pares (House Special)', 95.00, null, 1],
-        [1, 3, 'Pares Overload', 110.00, null, 1],
+        [1, 3, 'Pares Classic', 85.00, 'products/paresclassic.png', 1],
+        [1, 3, 'Beef Pares (House Special)', 95.00, 'products/paresspecial.png', 1],
+        [1, 3, 'Pares Overload', 110.00, 'products/overload.png', 1],
         
-        [2, 3, 'Pares Classic', 85.00, null, 1],
-        [2, 3, 'Beef Pares (House Special)', 95.00, null, 1],
-        [2, 3, 'Pares Overload', 110.00, null, 1],
+        [2, 3, 'Pares Classic', 85.00, 'products/paresclassic.png', 1],
+        [2, 3, 'Beef Pares (House Special)', 95.00, 'products/paresspecial.png', 1],
+        [2, 3, 'Pares Overload', 110.00, 'products/overload.png', 1],
         
         // Beverages (category_id: 4)
-        [1, 6, 'Iced Tea', 35.00, null, 1],
-        [1, 6, 'Coke', 40.00, null, 1],
-        [1, 6, 'Sprite', 40.00, null, 1],
-        [1, 6, 'Bottled Water', 25.00, null, 1],
+        [1, 6, 'Iced Tea', 35.00, 'products/icedtea.png', 1],
+        [1, 6, 'Coke', 40.00, 'products/coke.png', 1],
+        [1, 6, 'Sprite', 40.00, 'products/sprite.png', 1],
+        [1, 6, 'Bottled Water', 25.00, 'products/water.png', 1],
         
-        [2, 6, 'Iced Tea', 35.00, null, 1],
-        [2, 6, 'Coke', 40.00, null, 1],
-        [2, 6, 'Sprite', 40.00, null, 1],
-        [2, 6, 'Bottled Water', 25.00, null, 1],
+        [2, 6, 'Iced Tea', 35.00, 'products/icedtea.png', 1],
+        [2, 6, 'Coke', 40.00, 'products/coke.png', 1],
+        [2, 6, 'Sprite', 40.00, 'products/sprite.png', 1],
+        [2, 6, 'Bottled Water', 25.00, 'products/water.png', 1],
         
         // Sides (category_id: 5)
-        [1, 5, 'French Fries', 50.00, null, 1],
-        [1, 5, 'Onion Rings', 60.00, null, 1],
-        [1, 5, 'Coleslaw', 40.00, null, 1],
+        [1, 5, 'French Fries', 50.00, 'products/fries.png', 1],
+        [1, 5, 'Onion Rings', 60.00, 'products/onion.png', 1],
+        [1, 5, 'Coleslaw', 40.00, 'products/coleslaw.png', 1],
         
-        [2, 5, 'French Fries', 50.00, null, 1],
-        [2, 5, 'Onion Rings', 60.00, null, 1],
-        [2, 5, 'Coleslaw', 40.00, null, 1],
+        [2, 5, 'French Fries', 50.00, 'products/fries.png', 1],
+        [2, 5, 'Onion Rings', 60.00, 'products/onion.png', 1],
+        [2, 5, 'Coleslaw', 40.00, 'products/coleslaw.png', 1],
                
         // Desserts (category_id: 6)
-        [1, 7, 'Halo-Halo', 80.00, null, 1],
-        [1, 7, 'Ice Cream Sundae', 70.00, null, 1],
-        [1, 7, 'Leche Flan', 60.00, null, 1],
+        [1, 7, 'Halo-Halo', 80.00, 'products/halohalo.png', 1],
+        [1, 7, 'Ice Cream Sundae', 70.00, 'products/sundae.png', 1],
+        [1, 7, 'Leche Flan', 60.00, 'products/leche.png', 1],
         
-        [2, 7, 'Halo-Halo', 80.00, null, 1],
-        [2, 7, 'Ice Cream Sundae', 70.00, null, 1],
-        [2, 7, 'Leche Flan', 60.00, null, 1]
+        [2, 7, 'Halo-Halo', 80.00, 'products/halohalo.png', 1],
+        [2, 7, 'Ice Cream Sundae', 70.00, 'products/sundae.png', 1],
+        [2, 7, 'Leche Flan', 60.00, 'products/leche.png', 1]
     ];
 
     $stmt = $db->prepare("INSERT INTO products (branch_id, category_id, name, price, image, is_available) 

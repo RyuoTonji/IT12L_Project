@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
     
     <!-- User Meta Tags for Cart System - REQUIRED -->
     @auth
@@ -51,11 +53,15 @@
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark {{ auth()->check() && auth()->user()->is_admin ? 'bg-dark' : 'bg-primary' }}">
-        <div class="container{{ auth()->check() && auth()->user()->is_admin ? '-fluid' : '' }}">
-            <a class="navbar-brand" href="{{ auth()->check() && auth()->user()->is_admin ? route('admin.dashboard') : route('home') }}">
-                <i class="fas fa-utensils"></i> {{ auth()->check() && auth()->user()->is_admin ? 'Admin Panel' : 'BBQ Lagao & Beef Pares' }}
-            </a>
+    <nav class="navbar navbar-expand-lg navbar-dark"
+     style="{{ auth()->check() && auth()->user()->is_admin ? 'background-color: #000;' : 'background-color: #A52A2A;' }}">
+    <div class="container{{ auth()->check() && auth()->user()->is_admin ? '-fluid' : '' }}">
+        <a class="navbar-brand" href="{{ auth()->check() && auth()->user()->is_admin ? route('admin.dashboard') : route('home') }}">
+            <img src="{{ asset('images/logo3.png') }}" alt="BBQ-Lagao Logo" 
+         style="max-width: 50px; height: auto !important;"> 
+            {{ auth()->check() && auth()->user()->is_admin ? 'Admin Panel' : 'BBQ Lagao & Beef Pares' }}
+        </a>
+
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>

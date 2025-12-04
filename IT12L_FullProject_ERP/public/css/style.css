@@ -5,9 +5,10 @@
 /* ============================================================================
    GLOBAL STYLES
    ============================================================================ */
+    /* Main theme color */
 :root {
-    --primary-color: #0d6efd;
-    --secondary-color: #6c757d;
+    --primary-color: #A52A2A;
+    --primary-color-dark: #822222;
     --success-color: #198754;
     --danger-color: #dc3545;
     --warning-color: #ffc107;
@@ -113,16 +114,69 @@ body {
     color: var(--dark-color);
     min-height: 2.5rem;
 }
+.btn-maroon-outline {
+    border: 1px solid #A52A2A !important;
+    color: #A52A2A !important;
+    background-color: transparent !important;
+}
+
+.btn-maroon-outline:hover {
+    background-color: #A52A2A !important;
+    color: white !important;
+}
+
+.btn-maroon-active {
+    background-color: #A52A2A !important;
+    color: white !important;
+    border: 1px solid #A52A2A !important;
+}
+/* Base maroon button */
+.btn-maroon {
+    background-color: #A52A2A !important;
+    color: white !important;
+    border: 1px solid #A52A2A !important;
+}
+
+/* Maroon on hover */
+.btn-maroon:hover {
+    background-color: #8B0000 !important;
+    color: white !important;
+}
+
+/* Outline button */
+.btn-maroon-outline {
+    background-color: white !important;
+    color: #A52A2A !important;
+    border: 1px solid #A52A2A !important;
+}
+
+.btn-maroon-outline:hover {
+    background-color: #A52A2A !important;
+    color: white !important;
+}
+
+/* Active button (selected category) */
+.btn-maroon-active {
+    background-color: #A52A2A !important;
+    color: white !important;
+    border: 1px solid #A52A2A !important;
+}
+
+/* Keep active state even on hover */
+.btn-maroon-active:hover {
+    background-color: #8B0000 !important;
+    color: white !important;
+}
+.text-maroon {
+    color: #A52A2A !important;
+}
+
+
 
 /* ============================================================================
    CATEGORY FILTERS
    ============================================================================ */
-.btn-outline-primary:hover,
-.btn-outline-primary.active {
-    background-color: var(--primary-color);
-    color: white;
-    transform: translateY(-2px);
-}
+
 
 /* ============================================================================
    CART STYLES
@@ -150,6 +204,18 @@ body {
     position: sticky;
     top: 20px;
 }
+/* Make totals match maroon theme */
+.cart-total,
+.cart-total-final,
+.price-maroon {
+    color: #A52A2A !important;
+    font-weight: bold;
+}
+.subtotal {
+    color: #000 !important;
+    font-weight: bold;
+}
+
 
 /* ============================================================================
    ORDER STATUS BADGES
