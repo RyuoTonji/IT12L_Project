@@ -5,8 +5,26 @@
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Menu Items Report</h1>
-                <a href="{{ route('admin.reports') }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Reports</a>
+                <div>
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export PDF
+                    </button>
+                    <a href="{{ route('admin.reports') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
+                </div>
             </div>
 
             <!-- Date Range Filter -->
@@ -25,8 +43,15 @@
                     </div>
 
                     <div>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply
-                            Filter</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V4z" />
+                            </svg>
+                            Apply Filter
+                        </button>
                     </div>
                 </form>
             </div>
@@ -139,13 +164,13 @@
                         @foreach($categories as $category)
                             '{{ $category->name }}',
                         @endforeach
-                        ],
+                                    ],
                     datasets: [{
                         data: [
                             @foreach($categories as $category)
                                 {{ $category->total_sales }},
                             @endforeach
-                            ],
+                                        ],
                         backgroundColor: [
                             'rgba(59, 130, 246, 0.7)',
                             'rgba(16, 185, 129, 0.7)',
@@ -185,5 +210,18 @@
                 }
             });
         });
+
+        function showExportConfirmation() {
+            const startDate = '{{ $startDate }}';
+            const endDate = '{{ $endDate }}';
+            AlertModal.showConfirm(
+                'Are you sure you want to export this items report as PDF?',
+                function () {
+                    window.location.href = `/export/items?start_date=${startDate}&end_date=${endDate}`;
+                },
+                null,
+                'Export Confirmation'
+            );
+        }
     </script>
 @endsection

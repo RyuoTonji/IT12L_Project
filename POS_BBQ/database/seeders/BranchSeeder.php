@@ -12,20 +12,24 @@ class BranchSeeder extends Seeder
      */
     public function run(): void
     {
-        Branch::create([
-            'name' => 'Branch 1',
-            'code' => 'BR1',
-            'address' => 'Main Street, City Center',
-            'phone' => '(123) 456-7890',
-            'is_active' => true,
-        ]);
+        Branch::firstOrCreate(
+            ['code' => 'BR1'],
+            [
+                'name' => 'Branch 1',
+                'address' => 'Corner Ulha Village, Ulas Davao City, Davao Del Sur 8000',
+                'phone' => '(123) 456-7890',
+                'is_active' => true,
+            ]
+        );
 
-        Branch::create([
-            'name' => 'Branch 2',
-            'code' => 'BR2',
-            'address' => 'Second Avenue, Downtown',
-            'phone' => '(123) 456-7891',
-            'is_active' => true,
-        ]);
+        Branch::firstOrCreate(
+            ['code' => 'BR2'],
+            [
+                'name' => 'Branch 2',
+                'address' => 'Second Avenue, Downtown',
+                'phone' => '(123) 456-7891',
+                'is_active' => true,
+            ]
+        );
     }
 }

@@ -6,7 +6,14 @@
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Create New Order</h1>
                 <a href="{{ route('orders.index') }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Orders</a>
+                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Orders
+                </a>
             </div>
 
             @if(session('error'))
@@ -143,9 +150,20 @@
 
                 {{-- done --}}
                 <div class="flex justify-end">
-                    <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
-                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700" id="submit_order">Create
-                        Order</button>
+                    <button type="button"
+                        onclick="showConfirm('Are you sure you want to cancel this order?', function() { window.location.href='{{ route('cashier.dashboard') }}' })"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex"
+                        id="submit_order">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Create Order
+                    </button>
                 </div>
             </form>
         </div>
@@ -225,20 +243,20 @@
                         newRow.dataset.price = itemPrice;
 
                         newRow.innerHTML = `
-                            <td class="py-2 px-4">${itemName}</td>
-                            <td class="py-2 px-4 text-right">₱${itemPrice.toFixed(2)}</td>
-                            <td class="py-2 px-4 text-center">
-                                <input type="number" name="items[${itemId}][quantity]" value="1" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                <input type="hidden" name="items[${itemId}][menu_item_id]" value="${itemId}">
-                            </td>
-                            <td class="py-2 px-4">
-                                <input type="text" name="items[${itemId}][notes]" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                            </td>
-                            <td class="py-2 px-4 text-right item-subtotal">₱${itemPrice.toFixed(2)}</td>
-                            <td class="py-2 px-4 text-center">
-                                <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
-                            </td>
-                        `;
+                                            <td class="py-2 px-4">${itemName}</td>
+                                            <td class="py-2 px-4 text-right">₱${itemPrice.toFixed(2)}</td>
+                                            <td class="py-2 px-4 text-center">
+                                                <input type="number" name="items[${itemId}][quantity]" value="1" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                                <input type="hidden" name="items[${itemId}][menu_item_id]" value="${itemId}">
+                                            </td>
+                                            <td class="py-2 px-4">
+                                                <input type="text" name="items[${itemId}][notes]" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                            </td>
+                                            <td class="py-2 px-4 text-right item-subtotal">₱${itemPrice.toFixed(2)}</td>
+                                            <td class="py-2 px-4 text-center">
+                                                <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
+                                            </td>
+                                        `;
 
                         selectedItemsContainer.appendChild(newRow);
 
@@ -301,45 +319,49 @@
 
             // Form submission validation
             orderForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
                 const items = selectedItemsContainer.querySelectorAll('tr[data-id]');
                 if (items.length === 0) {
-                    e.preventDefault();
                     alert('Please add at least one item to the order');
                     return;
                 }
 
                 if (orderType.value === 'dine-in' && !tableId.value) {
-                    e.preventDefault();
                     alert('Please select a table for dine-in orders');
                     return;
                 }
 
-                // Convert the form data to the expected format
-                items.forEach((item, index) => {
-                    const itemId = item.dataset.id;
-                    const quantityInput = item.querySelector('.quantity-input');
-                    const notesInput = item.querySelector('input[name^="items"][name$="[notes]"]');
+                showConfirm('Are you sure you want to save these changes?', function () {
+                    // Convert the form data to the expected format
+                    items.forEach((item, index) => {
+                        const itemId = item.dataset.id;
+                        const quantityInput = item.querySelector('.quantity-input');
+                        const notesInput = item.querySelector('input[name^="items"][name$="[notes]"]');
 
-                    // Create new inputs with the correct array format
-                    const menuItemIdInput = document.createElement('input');
-                    menuItemIdInput.type = 'hidden';
-                    menuItemIdInput.name = `items[${index}][menu_item_id]`;
-                    menuItemIdInput.value = itemId;
+                        // Create new inputs with the correct array format
+                        const menuItemIdInput = document.createElement('input');
+                        menuItemIdInput.type = 'hidden';
+                        menuItemIdInput.name = `items[${index}][menu_item_id]`;
+                        menuItemIdInput.value = itemId;
 
-                    const quantityNewInput = document.createElement('input');
-                    quantityNewInput.type = 'hidden';
-                    quantityNewInput.name = `items[${index}][quantity]`;
-                    quantityNewInput.value = quantityInput.value;
+                        const quantityNewInput = document.createElement('input');
+                        quantityNewInput.type = 'hidden';
+                        quantityNewInput.name = `items[${index}][quantity]`;
+                        quantityNewInput.value = quantityInput.value;
 
-                    const notesNewInput = document.createElement('input');
-                    notesNewInput.type = 'hidden';
-                    notesNewInput.name = `items[${index}][notes]`;
-                    notesNewInput.value = notesInput.value;
+                        const notesNewInput = document.createElement('input');
+                        notesNewInput.type = 'hidden';
+                        notesNewInput.name = `items[${index}][notes]`;
+                        notesNewInput.value = notesInput.value;
 
-                    // Append new inputs to the form
-                    orderForm.appendChild(menuItemIdInput);
-                    orderForm.appendChild(quantityNewInput);
-                    orderForm.appendChild(notesNewInput);
+                        // Append new inputs to the form
+                        orderForm.appendChild(menuItemIdInput);
+                        orderForm.appendChild(quantityNewInput);
+                        orderForm.appendChild(notesNewInput);
+                    });
+
+                    orderForm.submit();
                 });
             });
         });

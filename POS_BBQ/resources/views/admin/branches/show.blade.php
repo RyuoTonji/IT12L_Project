@@ -2,41 +2,53 @@
 
 @section('content')
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-        <div class="p-8 text-gray-900">
-            <div class="flex justify-between items-center mb-8">
+        <div class="p-6 text-gray-900">
+            <div class="flex justify-between items-center mb-6">
                 <div>
-                    <h1 class="text-2xl font-semibold">{{ $branch->name }} Operations</h1>
-                    <p class="text-gray-600">{{ $branch->code }} - {{ $branch->address }}</p>
+                    <h1 class="text-2xl font-semibold text-gray-800">{{ $branch->name }} Operations</h1>
+                    <p class="text-sm text-gray-600">{{ $branch->address }} | {{ $branch->phone }}</p>
                 </div>
-                <a href="{{ route('admin.branches.index') }}" class="text-blue-600 hover:text-blue-800">
-                    ← Back to Branches
-                </a>
-            </div>
-
-            <!-- Branch Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-blue-100 p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-medium text-blue-800">Today's Sales</h3>
-                    <p class="text-3xl font-bold text-blue-900 mt-2">₱{{ number_format($todaySales, 2) }}</p>
-                </div>
-                <div class="bg-green-100 p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-medium text-green-800">Today's Orders</h3>
-                    <p class="text-3xl font-bold text-green-900 mt-2">{{ $todayOrders }}</p>
-                </div>
-                <div class="bg-yellow-100 p-6 rounded-lg shadow">
-                    <h3 class="text-lg font-medium text-yellow-800">Active Orders</h3>
-                    <p class="text-3xl font-bold text-yellow-900 mt-2">{{ $activeOrders->count() }}</p>
+                <div>
+                    <a href="{{ route('admin.branches.index') }}"
+                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to List
+                    </a>
                 </div>
             </div>
 
-            <!-- Tabs for different operations -->
-            <div x-data="{ activeTab: 'orders' }" class="mt-8">
-                <div class="border-b border-gray-200">
+            <!-- Branch Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <p class="text-sm text-blue-600 font-medium">Today's Sales</p>
+                    <p class="text-2xl font-bold text-blue-900">₱{{ number_format($todaySales, 2) }}</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <p class="text-sm text-green-600 font-medium">Today's Orders</p>
+                    <p class="text-2xl font-bold text-green-900">{{ $todayOrders }}</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                    <p class="text-sm text-yellow-600 font-medium">Active Orders</p>
+                    <p class="text-2xl font-bold text-yellow-900">{{ $activeOrders->count() }}</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <p class="text-sm text-purple-600 font-medium">Available Menu Items</p>
+                    <p class="text-2xl font-bold text-purple-900">{{ $menuItems->flatten()->count() }}</p>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div x-data="{ activeTab: 'orders' }">
+                <div class="border-b border-gray-200 mb-6">
                     <nav class="-mb-px flex space-x-8">
                         <button @click="activeTab = 'orders'"
                             :class="{ 'border-blue-500 text-blue-600': activeTab === 'orders', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'orders' }"
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                            Ordering
+                            Active Orders
                         </button>
                         <button @click="activeTab = 'kitchen'"
                             :class="{ 'border-blue-500 text-blue-600': activeTab === 'kitchen', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'kitchen' }"
@@ -46,110 +58,94 @@
                         <button @click="activeTab = 'menu'"
                             :class="{ 'border-blue-500 text-blue-600': activeTab === 'menu', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'menu' }"
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
-                            Available Menu
+                            Menu Availability
                         </button>
                     </nav>
                 </div>
 
                 <!-- Orders Tab -->
-                <div x-show="activeTab === 'orders'" class="mt-6">
-                    <h2 class="text-xl font-semibold mb-4">Recent Orders</h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order #</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Table</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Items</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($recentOrders as $order)
-                                                        <tr class="hover:bg-gray-50">
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                                                #{{ $order->id }}</td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ $order->table->name ?? 'N/A' }}</td>
-                                                            <td class="px-6 py-4 text-sm text-gray-500">{{ $order->orderItems->count() }} items</td>
-                                                            <td class="px-6 py-4 whitespace-nowrap">
-                                                                <span
-                                                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                                            {{ $order->status == 'completed' ? 'bg-green-100 text-green-800' :
-                                    ($order->status == 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                                                    {{ ucfirst($order->status) }}
-                                                                </span>
-                                                            </td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                                ₱{{ number_format($order->total_amount, 2) }}</td>
-                                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                {{ $order->created_at->format('h:i A') }}</td>
-                                                        </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="px-6 py-4 text-center text-gray-500">No recent orders</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                <div x-show="activeTab === 'orders'" class="space-y-6">
+                    <h3 class="text-lg font-medium text-gray-900">Active Orders</h3>
+                    @if($activeOrders->count() > 0)
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            @foreach($activeOrders as $order)
+                                <div class="bg-white border rounded-lg shadow-sm p-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-bold text-lg">Order #{{ $order->id }}</span>
+                                        <span
+                                            class="px-2 py-1 text-xs font-semibold rounded-full 
+                                                                                {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800' }}">
+                                            {{ ucfirst($order->status) }}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mb-2">Table: {{ $order->table->name ?? 'N/A' }}</p>
+                                    <div class="border-t border-b py-2 my-2 text-sm">
+                                        @foreach($order->orderItems as $item)
+                                            <div class="flex justify-between">
+                                                <span>{{ $item->quantity }}x {{ $item->menuItem->name }}</span>
+                                                <span>₱{{ number_format($item->price * $item->quantity, 2) }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <div class="flex justify-between items-center font-bold mt-2">
+                                        <span>Total:</span>
+                                        <span>₱{{ number_format($order->total_amount, 2) }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-gray-500 italic">No active orders at the moment.</p>
+                    @endif
                 </div>
 
-                <!-- Kitchen Display Tab -->
-                <div x-show="activeTab === 'kitchen'" class="mt-6">
-                    <h2 class="text-xl font-semibold mb-4">Active Orders in Kitchen</h2>
+                <!-- Kitchen Tab -->
+                <div x-show="activeTab === 'kitchen'" style="display: none;">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Kitchen Display System</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        @forelse($activeOrders as $order)
-                            <div class="bg-white border-2 border-orange-500 rounded-lg p-4 shadow">
-                                <div class="flex justify-between items-start mb-3">
-                                    <div>
-                                        <h3 class="text-lg font-bold">Order #{{ $order->id }}</h3>
-                                        <p class="text-sm text-gray-600">{{ $order->table->name ?? 'N/A' }}</p>
+                        @foreach($activeOrders as $order)
+                            @if($order->status !== 'ready')
+                                <div class="bg-white border-2 border-gray-200 rounded-lg p-4">
+                                    <div class="flex justify-between items-center mb-3 pb-2 border-b">
+                                        <span class="font-bold text-xl">#{{ $order->id }}</span>
+                                        <span class="text-sm text-gray-500">{{ $order->created_at->diffForHumans() }}</span>
                                     </div>
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
-                                        {{ ucfirst($order->status) }}
-                                    </span>
+                                    <div class="space-y-2">
+                                        @foreach($order->orderItems as $item)
+                                            <div class="flex justify-between items-center">
+                                                <span class="font-medium text-lg">{{ $item->quantity }}x
+                                                    {{ $item->menuItem->name }}</span>
+                                            </div>
+                                            @if($item->notes)
+                                                <p class="text-sm text-red-500 italic ml-4">Note: {{ $item->notes }}</p>
+                                            @endif
+                                        @endforeach
+                                    </div>
                                 </div>
-                                <div class="space-y-2">
-                                    @foreach($order->orderItems as $item)
-                                        <div class="flex justify-between text-sm">
-                                            <span>{{ $item->quantity }}x {{ $item->menuItem->name }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <div class="mt-3 pt-3 border-t border-gray-200 text-xs text-gray-500">
-                                    {{ $order->created_at->diffForHumans() }}
-                                </div>
-                            </div>
-                        @empty
-                            <div class="col-span-3 text-center text-gray-500 py-8">
-                                No active orders in kitchen
-                            </div>
-                        @endforelse
+                            @endif
+                        @endforeach
                     </div>
                 </div>
 
                 <!-- Menu Tab -->
-                <div x-show="activeTab === 'menu'" class="mt-6">
-                    <h2 class="text-xl font-semibold mb-4">Available Menu Items</h2>
-                    @forelse($menuItems as $categoryName => $items)
-                        <div class="mb-6">
-                            <h3 class="text-lg font-medium text-gray-800 mb-3">{{ $categoryName }}</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                @foreach($items as $item)
-                                    <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                        <h4 class="font-semibold text-gray-900">{{ $item->name }}</h4>
-                                        <p class="text-sm text-gray-600 mt-1">{{ $item->description }}</p>
-                                        <p class="text-lg font-bold text-blue-600 mt-2">₱{{ number_format($item->price, 2) }}</p>
-                                    </div>
-                                @endforeach
+                <div x-show="activeTab === 'menu'" style="display: none;">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Menu Availability</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @foreach($menuItems as $category => $items)
+                            <div class="bg-white border rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-3 border-b pb-2">{{ $category }}</h4>
+                                <div class="space-y-2">
+                                    @foreach($items as $item)
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-sm text-gray-700">{{ $item->name }}</span>
+                                            <span
+                                                class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Available</span>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-                    @empty
-                        <p class="text-center text-gray-500 py-8">No menu items available for this branch</p>
-                    @endforelse
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>

@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Share pending void requests count with admin and manager layouts
+        view()->composer(
+            ['layouts.admin', 'layouts.manager'],
+            \App\View\Composers\VoidRequestComposer::class
+        );
     }
 }

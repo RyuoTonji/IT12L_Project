@@ -15,10 +15,9 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
-// Default route - redirect to login
+
 Route::get('/', function () {
-    // return view('welcome');
-    return redirect('/login');
+    return redirect()->route('login');
 });
 
 Route::get('/dashboard', function () {
@@ -41,11 +40,25 @@ Route::middleware('auth')->group(function () {
 
 // Admin routes
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
+    // Branch Management
+    Route::get('/branches', [App\Http\Controllers\Admin\BranchController::class, 'index'])->name('admin.branches.index');
+    Route::get('/branches/{branch}', [App\Http\Controllers\Admin\BranchController::class, 'show'])->name('admin.branches.show');
+    Route::post('/branches/{branch}/switch', [App\Http\Controllers\Admin\BranchController::class, 'switchBranch'])->name('admin.branches.switch');
+
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
     Route::resource('categories', CategoryController::class);
     Route::resource('menu', MenuController::class);
+
+    // Menu availability updates (AJAX)
+    Route::post('/menu/{menu}/update-availability', [MenuController::class, 'updateAvailability'])->name('menu.update-availability');
+    Route::post('/menu/{menu}/update-branch-availability', [MenuController::class, 'updateBranchAvailability'])->name('menu.update-branch-availability');
+
     Route::resource('inventory', InventoryController::class);
     Route::resource('staff', StaffController::class);
+
+    // Staff status update (AJAX)
+    Route::post('/staff/{staff}/update-status', [StaffController::class, 'updateStatus'])->name('staff.update-status');
+
 
     // Reports
     Route::get('/reports', [ReportController::class, 'index'])->name('admin.reports');
@@ -58,6 +71,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/void-requests', [\App\Http\Controllers\Manager\VoidRequestController::class, 'index'])->name('admin.void-requests.index');
     Route::post('/void-requests/{voidRequest}/approve', [\App\Http\Controllers\Manager\VoidRequestController::class, 'approve'])->name('admin.void-requests.approve');
     Route::post('/void-requests/{voidRequest}/reject', [\App\Http\Controllers\Manager\VoidRequestController::class, 'reject'])->name('admin.void-requests.reject');
+    Route::get('/void-requests/export-pdf', [\App\Http\Controllers\Manager\VoidRequestController::class, 'exportPdf'])->name('admin.void-requests.export-pdf');
 });
 
 // Cashier routes
@@ -89,6 +103,7 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->group(function (
     Route::get('/void-requests', [\App\Http\Controllers\Manager\VoidRequestController::class, 'index'])->name('manager.void-requests.index');
     Route::post('/void-requests/{voidRequest}/approve', [\App\Http\Controllers\Manager\VoidRequestController::class, 'approve'])->name('manager.void-requests.approve');
     Route::post('/void-requests/{voidRequest}/reject', [\App\Http\Controllers\Manager\VoidRequestController::class, 'reject'])->name('manager.void-requests.reject');
+    Route::get('/void-requests/export-pdf', [\App\Http\Controllers\Manager\VoidRequestController::class, 'exportPdf'])->name('manager.void-requests.export-pdf');
 });
 
 // General Report Routes (accessible by authorized roles)
@@ -111,6 +126,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     Route::get('/export/inventory', [\App\Http\Controllers\ExportController::class, 'exportInventory'])->name('export.inventory');
     Route::get('/export/sales', [\App\Http\Controllers\ExportController::class, 'exportSales'])->name('export.sales');
+    Route::get('/export/items', [\App\Http\Controllers\ExportController::class, 'exportItems'])->name('export.items');
+    Route::get('/export/staff', [\App\Http\Controllers\ExportController::class, 'exportStaff'])->name('export.staff');
+    Route::get('/export/daily', [\App\Http\Controllers\ExportController::class, 'exportDaily'])->name('export.daily');
     Route::get('/export/report/{report}', [\App\Http\Controllers\ExportController::class, 'exportShiftReport'])->name('export.report');
 });
 

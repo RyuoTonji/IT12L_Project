@@ -5,8 +5,27 @@
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Process Payment for Order #{{ $order->id }}</h1>
-                <a href="{{ route('orders.show', $order) }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Order</a>
+                @if(request()->get('source') === 'list')
+                    <a href="{{ route('orders.index') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Orders
+                    </a>
+                @else
+                    <a href="{{ route('orders.show', $order) }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Order
+                    </a>
+                @endif
             </div>
 
             @if(session('error'))
@@ -91,7 +110,7 @@
                 <div>
                     <h2 class="text-lg font-medium mb-4">Payment Details</h2>
 
-                    <form action="{{ route('payments.store') }}" method="POST"
+                    <form action="{{ route('payments.store') }}" method="POST" id="paymentForm"
                         class="bg-white p-4 rounded-lg shadow border">
                         @csrf
                         <input type="hidden" name="order_id" value="{{ $order->id }}">
@@ -155,10 +174,21 @@
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"></textarea>
                         </div>
 
-                        <div class="flex justify-end">
-                            <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
-                                class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Process
-                                Payment</button>
+                        <div class="flex justify-end space-x-2">
+                            <button type="button"
+                                onclick="showConfirm('Cancel payment processing?', function() { window.location.href='{{ route('cashier.dashboard') }}' })"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Process Payment
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -168,21 +198,27 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const paymentForm = document.getElementById('paymentForm');
             const paymentMethod = document.getElementById('payment_method');
             const cardDetails = document.getElementById('card_details');
             const mobileDetails = document.getElementById('mobile_details');
 
             paymentMethod.addEventListener('change', function () {
+                cardDetails.classList.add('hidden');
+                mobileDetails.classList.add('hidden');
+
                 if (this.value === 'card') {
                     cardDetails.classList.remove('hidden');
-                    mobileDetails.classList.add('hidden');
                 } else if (this.value === 'mobile') {
-                    cardDetails.classList.add('hidden');
                     mobileDetails.classList.remove('hidden');
-                } else {
-                    cardDetails.classList.add('hidden');
-                    mobileDetails.classList.add('hidden');
                 }
+            });
+
+            paymentForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                showConfirm('Are you sure you want to process this payment?', function () {
+                    paymentForm.submit();
+                });
             });
         });
     </script>

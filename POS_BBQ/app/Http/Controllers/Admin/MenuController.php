@@ -13,7 +13,7 @@ class MenuController extends Controller
 {
     public function index()
     {
-        $menuItems = MenuItem::with('category')->get();
+        $menuItems = MenuItem::with(['category', 'branches'])->get();
         return view('admin.menu.index', compact('menuItems'));
     }
 
@@ -56,7 +56,13 @@ class MenuController extends Controller
             $data['image'] = $path;
         }
 
-        MenuItem::create($data);
+        $menuItem = MenuItem::create($data);
+
+        // Attach to both branches by default with availability matching the menu item's is_available status
+        $menuItem->branches()->attach([
+            1 => ['is_available' => $data['is_available']],
+            2 => ['is_available' => $data['is_available']],
+        ]);
 
         return redirect()->route('menu.index')->with('success', 'Menu item created successfully');
     }
@@ -118,6 +124,15 @@ class MenuController extends Controller
 
         $menu->update($data);
 
+        // Sync branch availability if not explicitly set via the branch availability endpoint
+        // Only update if menu item doesn't have branch associations yet
+        if ($menu->branches()->count() == 0) {
+            $menu->branches()->attach([
+                1 => ['is_available' => $data['is_available']],
+                2 => ['is_available' => $data['is_available']],
+            ]);
+        }
+
         return redirect()->route('menu.index')->with('success', 'Menu item updated successfully');
     }
 
@@ -126,5 +141,62 @@ class MenuController extends Controller
         $menu->delete();
 
         return redirect()->route('menu.index')->with('success', 'Menu item archived successfully');
+    }
+
+    /**
+     * Update menu item availability status
+     */
+    public function updateAvailability(Request $request, MenuItem $menu)
+    {
+        $request->validate([
+            'is_available' => 'required|boolean',
+        ]);
+
+        $menu->update([
+            'is_available' => $request->is_available,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Availability updated successfully',
+        ]);
+    }
+
+    /**
+     * Update menu item branch availability
+     */
+    public function updateBranchAvailability(Request $request, MenuItem $menu)
+    {
+        $request->validate([
+            'branch' => 'required|in:branch1,branch2,both',
+        ]);
+
+        $branch = $request->branch;
+
+        // Sync branches based on selection
+        if ($branch === 'both') {
+            // Attach to both branches, mark as available
+            $menu->branches()->sync([
+                1 => ['is_available' => true],
+                2 => ['is_available' => true],
+            ]);
+        } elseif ($branch === 'branch1') {
+            // Only Branch 1, mark Branch 2 as unavailable
+            $menu->branches()->sync([
+                1 => ['is_available' => true],
+                2 => ['is_available' => false],
+            ]);
+        } elseif ($branch === 'branch2') {
+            // Only Branch 2, mark Branch 1 as unavailable
+            $menu->branches()->sync([
+                1 => ['is_available' => false],
+                2 => ['is_available' => true],
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Branch availability updated successfully',
+        ]);
     }
 }

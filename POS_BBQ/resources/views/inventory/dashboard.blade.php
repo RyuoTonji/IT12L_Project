@@ -6,38 +6,53 @@
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800">Inventory Management</h3>
                 <button onclick="document.getElementById('addStockModal').classList.remove('hidden')"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add New Ingredient</button>
+                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add New Ingredient
+                </button>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Ingredient Name
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Sold
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Unsold
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Spoilage
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Stock-In
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Stock-Out
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Remaining
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Unit
                             </th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col"
+                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
                         </tr>
@@ -63,18 +78,23 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-orange-600">
                                     {{ number_format($inventory->stock_out, 2) }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= $inventory->reorder_level ? 'text-red-600' : 'text-green-600' }}">
+                                <td
+                                    class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= $inventory->reorder_level ? 'text-red-600' : 'text-green-600' }}">
                                     {{ number_format($inventory->quantity, 2) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
                                     {{ $inventory->unit }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')" class="text-indigo-600 hover:text-indigo-900 mr-3">Update Stock</button>
-                                    <form action="{{ route('inventory.destroy', $inventory->id) }}" method="POST" class="inline-block" onsubmit="return false;">
+                                    <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')"
+                                        class="text-indigo-600 hover:text-indigo-900 mr-3">Update Stock</button>
+                                    <form action="{{ route('inventory.destroy', $inventory->id) }}" method="POST"
+                                        class="inline-block" onsubmit="return false;">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="button" onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())" class="text-red-600 hover:text-red-900">Archive</button>
+                                        <button type="button"
+                                            onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())"
+                                            class="text-red-600 hover:text-red-900">Archive</button>
                                     </form>
                                 </td>
                             </tr>
@@ -127,9 +147,22 @@
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('addStockModal').classList.add('hidden')"
-                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Add
-                        Ingredient</button>
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Ingredient
+                    </button>
                 </div>
             </form>
         </div>
@@ -157,9 +190,22 @@
                 </div>
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('updateStockModal').classList.add('hidden')"
-                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Update
-                        Stock</button>
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Update Stock
+                    </button>
                 </div>
             </form>
         </div>

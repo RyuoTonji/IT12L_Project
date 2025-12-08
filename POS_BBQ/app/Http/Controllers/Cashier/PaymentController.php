@@ -14,7 +14,12 @@ class PaymentController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+
         $payments = Payment::with(['order'])
+            ->when($user->branch_id, function ($query) use ($user) {
+                return $query->where('branch_id', $user->branch_id);
+            })
             ->latest()
             ->paginate(10);
 
@@ -32,6 +37,13 @@ class PaymentController extends Controller
 
         $order = Order::with(['orderItems.menuItem', 'payments'])
             ->findOrFail($orderId);
+
+        // Check if user can access this order
+        $user = Auth::user();
+        if ($user->branch_id && $order->branch_id !== $user->branch_id) {
+            return redirect()->route('orders.index')
+                ->with('error', 'Unauthorized access to this order.');
+        }
 
         // Check if order is already paid
         if ($order->payment_status === 'paid') {
@@ -79,6 +91,7 @@ class PaymentController extends Controller
             // Create the payment
             $payment = new Payment();
             $payment->order_id = $request->order_id;
+            $payment->branch_id = $order->branch_id; // Set branch from order
             $payment->amount = $request->amount;
             $payment->payment_method = $request->payment_method;
 

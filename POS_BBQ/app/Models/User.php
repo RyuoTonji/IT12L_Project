@@ -24,7 +24,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'branch_id',
         'status',
+        'hourly_rate',
     ];
 
     /**
@@ -46,8 +48,14 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function orders()
@@ -73,5 +81,66 @@ class User extends Authenticatable
     public function isInventory()
     {
         return $this->role === 'inventory';
+    }
+
+    /**
+     * Check if user is currently active
+     */
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    /**
+     * Check if user is disabled (terminated, cannot login)
+     */
+    public function isDisabled()
+    {
+        return $this->status === 'disabled';
+    }
+
+    /**
+     * Get computed status based on last login
+     * Returns 'inactive' if user hasn't logged in for X days, otherwise returns actual status
+     */
+    public function getComputedStatus($inactiveDays = 3)
+    {
+        // Disabled always stays disabled
+        if ($this->status === 'disabled') {
+            return 'disabled';
+        }
+
+        // Check last login time
+        if ($this->last_login_at) {
+            $daysSinceLogin = now()->diffInDays($this->last_login_at);
+            if ($daysSinceLogin >= $inactiveDays) {
+                return 'inactive';
+            }
+        } elseif ($this->created_at) {
+            // If never logged in, check days since creation
+            $daysSinceCreation = now()->diffInDays($this->created_at);
+            if ($daysSinceCreation >= $inactiveDays) {
+                return 'inactive';
+            }
+        }
+
+        return $this->status;
+    }
+
+    /**
+     * Get status display label
+     */
+    public function getStatusLabel()
+    {
+        $computedStatus = $this->getComputedStatus();
+
+        return match ($computedStatus) {
+            'active' => 'Active',
+            'inactive' => $this->last_login_at
+            ? 'Inactive (' . now()->diffInDays($this->last_login_at) . ' days)'
+            : 'Inactive (Never logged in)',
+            'disabled' => 'Disabled',
+            default => ucfirst($computedStatus),
+        };
     }
 }

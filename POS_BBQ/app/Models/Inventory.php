@@ -22,7 +22,16 @@ class Inventory extends Model
         'stock_out',
         'unit',
         'reorder_level',
+        'branch_id',
     ];
+
+    /**
+     * Get the branch that owns the inventory.
+     */
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     /**
      * Get the menu items that use this inventory item.

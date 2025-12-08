@@ -11,7 +11,12 @@ class Table extends Model
 {
     use HasFactory, SoftDeletes, LogsDeletes;
 
-    protected $fillable = ['name', 'capacity', 'status'];
+    protected $fillable = ['name', 'capacity', 'status', 'branch_id'];
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function orders()
     {

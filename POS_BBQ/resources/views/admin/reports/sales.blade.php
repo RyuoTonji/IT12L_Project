@@ -6,10 +6,24 @@
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Sales Report</h1>
                 <div>
-                    <a href="{{ route('export.sales') }}"
-                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2">Export PDF</a>
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export PDF
+                    </button>
                     <a href="{{ route('admin.reports') }}"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Reports</a>
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
                 </div>
             </div>
 
@@ -29,8 +43,15 @@
                     </div>
 
                     <div>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply
-                            Filter</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V4z" />
+                            </svg>
+                            Apply Filter
+                        </button>
                     </div>
                 </form>
             </div>
@@ -160,6 +181,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Sales Chart
@@ -174,14 +196,14 @@
                         @foreach($sales as $day)
                             '{{ \Carbon\Carbon::parse($day->date)->format("M d") }}',
                         @endforeach
-                        ],
+                                    ],
                     datasets: [{
                         label: 'Daily Sales',
                         data: [
                             @foreach($sales as $day)
                                 {{ $day->total_sales }},
                             @endforeach
-                            ],
+                                        ],
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderColor: 'rgba(59, 130, 246, 1)',
                         borderWidth: 2,
@@ -192,6 +214,13 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    onClick: (event, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const selectedLabel = salesChart.data.labels[index];
+                            filterGraphByDate(index, selectedLabel);
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -205,6 +234,52 @@
                 }
             });
 
+            // Store original data for resetting
+            const originalLabels = [...salesChart.data.labels];
+            const originalData = [...salesChart.data.datasets[0].data];
+            let currentFilterIndex = null;
+
+            function filterGraphByDate(index, label) {
+                if (currentFilterIndex === index) {
+                    // If clicking the same date, reset
+                    resetGraphFilter();
+                } else {
+                    // Filter to show only selected date
+                    currentFilterIndex = index;
+                    salesChart.data.labels = [label];
+                    salesChart.data.datasets[0].data = [originalData[index]];
+                    salesChart.update();
+                    showResetButton();
+                }
+            }
+
+            function resetGraphFilter() {
+                currentFilterIndex = null;
+                salesChart.data.labels = [...originalLabels];
+                salesChart.data.datasets[0].data = [...originalData];
+                salesChart.update();
+                hideResetButton();
+            }
+
+            function showResetButton() {
+                let resetBtn = document.getElementById('resetGraphBtn');
+                if (!resetBtn) {
+                    resetBtn = document.createElement('button');
+                    resetBtn.id = 'resetGraphBtn';
+                    resetBtn.textContent = 'Reset Filter';
+                    resetBtn.className = 'mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700';
+                    resetBtn.onclick = resetGraphFilter;
+                    document.getElementById('salesChart').parentElement.appendChild(resetBtn);
+                }
+            }
+
+            function hideResetButton() {
+                const resetBtn = document.getElementById('resetGraphBtn');
+                if (resetBtn) {
+                    resetBtn.remove();
+                }
+            }
+
             // Payment Methods Chart
             const paymentCtx = document.getElementById('paymentChart').getContext('2d');
             const paymentChart = new Chart(paymentCtx, {
@@ -214,13 +289,13 @@
                         @foreach($paymentMethods as $method)
                             '{{ ucfirst($method->payment_method) }}',
                         @endforeach
-                        ],
+                                    ],
                     datasets: [{
                         data: [
                             @foreach($paymentMethods as $method)
                                 {{ $method->total }},
                             @endforeach
-                            ],
+                                        ],
                         backgroundColor: [
                             'rgba(59, 130, 246, 0.7)',
                             'rgba(16, 185, 129, 0.7)',
@@ -256,5 +331,16 @@
                 }
             });
         });
+
+        function showExportConfirmation() {
+            AlertModal.showConfirm(
+                'Are you sure you want to export this sales report as PDF?',
+                function () {
+                    window.location.href = '{{ route('export.sales') }}';
+                },
+                null,
+                'Export Confirmation'
+            );
+        }
     </script>
 @endsection

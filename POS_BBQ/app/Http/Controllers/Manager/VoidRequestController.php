@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\VoidRequest;
 use App\Models\Order;
 use App\Models\Activity;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -17,9 +18,14 @@ class VoidRequestController extends Controller
         $voidRequests = VoidRequest::with(['order', 'requester'])
             ->where('status', 'pending')
             ->latest()
-            ->paginate(10);
+            ->paginate(10, ['*'], 'pending_page');
 
-        return view('manager.void_requests.index', compact('voidRequests'));
+        $voidRequestHistory = VoidRequest::with(['order', 'requester', 'approver'])
+            ->whereIn('status', ['approved', 'rejected'])
+            ->latest()
+            ->paginate(10, ['*'], 'history_page');
+
+        return view('manager.void_requests.index', compact('voidRequests', 'voidRequestHistory'));
     }
 
     public function approve(Request $request, VoidRequest $voidRequest)
@@ -86,6 +92,30 @@ class VoidRequestController extends Controller
             'approver_id' => Auth::id(),
         ]);
 
+
         return back()->with('success', 'Void request rejected.');
+    }
+
+    public function exportPdf()
+    {
+        $voidRequests = VoidRequest::with(['order.user', 'requester', 'approver'])
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+
+        // Get metadata
+        $exporter = Auth::user();
+        $branch = $exporter->branch; // Assuming user has branch relationship or property
+        $exportDate = now()->format('F d, Y');
+        $exportTime = now()->format('h:i A');
+
+        $pdf = Pdf::loadView('exports.void_requests_pdf', compact(
+            'voidRequests',
+            'exporter',
+            'branch',
+            'exportDate',
+            'exportTime'
+        ));
+        return $pdf->download('void_requests_' . date('Y-m-d') . '.pdf');
     }
 }

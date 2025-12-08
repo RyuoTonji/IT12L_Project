@@ -14,6 +14,7 @@ class Order extends Model
     protected $fillable = [
         'table_id',
         'user_id',
+        'branch_id',
         'customer_name',
         'order_type',
         'status',
@@ -44,5 +45,10 @@ class Order extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

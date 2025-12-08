@@ -21,10 +21,13 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            BranchSeeder::class,
             UserSeeder::class,
             CategorySeeder::class,
             MenuItemSeeder::class,
             TableSeeder::class,
+            InventorySeeder::class,
+            OrderSeeder::class,
         ]);
     }
 }

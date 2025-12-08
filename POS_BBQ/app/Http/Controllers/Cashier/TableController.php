@@ -12,7 +12,13 @@ class TableController extends Controller
 {
     public function index()
     {
-        $tables = Table::all();
+        $user = auth()->user();
+
+        $tables = Table::when($user->branch_id, function ($query) use ($user) {
+            return $query->where('branch_id', $user->branch_id);
+        })
+            ->get();
+
         return view('cashier.tables.index', compact('tables'));
     }
 
@@ -29,13 +35,24 @@ class TableController extends Controller
             'status' => 'required|in:available,occupied,reserved',
         ]);
 
-        Table::create($request->all());
+        $table = new Table();
+        $table->name = $request->name;
+        $table->capacity = $request->capacity;
+        $table->status = $request->status;
+        $table->branch_id = auth()->user()->branch_id; // Set branch from user
+        $table->save();
 
         return redirect()->route('tables.index')->with('success', 'Table created successfully');
     }
 
     public function show(Table $table)
     {
+        // Check if user can access this table
+        $user = auth()->user();
+        if ($user->branch_id && $table->branch_id !== $user->branch_id) {
+            abort(403, 'Unauthorized access to this table.');
+        }
+
         // Get active order for this table if any
         $activeOrder = Order::where('table_id', $table->id)
             ->whereIn('status', ['new', 'preparing', 'ready', 'served'])

@@ -6,12 +6,29 @@
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Edit Order #{{ $order->id }}</h1>
                 <a href="{{ route('orders.show', $order) }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Order</a>
+                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Order
+                </a>
             </div>
 
             @if(session('error'))
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                     <span class="block sm:inline">{{ session('error') }}</span>
+                </div>
+            @endif
+
+            @if ($errors->any())
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                    <ul class="list-disc list-inside">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
 
@@ -28,15 +45,18 @@
                             <select name="status" id="status"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                                 required>
-                                <option value="new" {{ $order->status == 'new' ? 'selected' : '' }}>New</option>
-                                <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }}>Preparing
+                                <option value="new" {{ old('status', $order->status) == 'new' ? 'selected' : '' }}>New
                                 </option>
-                                <option value="ready" {{ $order->status == 'ready' ? 'selected' : '' }}>Ready</option>
-                                <option value="served" {{ $order->status == 'served' ? 'selected' : '' }}>Served</option>
-                                <option value="completed" {{ $order->status == 'completed' ? 'selected' : '' }}>Completed
+                                <option value="preparing" {{ old('status', $order->status) == 'preparing' ? 'selected' : '' }}>Preparing
+                                </option>
+                                <option value="ready" {{ old('status', $order->status) == 'ready' ? 'selected' : '' }}>Ready
+                                </option>
+                                <option value="served" {{ old('status', $order->status) == 'served' ? 'selected' : '' }}>
+                                    Served</option>
+                                <option value="completed" {{ old('status', $order->status) == 'completed' ? 'selected' : '' }}>Completed
                                 </option>
                                 @if(Auth::user()->role == 'admin' || Auth::user()->role == 'manager')
-                                    <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled
+                                    <option value="cancelled" {{ old('status', $order->status) == 'cancelled' ? 'selected' : '' }}>Cancelled
                                     </option>
                                 @endif
                             </select>
@@ -148,14 +168,27 @@
                     </div>
                 </div>
 
-                <div class="flex justify-end">
-                    <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
-                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700" id="submit_order">Update
-                        Order</button>
+                <div class="flex justify-end space-x-4">
+                    <button type="button"
+                        onclick="showConfirm('Are you sure you want to cancel editing?', function() { window.location.href='{{ route('cashier.dashboard') }}' })"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex"
+                        id="submit_order">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Update Order
+                    </button>
                 </div>
             </form>
         </div>
     </div>
+
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -172,12 +205,12 @@
             @foreach($order->orderItems as $item)
                 addItemToSelection({
                     id: {{ $item->menu_item_id }},
-                    name: "{{ $item->menuItem->name }}",
+                    name: @json($item->menuItem->name),
                     price: {{ $item->unit_price }},
                     quantity: {{ $item->quantity }},
-                    notes: "{{ $item->notes ?? '' }}",
+                    notes: @json($item->notes ?? ''),
                     itemId: {{ $item->id }}
-                            });
+                                });
             @endforeach
 
             // Handle category tab clicks
@@ -237,21 +270,21 @@
                 const itemIdField = item.itemId ? `<input type="hidden" name="items[${index}][id]" value="${item.itemId}">` : '';
 
                 newRow.innerHTML = `
-                        <td class="py-2 px-4">${item.name}</td>
-                        <td class="py-2 px-4 text-right">₱${item.price.toFixed(2)}</td>
-                        <td class="py-2 px-4 text-center">
-                            <input type="number" name="items[${index}][quantity]" value="${item.quantity}" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                            <input type="hidden" name="items[${index}][menu_item_id]" value="${item.id}">
-                            ${itemIdField}
-                        </td>
-                        <td class="py-2 px-4">
-                            <input type="text" name="items[${index}][notes]" value="${item.notes}" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                        </td>
-                        <td class="py-2 px-4 text-right item-subtotal">₱${(item.price * item.quantity).toFixed(2)}</td>
-                        <td class="py-2 px-4 text-center">
-                            <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
-                        </td>
-                    `;
+                                    <td class="py-2 px-4">${item.name}</td>
+                                    <td class="py-2 px-4 text-right">₱${item.price.toFixed(2)}</td>
+                                    <td class="py-2 px-4 text-center">
+                                        <input type="number" name="items[${index}][quantity]" value="${item.quantity}" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <input type="hidden" name="items[${index}][menu_item_id]" value="${item.id}">
+                                        ${itemIdField}
+                                    </td>
+                                    <td class="py-2 px-4">
+                                        <input type="text" name="items[${index}][notes]" value="${item.notes}" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    </td>
+                                    <td class="py-2 px-4 text-right item-subtotal">₱${(item.price * item.quantity).toFixed(2)}</td>
+                                    <td class="py-2 px-4 text-center">
+                                        <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
+                                    </td>
+                                `;
 
                 selectedItemsContainer.appendChild(newRow);
 
@@ -329,12 +362,55 @@
 
             // Form submission validation
             orderForm.addEventListener('submit', function (e) {
+                e.preventDefault(); // Prevent default submission initially
+
                 const items = selectedItemsContainer.querySelectorAll('tr[data-id]');
                 if (items.length === 0) {
-                    e.preventDefault();
                     alert('Please add at least one item to the order');
                     return;
                 }
+
+                showConfirm('Are you sure you want to save these changes?', function () {
+                    // Convert the form data to the expected format
+                    items.forEach((item, index) => {
+                        const itemId = item.dataset.id;
+                        const quantityInput = item.querySelector('.quantity-input');
+                        const notesInput = item.querySelector('input[name^="items"][name$="[notes]"]');
+                        const orderItemIdInput = item.querySelector('input[name^="items"][name$="[id]"]');
+
+                        // Create new inputs with the correct array format
+                        const menuItemIdInput = document.createElement('input');
+                        menuItemIdInput.type = 'hidden';
+                        menuItemIdInput.name = `items[${index}][menu_item_id]`;
+                        menuItemIdInput.value = itemId;
+
+                        const quantityNewInput = document.createElement('input');
+                        quantityNewInput.type = 'hidden';
+                        quantityNewInput.name = `items[${index}][quantity]`;
+                        quantityNewInput.value = quantityInput.value;
+
+                        const notesNewInput = document.createElement('input');
+                        notesNewInput.type = 'hidden';
+                        notesNewInput.name = `items[${index}][notes]`;
+                        notesNewInput.value = notesInput.value;
+
+                        // Append new inputs to the form
+                        orderForm.appendChild(menuItemIdInput);
+                        orderForm.appendChild(quantityNewInput);
+                        orderForm.appendChild(notesNewInput);
+
+                        // If it's an existing item, add the ID
+                        if (orderItemIdInput) {
+                            const idInput = document.createElement('input');
+                            idInput.type = 'hidden';
+                            idInput.name = `items[${index}][id]`;
+                            idInput.value = orderItemIdInput.value;
+                            orderForm.appendChild(idInput);
+                        }
+                    });
+
+                    orderForm.submit(); // Submit the form
+                });
             });
         });
     </script>

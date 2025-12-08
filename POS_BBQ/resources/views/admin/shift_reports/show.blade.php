@@ -6,10 +6,24 @@
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Shift Report Details</h1>
                 <div>
-                    <a href="{{ route('export.report', $shiftReport) }}"
-                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2">Export PDF</a>
-                    <a href="{{ route('admin.shift-reports.index') }}"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to List</a>
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export PDF
+                    </button>
+                    <a href="{{ route('admin.reports') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
                 </div>
             </div>
 
@@ -125,11 +139,31 @@
                         @csrf
                         <textarea name="admin_reply" rows="4" class="w-full border rounded p-2 mb-4"
                             placeholder="Write your reply to the staff member..." required></textarea>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Send
-                            Reply</button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                            Send Reply
+                        </button>
                     </form>
                 </div>
             @endif
         </div>
     </div>
+
+    <script>
+        function showExportConfirmation() {
+            AlertModal.showConfirm(
+                'Are you sure you want to export this shift report as PDF?',
+                function () {
+                    window.location.href = '{{ route('export.report', $shiftReport) }}';
+                },
+                null,
+                'Export Confirmation'
+            );
+        }
+    </script>
 @endsection

@@ -5,10 +5,44 @@
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Daily Consolidated Report</h1>
-                <form action="{{ route('admin.reports.daily') }}" method="GET" class="flex items-center">
-                    <input type="date" name="date" value="{{ $date }}" class="border rounded p-2 mr-2">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Filter</button>
-                </form>
+                <div class="flex items-center space-x-2">
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export PDF
+                    </button>
+                    <form action="{{ route('admin.reports.daily') }}" method="GET" class="flex items-center space-x-2">
+                        <label for="date" class="text-sm text-gray-600">Date:</label>
+                        <input type="date" name="date" id="date" value="{{ $date }}"
+                            class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            onchange="this.form.submit()">
+
+                        @if(request('date') && request('date') != \Carbon\Carbon::today()->format('Y-m-d'))
+                            <a href="{{ route('admin.reports.daily') }}"
+                                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Clear Filter
+                            </a>
+                        @endif
+                    </form>
+                    <a href="{{ route('admin.reports') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
+                </div>
             </div>
 
             <!-- Summary Cards -->
@@ -153,3 +187,17 @@
         </div>
     </div>
 @endsection
+
+<script>
+    function showExportConfirmation() {
+        const date = '{{ $date }}';
+        AlertModal.showConfirm(
+            'Are you sure you want to export this daily report as PDF?',
+            function () {
+                window.location.href = `/export/daily?date=${date}`;
+            },
+            null,
+            'Export Confirmation'
+        );
+    }
+</script>

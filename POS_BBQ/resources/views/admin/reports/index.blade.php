@@ -48,6 +48,19 @@
                     <p class="text-gray-600">View staff sales and order statistics</p>
                 </a>
 
+                <a href="{{ route('admin.shift-reports.index') }}"
+                    class="block bg-white p-6 rounded-lg shadow border hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-medium mb-2">Shift Reports</h2>
+                    <p class="text-gray-600">View and manage staff shift reports</p>
+                </a>
+
                 <a href="{{ route('admin.reports.daily') }}"
                     class="block bg-white p-6 rounded-lg shadow border hover:shadow-md transition-shadow">
                     <div class="flex items-center justify-center w-12 h-12 bg-yellow-100 text-yellow-600 rounded-full mb-4">

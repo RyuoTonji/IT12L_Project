@@ -7,9 +7,19 @@
                 <h1 class="text-2xl font-semibold">Inventory Item Details</h1>
                 <div>
                     <a href="{{ route('inventory.index') }}"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2">Back to Inventory</a>
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Inventory
+                    </a>
                     <a href="{{ route('inventory.edit', $inventory) }}"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Edit Item</a>
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit Item
+                    </a>
                 </div>
             </div>
 
@@ -90,7 +100,12 @@
                     <div class="md:col-span-2 flex items-end">
                         <button type="button"
                             onclick="showConfirm('Are you sure you want to update the stock for this item?', function() { this.form.submit(); }.bind(this))"
-                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Update Stock</button>
+                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Update Stock
+                        </button>
                     </div>
                 </form>
             </div>

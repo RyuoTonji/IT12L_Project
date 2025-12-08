@@ -24,11 +24,13 @@ class RedirectIfAuthenticated
                 // Redirect based on user role
                 $user = Auth::guard($guard)->user();
 
-                if ($user->role === 'admin') {
-                    return redirect('/admin/dashboard');
-                } else if ($user->role === 'case'){
-                    return redirect('/cashier/dashboard');
-                }
+                return match ($user->role) {
+                    'admin' => redirect()->route('admin.dashboard'),
+                    'manager' => redirect()->route('manager.dashboard'),
+                    'inventory' => redirect()->route('inventory.dashboard'),
+                    'cashier' => redirect()->route('cashier.dashboard'),
+                    default => redirect()->route('cashier.dashboard'),
+                };
             }
         }
 

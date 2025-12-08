@@ -18,7 +18,12 @@
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium">Recent Activity Logs</h3>
-                <a href="{{ route('manager.reports') }}" class="text-blue-600 hover:text-blue-900">View All</a>
+                <a href="{{ route('manager.reports') }}" class="text-blue-600 hover:text-blue-900 flex items-center inline-flex">
+                    View All
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
             </div>
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">

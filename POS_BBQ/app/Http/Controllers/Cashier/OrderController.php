@@ -17,18 +17,49 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['table', 'user'])
-            ->latest()
-            ->paginate(10);
+        $user = Auth::user();
+        $search = $request->get('search');
 
-        return view('cashier.orders.index', compact('orders'));
+        $orders = Order::with(['table', 'user'])
+            ->when($user->branch_id, function ($query) use ($user) {
+                // Filter by branch for branch-specific users
+                return $query->where('branch_id', $user->branch_id);
+            })
+            ->when($search, function ($query) use ($search) {
+                // Search by order ID, customer name, or date
+                return $query->where(function ($q) use ($search) {
+                    $q->where('id', 'like', "%{$search}%")
+                        ->orWhere('customer_name', 'like', "%{$search}%")
+                        ->orWhereDate('created_at', $search)
+                        ->orWhere('created_at', 'like', "%{$search}%");
+                })
+                    // Prioritize exact matches
+                    ->orderByRaw("CASE 
+                    WHEN id = ? THEN 1
+                    WHEN customer_name = ? THEN 2
+                    WHEN DATE(created_at) = ? THEN 3
+                    ELSE 4
+                END", [$search, $search, $search]);
+            })
+            ->latest()
+            ->paginate(10)
+            ->appends(['search' => $search]);
+
+        return view('cashier.orders.index', compact('orders', 'search'));
     }
 
     public function create(Request $request)
     {
-        $tables = Table::where('status', 'available')->get();
+        $user = Auth::user();
+
+        // Filter tables by branch
+        $tables = Table::where('status', 'available')
+            ->when($user->branch_id, function ($query) use ($user) {
+                return $query->where('branch_id', $user->branch_id);
+            })
+            ->get();
         $categories = Category::with([
             'menuItems' => function ($query) {
                 $query->where('is_available', true);
@@ -65,6 +96,7 @@ class OrderController extends Controller
             $order = new Order();
             $order->table_id = $request->table_id;
             $order->user_id = Auth::id();
+            $order->branch_id = Auth::user()->branch_id; // Set branch from user
             $order->customer_name = $request->customer_name;
             $order->order_type = $request->order_type;
             $order->status = 'new';
@@ -122,12 +154,24 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
+        // Check if user can access this order
+        $user = Auth::user();
+        if ($user->branch_id && $order->branch_id !== $user->branch_id) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
         $order->load(['orderItems.menuItem', 'table', 'user']);
         return view('cashier.orders.show', compact('order'));
     }
 
     public function edit(Order $order)
     {
+        // Check if user can access this order
+        $user = Auth::user();
+        if ($user->branch_id && $order->branch_id !== $user->branch_id) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
         // Only allow editing of orders that are not completed or cancelled
         if (in_array($order->status, ['completed', 'cancelled'])) {
             return redirect()->route('orders.show', $order)

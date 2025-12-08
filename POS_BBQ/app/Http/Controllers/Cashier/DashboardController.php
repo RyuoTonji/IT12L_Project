@@ -12,11 +12,19 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Get all tables with their status
-        $tables = Table::all();
+        $user = Auth::user();
 
-        // Get active orders (new, preparing, ready)
+        // Get all tables with their status, filtered by branch
+        $tables = Table::when($user->branch_id, function ($query) use ($user) {
+            return $query->where('branch_id', $user->branch_id);
+        })
+            ->get();
+
+        // Get active orders (new, preparing, ready), filtered by branch
         $activeOrders = Order::whereIn('status', ['new', 'preparing', 'ready'])
+            ->when($user->branch_id, function ($query) use ($user) {
+                return $query->where('branch_id', $user->branch_id);
+            })
             ->with(['table', 'orderItems.menuItem'])
             ->latest()
             ->get();
@@ -43,8 +51,13 @@ class DashboardController extends Controller
 
     public function kitchenDisplay()
     {
-        // Get orders that need to be prepared or are being prepared
+        $user = Auth::user();
+
+        // Get orders that need to be prepared or are being prepared, filtered by branch
         $orders = Order::whereIn('status', ['new', 'preparing'])
+            ->when($user->branch_id, function ($query) use ($user) {
+                return $query->where('branch_id', $user->branch_id);
+            })
             ->with(['orderItems.menuItem', 'table'])
             ->latest()
             ->get();

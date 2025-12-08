@@ -21,6 +21,11 @@ class ShiftReportController extends Controller
         $today = Carbon::today();
         $reportType = in_array($user->role, ['manager', 'cashier']) ? 'sales' : 'inventory';
 
+        // Fetch user's report history
+        $reportHistory = ShiftReport::where('user_id', $user->id)
+            ->latest()
+            ->paginate(10);
+
         if ($reportType === 'sales') {
             // Calculate today's stats for manager/cashier
             $orders = Order::where('user_id', $user->id)
@@ -33,10 +38,10 @@ class ShiftReportController extends Controller
                 ->where('payment_status', 'refunded')
                 ->sum('total_amount');
 
-            return view('reports.create', compact('totalOrders', 'totalSales', 'totalRefunds', 'today', 'reportType'));
+            return view('reports.create', compact('totalOrders', 'totalSales', 'totalRefunds', 'today', 'reportType', 'reportHistory'));
         } else {
             // For inventory role
-            return view('reports.create', compact('today', 'reportType'));
+            return view('reports.create', compact('today', 'reportType', 'reportHistory'));
         }
     }
 
@@ -122,6 +127,10 @@ class ShiftReportController extends Controller
 
         if ($request->has('user_id') && $request->user_id != '') {
             $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->has('date') && $request->date != '') {
+            $query->whereDate('shift_date', $request->date);
         }
 
         $reports = $query->latest()->paginate(20);

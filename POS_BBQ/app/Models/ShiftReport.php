@@ -25,6 +25,7 @@ class ShiftReport extends Model
         'content',
         'admin_reply',
         'status',
+        'branch_id',
     ];
 
     protected $casts = [
@@ -41,5 +42,10 @@ class ShiftReport extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }
