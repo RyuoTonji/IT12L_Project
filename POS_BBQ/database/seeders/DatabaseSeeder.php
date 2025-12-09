@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             TableSeeder::class,
             InventorySeeder::class,
             OrderSeeder::class,
+            VoidRefundSeeder::class,
         ]);
     }
 }

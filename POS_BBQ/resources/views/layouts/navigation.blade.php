@@ -11,7 +11,7 @@
         (Auth::user()->role == 'inventory' ? route('inventory.dashboard') :
             route('cashier.dashboard'))) 
                     }}">
-                        <img src="{{ asset('logo_white.jpg') }}" style="width: 50px; height: 50px;" alt="logo_white"
+                        <img src="{{ asset('logo_black.png') }}" style="width: 50px; height: 50px;" alt="logo_black"
                             class="block h-9 w-auto fill-current text-gray-800" />
                     </a>
                 </div>

@@ -25,8 +25,8 @@
                         <!-- Logo -->
                         <div class="shrink-0 flex items-center">
                             <a href="{{ route('cashier.dashboard') }}">
-                                <img src="{{ asset('logo_white.jpg') }}" style="width: 50px; height: 50px;"
-                                    alt="logo_white" class="block h-9 w-auto fill-current text-gray-800" />
+                                <img src="{{ asset('logo_black.png') }}" style="width: 50px; height: 50px;"
+                                    alt="logo_black" class="block h-9 w-auto fill-current text-gray-800" />
                             </a>
                         </div>
 
