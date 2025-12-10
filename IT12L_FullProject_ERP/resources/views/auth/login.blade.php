@@ -111,7 +111,7 @@
 
 /* Custom styles for inputs on the dark background */
 .col-md-7 input.form-control {
-    background-color: rgba(255, 255, 255, 0.15);
+    /* background-color: rgba(255, 255, 255, 0.15); */
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
     border-radius: 0.3rem;
@@ -120,7 +120,7 @@
     color: rgba(255, 255, 255, 0.7);
 }
 .col-md-7 input.form-control:focus {
-    background-color: rgba(255, 255, 255, 0.25);
+    /* background-color: rgba(255, 255, 255, 0.25); */
     box-shadow: none; /* Removed default Bootstrap shadow for cleaner look */
     border-color: white;
 }
@@ -143,3 +143,18 @@
 }
 </style>
 @endpush
+
+
+@if(session('cart_merged'))
+<script>
+    // Signal that login just happened
+    sessionStorage.setItem('just_logged_in', 'true');
+    
+    // Trigger cart sync
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof checkLoginAndSyncCart === 'function') {
+            checkLoginAndSyncCart();
+        }
+    });
+</script>
+@endif

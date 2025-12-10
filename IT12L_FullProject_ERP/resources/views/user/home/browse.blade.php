@@ -1,7 +1,6 @@
 @extends('layouts.app')
 <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
-
 @section('content')
 <div class="container my-4" style="border-color: #A52A2A;">
     <!-- Branch Header -->
@@ -50,8 +49,6 @@
     </div>
 </div>
 
-
-
     <!-- Products Grid -->
     <div class="row">
         @forelse($products as $product)
@@ -78,15 +75,18 @@
                         <h4 class="text-maroon mb-3">₱{{ number_format($product->price, 2) }}</h4>
                         
                         @if($product->is_available)
-                        <button class="btn btn-maroon w-100 add-to-cart-btn" 
-                                data-product="{{ json_encode([
-                                    'id' => $product->id,
-                                    'name' => $product->name,
-                                    'price' => $product->price,
-                                    'image' => $product->image,
-                                    'branch_id' => $product->branch_id,
-                                    'branch_name' => $branch->name
-                                ]) }}">
+                        {{-- FIXED: Use individual data-* attributes instead of JSON --}}
+                        <button 
+                            class="btn btn-maroon w-100 add-to-cart-btn"
+                            data-product-id="{{ $product->id }}"
+                            data-product-name="{{ $product->name }}"
+                            data-product-price="{{ $product->price }}"
+                            data-product-image="{{ $product->image }}"
+                            data-branch-id="{{ $product->branch_id }}"
+                            data-branch-name="{{ $branch->name }}"
+                            data-is-available="true"
+                            data-quantity="1"
+                        >
                             <i class="fas fa-cart-plus"></i> Add to Cart
                         </button>
                         @else
@@ -144,56 +144,20 @@
 
 @push('scripts')
 <script>
-// Add to Cart Functionality
+// SIMPLIFIED: Let cart.js handle everything automatically
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Browse page loaded');
+    console.log('✅ Browse page loaded - cart.js will auto-attach event listeners');
     
-    // Check if cart functions are available
-    if (typeof addToCart === 'undefined') {
-        console.error('addToCart function not found! Make sure cart.js is loaded.');
-    }
+    // cart.js setupAddToCartButtons() will automatically find and attach to .add-to-cart-btn
+    // No manual event listeners needed!
     
-    // Update cart count on page load
+    // Just update cart count on load
     if (typeof updateCartCount !== 'undefined') {
         updateCartCount();
     }
-    
-    // Add event listeners to all "Add to Cart" buttons
-    document.querySelectorAll('.add-to-cart-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            console.log('Add to cart button clicked');
-            
-            try {
-                const productData = JSON.parse(this.dataset.product);
-                console.log('Product data:', productData);
-                
-                // Check if admin (using global function from cart.js)
-                if (typeof isAdmin !== 'undefined' && isAdmin()) {
-                    if (typeof showAlert !== 'undefined') {
-                        showAlert('warning', 'Administrators cannot add items to cart.', 3000);
-                    } else {
-                        alert('Administrators cannot add items to cart.');
-                    }
-                    return;
-                }
-                
-                // Add to cart using cart.js function
-                if (typeof addToCart !== 'undefined') {
-                    addToCart(productData, 1);
-                    showToast();
-                } else {
-                    console.error('addToCart function is not defined');
-                    alert('Error: Cart system not loaded properly');
-                }
-                
-            } catch (error) {
-                console.error('Error adding to cart:', error);
-                alert('Error adding item to cart');
-            }
-        });
-    });
 });
 
+// Keep the toast function for success notifications
 function showToast() {
     const toastEl = document.getElementById('cartToast');
     if (toastEl) {

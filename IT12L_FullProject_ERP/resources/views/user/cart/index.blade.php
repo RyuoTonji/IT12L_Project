@@ -21,7 +21,7 @@
                 <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
                 <h4>Your cart is empty</h4>
                 <p class="text-muted">Start adding some delicious items!</p>
-                <a href="{{ route('home') }}" class="btn btn-maroon">
+                <a href="{{ route('home') }}" class="btn btn-primary">
                     <i class="fas fa-utensils"></i> Browse Menu
                 </a>
             </div>
@@ -46,7 +46,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="cart-items-body">
-                                    <!-- Items will be inserted here -->
+                                    <!-- Items will be inserted here by cart.js -->
                                 </tbody>
                             </table>
                         </div>
@@ -62,7 +62,7 @@
 
             <div class="col-lg-4">
                 <div class="card sticky-top" style="top: 20px;">
-                    <div class="card-header text-white" style="background-color: #A52A2A;">
+                    <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">Order Summary</h5>
                     </div>
                     <div class="card-body">
@@ -75,7 +75,7 @@
                         
                         <div class="d-flex justify-content-between mb-3">
                             <strong>Total:</strong>
-                            <strong class="cart-total-final fs-4" id="cart-total-final">₱0.00</strong>
+                            <strong class="text-primary fs-4" id="cart-total-final">₱0.00</strong>
                         </div>
 
                         <div id="checkout-section">
@@ -84,7 +84,7 @@
                                     <form action="{{ route('checkout.index') }}" method="POST" id="checkout-form">
                                         @csrf
                                         <input type="hidden" name="cart_items" id="cart_items_hidden" value="">
-                                        <button type="submit" class="btn btn-maroon w-100 btn-lg" id="checkout-btn">
+                                        <button type="submit" class="btn btn-primary w-100 btn-lg" id="checkout-btn">
                                             <i class="fas fa-credit-card"></i> Proceed to Checkout
                                         </button>
                                     </form>
@@ -97,11 +97,10 @@
                                 <div class="alert alert-info mb-3">
                                     <i class="fas fa-info-circle"></i> Please login to checkout
                                 </div>
-                                <a href="{{ route('login') }}?redirect=checkout" class="btn btn-maroon w-100 mb-2">
+                                <a href="{{ route('login') }}?redirect=checkout" class="btn btn-primary w-100 mb-2">
                                     <i class="fas fa-sign-in-alt"></i> Login to Checkout
                                 </a>
-
-                                <a href="{{ route('register') }}" class="btn btn-maroon-outline w-100 mb-2">
+                                <a href="{{ route('register') }}" class="btn btn-outline-primary w-100 mb-2">
                                     <i class="fas fa-user-plus"></i> Register New Account
                                 </a>
                             @endauth
@@ -120,21 +119,40 @@
 
 @push('scripts')
 <script>
+// =============================================================================
+// CART PAGE - NO API VERSION
+// This script relies entirely on cart.js which stores full product data in localStorage
+// =============================================================================
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Cart page loaded');
-    loadCartPage();
+    console.log('[Cart Page] Initializing...');
     
-    // Attach checkout form submit handler
+    // Wait for cart.js to be loaded
+    if (typeof loadCartPage === 'function') {
+        console.log('[Cart Page] cart.js detected, loading cart...');
+        loadCartPage();
+    } else {
+        console.error('[Cart Page] ERROR: cart.js not loaded! loadCartPage() function not found');
+        showEmptyCart();
+    }
+    
+    // Setup checkout form
     const checkoutForm = document.getElementById('checkout-form');
     if (checkoutForm) {
         checkoutForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            console.log('Checkout form submit triggered');
+            console.log('[Cart Page] Checkout form submitted');
             
-            // Get cart from localStorage
+            // Get cart from localStorage (cart.js provides this function)
+            if (typeof getCart !== 'function') {
+                console.error('[Cart Page] ERROR: getCart() function not found');
+                alert('Cart system error. Please refresh the page.');
+                return false;
+            }
+            
             const cart = getCart();
-            console.log('Cart from localStorage:', cart);
+            console.log('[Cart Page] Cart data for checkout:', cart);
             
             if (cart.length === 0) {
                 alert('Your cart is empty!');
@@ -143,234 +161,27 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Set cart data in hidden input
             const cartJson = JSON.stringify(cart);
-            console.log('Cart JSON to send:', cartJson);
             document.getElementById('cart_items_hidden').value = cartJson;
             
-            console.log('Hidden input value:', document.getElementById('cart_items_hidden').value);
-            console.log('Form action:', this.action);
-            console.log('Form method:', this.method);
+            console.log('[Cart Page] Submitting checkout with cart data');
             
             // Submit the form
             this.submit();
         });
-    } else {
-        console.error('Checkout form not found!');
     }
 });
 
-function loadCartPage() {
-    // Check if getCart function exists
-    if (typeof getCart === 'undefined') {
-        console.error('getCart function not found!');
-        showEmptyCart();
-        return;
-    }
-    
-    const cart = getCart();
-    console.log('Cart contents:', cart);
-    
-    if (cart.length === 0) {
-        showEmptyCart();
-        return;
-    }
-    
-    // Fetch product details
-    const productIds = cart.map(item => item.id);
-    
-    fetch('/api/cart/products', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ product_ids: productIds })
-    })
-    .then(res => res.json())
-    .then(products => {
-        console.log('Products fetched:', products);
-        if (products.length === 0) {
-            showEmptyCart();
-            return;
-        }
-        renderCartItems(cart, products);
-    })
-    .catch(error => {
-        console.error('Error loading cart:', error);
-        showEmptyCart();
-    });
-}
-
+// Helper function to show empty cart (fallback)
 function showEmptyCart() {
-    document.getElementById('loading-cart').classList.add('d-none');
-    document.getElementById('empty-cart').classList.remove('d-none');
-    document.getElementById('cart-content').classList.add('d-none');
-}
-
-function renderCartItems(cart, products) {
-    document.getElementById('loading-cart').classList.add('d-none');
-    document.getElementById('empty-cart').classList.add('d-none');
-    document.getElementById('cart-content').classList.remove('d-none');
+    const loadingEl = document.getElementById('loading-cart');
+    const emptyEl = document.getElementById('empty-cart');
+    const contentEl = document.getElementById('cart-content');
     
-    const tbody = document.getElementById('cart-items-body');
-    tbody.innerHTML = '';
+    if (loadingEl) loadingEl.classList.add('d-none');
+    if (emptyEl) emptyEl.classList.remove('d-none');
+    if (contentEl) contentEl.classList.add('d-none');
     
-    let total = 0;
-    
-    cart.forEach((cartItem, index) => {
-        const product = products.find(p => p.id == cartItem.id);
-        
-        if (!product) {
-            console.warn('Product not found for cart item:', cartItem);
-            return;
-        }
-        
-        const subtotal = product.price * cartItem.quantity;
-        total += subtotal;
-        
-        const row = document.createElement('tr');
-        row.dataset.productId = product.id;
-        
-        row.innerHTML = `
-            <td>
-                <div class="d-flex align-items-center">
-                    ${product.image 
-                        ? `<img src="/storage/${product.image}" 
-                               alt="${product.name}"
-                               class="rounded me-3"
-                               style="width: 60px; height: 60px; object-fit: cover;">`
-                        : `<div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                               <i class="fas fa-utensils text-white"></i>
-                           </div>`
-                    }
-                    <div>
-                        <strong>${product.name}</strong>
-                        <br>
-                        <small class="text-muted">
-                            <i class="fas fa-store"></i> ${product.branch_name}
-                        </small>
-                        ${product.is_available ? '' : '<br><span class="badge bg-danger">Out of Stock</span>'}
-                    </div>
-                </div>
-            </td>
-            <td class="align-middle">₱${parseFloat(product.price).toFixed(2)}</td>
-            <td class="align-middle">
-                <div class="input-group" style="width: 130px;">
-                    <button class="btn btn-sm btn-outline-secondary decrease-qty" data-product-id="${product.id}">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <input type="number" 
-                           class="form-control form-control-sm text-center quantity-input" 
-                           value="${cartItem.quantity}" 
-                           min="1" max="99"
-                           data-product-id="${product.id}">
-                    <button class="btn btn-sm btn-outline-secondary increase-qty" data-product-id="${product.id}">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </td>
-            <td class="align-middle item-subtotal">₱${subtotal.toFixed(2)}</td>
-            <td class="align-middle">
-                <button class="btn btn-sm btn-danger remove-item" 
-                        data-product-id="${product.id}"
-                        data-product-name="${product.name}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-    
-    updateTotalDisplay(total);
-    attachEventListeners();
-}
-
-function updateTotalDisplay(total) {
-    document.getElementById('cart-total').textContent = formatCurrency(total);
-    document.getElementById('cart-total-final').textContent = formatCurrency(total);
-}
-
-function attachEventListeners() {
-    // Attach decrease quantity
-    document.querySelectorAll('.decrease-qty').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = parseInt(this.dataset.productId);
-            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-            let qty = parseInt(input.value);
-            if (qty > 1) {
-                qty--;
-                input.value = qty;
-                if (typeof updateCartItem !== 'undefined') {
-                    updateCartItem(productId, qty);
-                }
-                loadCartPage();
-            }
-        });
-    });
-    
-    // Attach increase quantity
-    document.querySelectorAll('.increase-qty').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = parseInt(this.dataset.productId);
-            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-            let qty = parseInt(input.value);
-            if (qty < 99) {
-                qty++;
-                input.value = qty;
-                if (typeof updateCartItem !== 'undefined') {
-                    updateCartItem(productId, qty);
-                }
-                loadCartPage();
-            }
-        });
-    });
-    
-    // Attach quantity input change
-    document.querySelectorAll('.quantity-input').forEach(input => {
-        input.addEventListener('change', function() {
-            const productId = parseInt(this.dataset.productId);
-            let qty = parseInt(this.value);
-            
-            if (isNaN(qty) || qty < 1) {
-                qty = 1;
-            } else if (qty > 99) {
-                qty = 99;
-            }
-            
-            this.value = qty;
-            if (typeof updateCartItem !== 'undefined') {
-                updateCartItem(productId, qty);
-            }
-            loadCartPage();
-        });
-    });
-    
-    // Attach remove buttons
-    document.querySelectorAll('.remove-item').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = parseInt(this.dataset.productId);
-            const productName = this.dataset.productName;
-            
-            if (typeof removeFromCart !== 'undefined') {
-                removeFromCart(productId, productName);
-                setTimeout(() => loadCartPage(), 500);
-            }
-        });
-    });
-    
-    // Attach clear cart button
-    const clearCartBtn = document.getElementById('clear-cart');
-    if (clearCartBtn) {
-        clearCartBtn.addEventListener('click', function() {
-            if (typeof clearCart !== 'undefined') {
-                clearCart();
-            }
-        });
-    }
-}
-
-function formatCurrency(amount) {
-    return '₱' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    console.log('[Cart Page] Empty cart state displayed');
 }
 </script>
 @endpush

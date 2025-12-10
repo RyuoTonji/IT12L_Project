@@ -12,9 +12,13 @@ class CheckoutController extends Controller
 {
     public function index(Request $request)
     {
-        // Debug: Log what we receive
-        Log::info('Checkout Index - Request Method: ' . $request->method());
-        Log::info('Checkout Index - Cart Items Input: ' . $request->input('cart_items'));
+        // Debug logging
+        Log::info('Checkout Index accessed', [
+            'method' => $request->method(),
+            'cart_items_input' => $request->input('cart_items'),
+            'session_cart' => session('checkout_cart'),
+            'user_id' => auth()->id()
+        ]);
         
         // Get the authenticated user
         $user = Auth::user();
@@ -25,18 +29,25 @@ class CheckoutController extends Controller
         if ($cartData) {
             // Decode if it's JSON string
             $cart = is_string($cartData) ? json_decode($cartData, true) : $cartData;
+            
+            // Validate cart data
+            if (!is_array($cart) || empty($cart)) {
+                Log::warning('Invalid cart data received', ['cart_data' => $cartData]);
+                return redirect()->route('cart.index')->with('error', 'Invalid cart data!');
+            }
+            
             // Store in session for later use
             session(['checkout_cart' => $cart]);
-            Log::info('Checkout Index - Cart stored in session', ['cart' => $cart]);
+            Log::info('Cart stored in session', ['cart' => $cart]);
         } else {
             // Try to get from session
             $cart = session('checkout_cart', []);
-            Log::info('Checkout Index - Cart from session', ['cart' => $cart]);
+            Log::info('Cart retrieved from session', ['cart' => $cart]);
         }
         
         // If cart is empty, redirect back to cart
         if (empty($cart)) {
-            Log::warning('Checkout Index - Cart is empty, redirecting to cart page');
+            Log::warning('Checkout accessed with empty cart');
             return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
         }
         
@@ -51,6 +62,7 @@ class CheckoutController extends Controller
         
         // If no products found, redirect
         if ($products->isEmpty()) {
+            Log::error('No products found in database', ['product_ids' => $productIds]);
             return redirect()->route('cart.index')->with('error', 'Invalid cart items!');
         }
         
@@ -59,6 +71,7 @@ class CheckoutController extends Controller
         $branch = DB::table('branches')->where('id', $firstProduct->branch_id)->first();
         
         if (!$branch) {
+            Log::error('Branch not found', ['branch_id' => $firstProduct->branch_id]);
             return redirect()->route('cart.index')->with('error', 'Branch not found!');
         }
         
@@ -81,32 +94,46 @@ class CheckoutController extends Controller
             return $item->product->price * $item->quantity;
         });
         
+        Log::info('Checkout page rendered', [
+            'items_count' => $items->count(),
+            'total' => $total
+        ]);
+        
         return view('user.checkout.index', compact('branch', 'items', 'total', 'user'));
     }
 
     public function process(Request $request)
     {
+        Log::info('Checkout process started', ['user_id' => auth()->id()]);
+
         $request->validate([
-            'address' => 'required|string',
+            'address' => 'required|string|max:500',
             'customer_name' => 'required|string|max:100',
             'customer_phone' => 'required|string|max:20',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         // Get cart from session (stored during index method)
         $cart = session('checkout_cart', []);
         
         if (empty($cart)) {
+            Log::warning('Process checkout with empty cart');
             return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
         }
 
         // Extract product IDs
         $productIds = array_column($cart, 'id');
         
-        // Fetch products
+        // Fetch products with all details we need
         $products = DB::table('products')
             ->whereIn('id', $productIds)
             ->get()
             ->keyBy('id');
+
+        if ($products->isEmpty()) {
+            Log::error('No products found during checkout process', ['product_ids' => $productIds]);
+            return redirect()->route('cart.index')->with('error', 'Invalid cart items!');
+        }
 
         // Calculate total and prepare order items
         $total = 0;
@@ -118,60 +145,100 @@ class CheckoutController extends Controller
             $quantity = $cartItem['quantity'];
             
             if (!isset($products[$productId])) {
+                Log::warning('Product not found in checkout', ['product_id' => $productId]);
                 continue;
             }
             
             $product = $products[$productId];
+            
+            // Check if product is available
+            if (!$product->is_available) {
+                Log::warning('Unavailable product in cart', ['product_id' => $productId]);
+                return redirect()->route('cart.index')
+                    ->with('error', "Product '{$product->name}' is no longer available!");
+            }
             
             // Set branch_id from first product
             if ($branchId === null) {
                 $branchId = $product->branch_id;
             }
             
-            $itemTotal = $product->price * $quantity;
-            $total += $itemTotal;
+            $subtotal = $product->price * $quantity;
+            $total += $subtotal;
             
             $orderItems[] = [
+                'product_id' => $product->id,
                 'product_name' => $product->name,
+                'product_image' => $product->image,
                 'quantity' => $quantity,
                 'price' => $product->price,
+                'subtotal' => $subtotal,
             ];
         }
 
-        // Create order
-        $orderId = DB::table('orders')->insertGetId([
-            'user_id' => auth()->id(),
-            'branch_id' => $branchId,
-            'total_amount' => $total,
-            'status' => 'pending',
-            'address' => $request->address,
-            'customer_name' => $request->customer_name,
-            'customer_phone' => $request->customer_phone,
-            'notes' => $request->notes ?? null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        if (empty($orderItems)) {
+            Log::error('No valid order items after processing cart');
+            return redirect()->route('cart.index')->with('error', 'No valid items in cart!');
+        }
 
-        // Create order items
-        foreach ($orderItems as $item) {
-            DB::table('order_items')->insert([
-                'order_id' => $orderId,
-                'product_name' => $item['product_name'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
+        try {
+            DB::beginTransaction();
+
+            // Create order
+            $orderId = DB::table('orders')->insertGetId([
+                'user_id' => auth()->id(),
+                'branch_id' => $branchId,
+                'total_amount' => $total,
+                'status' => 'pending',
+                'address' => $request->address,
+                'customer_name' => $request->customer_name,
+                'customer_phone' => $request->customer_phone,
+                'notes' => $request->notes,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-        }
-        
-        // Clear the checkout cart from session
-        session()->forget('checkout_cart');
-        
-        // Add a flag to indicate cart should be cleared
-        session()->flash('clear_cart', true);
 
-        // Redirect to order confirmation page (this will clear the localStorage cart)
-        return redirect()->route('checkout.confirm', ['order_id' => $orderId]);
+            Log::info('Order created', ['order_id' => $orderId]);
+
+            // Create order items
+            foreach ($orderItems as $item) {
+                DB::table('order_items')->insert([
+                    'order_id' => $orderId,
+                    'product_id' => $item['product_id'],
+                    'product_name' => $item['product_name'],
+                    'product_image' => $item['product_image'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'subtotal' => $item['subtotal'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            Log::info('Order items created', ['order_id' => $orderId, 'items_count' => count($orderItems)]);
+
+            DB::commit();
+
+            Log::info('Order completed successfully', ['order_id' => $orderId]);
+            
+            // Clear the checkout cart from session
+            session()->forget('checkout_cart');
+            
+            // Redirect to order confirmation page
+            return redirect()->route('checkout.confirm', ['order_id' => $orderId])
+                ->with('success', 'Order placed successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Log::error('Order creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('cart.index')
+                ->with('error', 'Failed to place order. Please try again.');
+        }
     }
     
     public function confirm(Request $request)
@@ -179,6 +246,7 @@ class CheckoutController extends Controller
         $orderId = $request->query('order_id');
         
         if (!$orderId) {
+            Log::warning('Confirm page accessed without order_id');
             return redirect()->route('home');
         }
         
@@ -187,12 +255,18 @@ class CheckoutController extends Controller
             ->join('branches', 'orders.branch_id', '=', 'branches.id')
             ->where('orders.id', $orderId)
             ->where('orders.user_id', auth()->id())
-            ->select('orders.*', 'branches.name as branch_name')
+            ->select('orders.*', 'branches.name as branch_name', 'branches.address as branch_address')
             ->first();
         
         if (!$order) {
-            return redirect()->route('home');
+            Log::warning('Order not found or unauthorized', [
+                'order_id' => $orderId,
+                'user_id' => auth()->id()
+            ]);
+            return redirect()->route('home')->with('error', 'Order not found!');
         }
+        
+        Log::info('Order confirmation page displayed', ['order_id' => $orderId]);
         
         return view('user.checkout.confirm', compact('order'));
     }

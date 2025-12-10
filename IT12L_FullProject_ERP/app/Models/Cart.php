@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Cart extends Model
 {
@@ -97,25 +99,81 @@ class Cart extends Model
         return static::firstOrCreate(['session_id' => $sessionId]);
     }
 
-    // Migrate guest cart to user cart
-    public static function migrateToUser($sessionId, $userId)
+    /**
+     * ENHANCED: Merge guest cart to user cart with intelligent handling
+     * This merges quantities for duplicate items
+     * THIS METHOD IS ALREADY CORRECT - NO CHANGES NEEDED
+     */
+    public static function mergeGuestCartToUser($sessionId, $userId)
     {
-        $guestCart = static::where('session_id', $sessionId)->first();
-        
-        if (!$guestCart) {
+        if (!$sessionId || !$userId) {
+            Log::warning('Cart merge skipped: missing sessionId or userId', [
+                'sessionId' => $sessionId,
+                'userId' => $userId
+            ]);
             return null;
         }
 
-        $userCart = static::getOrCreate($userId);
+        DB::beginTransaction();
 
-        // Transfer items
-        foreach ($guestCart->items as $item) {
-            $userCart->addItem($item->product_id, $item->quantity);
+        try {
+            // Find guest cart
+            $guestCart = static::where('session_id', $sessionId)
+                ->whereNull('user_id')
+                ->with('items')
+                ->first();
+
+            if (!$guestCart || $guestCart->items->isEmpty()) {
+                Log::info('No guest cart to merge', ['sessionId' => $sessionId]);
+                DB::commit();
+                return null;
+            }
+
+            // Get or create user cart
+            $userCart = static::getOrCreate($userId);
+
+            Log::info('Merging guest cart to user cart', [
+                'sessionId' => $sessionId,
+                'userId' => $userId,
+                'guestItems' => $guestCart->items->count()
+            ]);
+
+            // Transfer items with intelligent merging
+            $mergedCount = 0;
+            foreach ($guestCart->items as $guestItem) {
+                $userCart->addItem($guestItem->product_id, $guestItem->quantity);
+                $mergedCount++;
+            }
+
+            // Delete guest cart and its items
+            $guestCart->items()->delete();
+            $guestCart->delete();
+
+            DB::commit();
+
+            Log::info('Cart merge completed successfully', [
+                'userId' => $userId,
+                'itemsMerged' => $mergedCount
+            ]);
+
+            return $userCart;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Cart merge failed', [
+                'sessionId' => $sessionId,
+                'userId' => $userId,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
         }
+    }
 
-        // Delete guest cart
-        $guestCart->delete();
-
-        return $userCart;
+    /**
+     * LEGACY: Keep old method for backward compatibility
+     */
+    public static function migrateToUser($sessionId, $userId)
+    {
+        return static::mergeGuestCartToUser($sessionId, $userId);
     }
 }

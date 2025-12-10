@@ -6,7 +6,7 @@
         <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="mb-0"><i class="fas fa-plus"></i> Add New Product</h4>
+                    <h4 class="mb-0"><i class="fas fa-plus"></i> Add New Dish</h4>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('admin.products.store') }}" method="POST" enctype="multipart/form-data">
@@ -43,7 +43,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Product Name *</label>
+                            <label for="name" class="form-label">Dish Name *</label>
                             <input type="text" 
                                    name="name" 
                                    id="name" 
@@ -51,6 +51,18 @@
                                    value="{{ old('name') }}" 
                                    required>
                             @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea name="description" 
+                                      id="description" 
+                                      class="form-control @error('description') is-invalid @enderror" 
+                                      rows="3" 
+                                      placeholder="Enter dish description, ingredients, or special notes">{{ old('description') }}</textarea>
+                            @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -71,7 +83,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="image" class="form-label">Product Image</label>
+                            <label for="image" class="form-label">Dish Image</label>
                             <input type="file" 
                                    name="image" 
                                    id="image" 
@@ -102,7 +114,7 @@
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Create Product
+                                <i class="fas fa-save"></i> Create Dish
                             </button>
                         </div>
                     </form>

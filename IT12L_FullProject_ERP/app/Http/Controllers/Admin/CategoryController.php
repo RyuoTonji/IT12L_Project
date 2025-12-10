@@ -3,18 +3,38 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
+    // Active categories list
     public function index()
     {
-        $categories = DB::table('categories')
-            ->orderBy('id', 'desc')
-            ->paginate(20);
+        $categories = Category::orderBy('id', 'desc')->paginate(20);
 
         return view('admin.categories.index', compact('categories'));
+    }
+
+    // Show archived categories
+    public function archived()
+    {
+        $categories = Category::onlyTrashed()
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(20);
+
+        return view('admin.categories.archived', compact('categories'));
+    }
+
+    // Restore a category
+    public function restore($id)
+    {
+        $category = Category::onlyTrashed()->findOrFail($id);
+        $category->restore();
+
+        return redirect()
+            ->route('admin.categories.archived')
+            ->with('success', 'Category restored successfully!');
     }
 
     public function create()
@@ -25,69 +45,55 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:100|unique:categories,name',
+            'name'        => 'required|string|max:100|unique:categories,name',
             'description' => 'nullable|string'
         ]);
 
-        DB::table('categories')->insert([
-            'name' => $request->name,
-            'description' => $request->description,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        Category::create($request->only(['name', 'description']));
 
-        return redirect()->route('admin.categories.index')->with('success', 'Category created successfully!');
-    }
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Category created successfully!');
+    } // <- This closing brace was missing!
 
     public function edit($id)
     {
-        $category = DB::table('categories')->where('id', $id)->first();
-
-        if (!$category) {
-            return redirect()->route('admin.categories.index')->with('error', 'Category not found!');
-        }
+        $category = Category::withTrashed()->findOrFail($id);
 
         return view('admin.categories.edit', compact('category'));
     }
 
     public function update(Request $request, $id)
     {
+        $category = Category::withTrashed()->findOrFail($id);
+
         $request->validate([
-            'name' => 'required|string|max:100|unique:categories,name,' . $id,
+            'name'        => 'required|string|max:100|unique:categories,name,' . $id,
             'description' => 'nullable|string'
         ]);
 
-        $category = DB::table('categories')->where('id', $id)->first();
+        $category->update($request->only(['name', 'description']));
 
-        if (!$category) {
-            return redirect()->route('admin.categories.index')->with('error', 'Category not found!');
-        }
-
-        DB::table('categories')->where('id', $id)->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'updated_at' => now()
-        ]);
-
-        return redirect()->route('admin.categories.index')->with('success', 'Category updated successfully!');
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Category updated successfully!');
     }
 
     public function destroy($id)
     {
-        $category = DB::table('categories')->where('id', $id)->first();
+        $category = Category::findOrFail($id);
 
-        if (!$category) {
-            return redirect()->route('admin.categories.index')->with('error', 'Category not found!');
+        // Prevent archiving if category has products
+        if ($category->products()->count() > 0) {
+            return redirect()
+                ->route('admin.categories.index')
+                ->with('error', 'Cannot archive category with existing products!');
         }
 
-        // Check if category has products
-        $productCount = DB::table('products')->where('category_id', $id)->count();
-        if ($productCount > 0) {
-            return redirect()->route('admin.categories.index')->with('error', 'Cannot delete category with existing products!');
-        }
+        $category->delete(); // Soft delete → moves to archive
 
-        DB::table('categories')->where('id', $id)->delete();
-
-        return redirect()->route('admin.categories.index')->with('success', 'Category deleted successfully!');
+        return redirect()
+            ->route('admin.categories.index')
+            ->with('success', 'Category moved to archive!');
     }
 }

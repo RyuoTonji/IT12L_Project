@@ -6,7 +6,7 @@
         <div class="col-md-8 offset-md-2">
             <div class="card">
                 <div class="card-header">
-                    <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Product</h4>
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Dish</h4>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
@@ -44,7 +44,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Product Name *</label>
+                            <label for="name" class="form-label">Dish Name *</label>
                             <input type="text" 
                                    name="name" 
                                    id="name" 
@@ -52,6 +52,18 @@
                                    value="{{ old('name', $product->name) }}" 
                                    required>
                             @error('name')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea name="description" 
+                                      id="description" 
+                                      class="form-control @error('description') is-invalid @enderror" 
+                                      rows="3" 
+                                      placeholder="Enter dish description, ingredients, or special notes">{{ old('description', $product->description) }}</textarea>
+                            @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
@@ -84,7 +96,7 @@
 
                         <div class="mb-3">
                             <label for="image" class="form-label">
-                                {{ $product->image ? 'Change Image' : 'Product Image' }}
+                                {{ $product->image ? 'Change Image' : 'Dish Image' }}
                             </label>
                             <input type="file" 
                                    name="image" 
@@ -116,7 +128,7 @@
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Update Product
+                                <i class="fas fa-save"></i> Update Dish
                             </button>
                         </div>
                     </form>
