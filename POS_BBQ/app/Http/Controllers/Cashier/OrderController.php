@@ -60,9 +60,9 @@ class OrderController extends Controller
                 return $query->where('branch_id', $user->branch_id);
             })
             ->get();
-        $categories = Category::with([
+        $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true);
+                $query->where('is_available', true)->orderBy('id');
             }
         ])->get();
 
@@ -180,9 +180,9 @@ class OrderController extends Controller
 
         $order->load(['orderItems.menuItem', 'table']);
 
-        $categories = Category::with([
+        $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true);
+                $query->where('is_available', true)->orderBy('id');
             }
         ])->get();
 

@@ -42,6 +42,13 @@
                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">{{ old('description') }}</textarea>
                 </div>
 
+                <div class="mb-4">
+                    <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">Sort Order (Optional -
+                        Lower numbers show first)</label>
+                    <input type="number" name="sort_order" id="sort_order" value="{{ old('sort_order', 0) }}"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                </div>
+
                 <div class="flex justify-end">
                     <button type="button"
                         onclick="showConfirm('Are you sure you want to create this category?', function() { this.form.submit(); }.bind(this))"

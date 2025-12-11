@@ -13,7 +13,13 @@ class MenuController extends Controller
 {
     public function index()
     {
-        $menuItems = MenuItem::with(['category', 'branches'])->get();
+        $menuItems = MenuItem::select('menu_items.*')
+            ->join('categories', 'menu_items.category_id', '=', 'categories.id')
+            ->orderBy('categories.sort_order')
+            ->orderBy('categories.name')
+            ->orderBy('menu_items.id')
+            ->with(['category', 'branches'])
+            ->get();
         return view('admin.menu.index', compact('menuItems'));
     }
 

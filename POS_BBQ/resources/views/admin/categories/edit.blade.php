@@ -43,6 +43,14 @@
                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">{{ old('description', $category->description) }}</textarea>
                 </div>
 
+                <div class="mb-4">
+                    <label for="sort_order" class="block text-sm font-medium text-gray-700 mb-1">Sort Order (Optional -
+                        Lower numbers show first)</label>
+                    <input type="number" name="sort_order" id="sort_order"
+                        value="{{ old('sort_order', $category->sort_order) }}"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                </div>
+
                 <div class="flex justify-end">
                     <button type="button"
                         onclick="showConfirm('Are you sure you want to update this category?', function() { this.form.submit(); }.bind(this))"

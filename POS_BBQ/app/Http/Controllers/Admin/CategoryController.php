@@ -10,7 +10,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::withCount('menuItems')->get();
+        $categories = Category::withCount('menuItems')->orderBy('sort_order', 'asc')->get();
         return view('admin.categories.index', compact('categories'));
     }
 
@@ -24,6 +24,7 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name',
             'description' => 'nullable|string',
+            'sort_order' => 'nullable|integer',
         ]);
 
         Category::create($request->all());
@@ -47,6 +48,7 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
             'description' => 'nullable|string',
+            'sort_order' => 'nullable|integer',
         ]);
 
         $category->update($request->all());

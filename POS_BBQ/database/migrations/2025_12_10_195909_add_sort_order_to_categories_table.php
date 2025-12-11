@@ -10,8 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->decimal('hourly_rate', 8, 2)->nullable()->after('role');
+        Schema::table('categories', function (Blueprint $table) {
+            $table->integer('sort_order')->default(0)->after('description');
         });
     }
 
@@ -20,8 +20,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('hourly_rate');
+        Schema::table('categories', function (Blueprint $table) {
+            $table->dropColumn('sort_order');
         });
     }
 };

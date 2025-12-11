@@ -1,0 +1,200 @@
+@extends('layouts.manager')
+
+@section('content')
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+        <div class="p-6 text-gray-900">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl font-semibold">Daily Consolidated Report</h1>
+                <div class="flex items-center space-x-2">
+                    <form action="{{ route('manager.reports.daily') }}" method="GET" class="flex items-center space-x-2">
+                        <label for="date" class="text-sm text-gray-600">Date:</label>
+                        <input type="date" name="date" id="date" value="{{ $date }}"
+                            class="px-3 py-2 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            onchange="this.form.submit()">
+
+                        @if(request('date') && request('date') != \Carbon\Carbon::today()->format('Y-m-d'))
+                            <a href="{{ route('manager.reports.daily') }}"
+                                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Clear Filter
+                            </a>
+                        @endif
+                    </form>
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Export PDF
+                    </button>
+                    <a href="{{ route('manager.reports') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div class="bg-green-100 p-4 rounded-lg shadow">
+                    <h2 class="text-lg font-medium text-green-800">Total Sales</h2>
+                    <p class="text-2xl font-bold">₱{{ number_format($totalSales, 2) }}</p>
+                </div>
+                <div class="bg-red-100 p-4 rounded-lg shadow">
+                    <h2 class="text-lg font-medium text-red-800">Total Refunds (Est.)</h2>
+                    <p class="text-2xl font-bold">₱{{ number_format(abs($totalRefunds), 2) }}</p>
+                </div>
+                <div class="bg-blue-100 p-4 rounded-lg shadow">
+                    <h2 class="text-lg font-medium text-blue-800">Shift Reports</h2>
+                    <p class="text-2xl font-bold">{{ $shiftReports->count() }}</p>
+                </div>
+            </div>
+
+            <!-- Shift Reports Section -->
+            <div class="mb-8">
+                <h2 class="text-xl font-medium mb-4 border-b pb-2">Staff Shift Reports</h2>
+                @forelse($shiftReports as $report)
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4 border">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span class="font-bold text-lg">{{ $report->user->name }}</span>
+                                <span class="text-sm text-gray-500 ml-2">({{ ucfirst($report->user->role) }})</span>
+                            </div>
+                            <span
+                                class="px-2 py-1 text-xs rounded-full {{ $report->status == 'reviewed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                {{ ucfirst($report->status) }}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mb-2 text-sm">
+                            <div>Orders: {{ $report->total_orders }}</div>
+                            <div>Sales: ₱{{ number_format($report->total_sales, 2) }}</div>
+                            <div>Refunds: ₱{{ number_format($report->total_refunds, 2) }}</div>
+                        </div>
+                        <div class="bg-white p-3 rounded border mb-2">
+                            <p class="text-gray-700 whitespace-pre-wrap">{{ $report->content }}</p>
+                        </div>
+                        @if($report->admin_reply)
+                            <div class="bg-blue-50 p-3 rounded border text-sm">
+                                <span class="font-bold text-blue-800">Admin Reply:</span>
+                                <p class="text-gray-700">{{ $report->admin_reply }}</p>
+                            </div>
+                        @else
+                            <!-- Reply functionality reserved for admin -->
+                        @endif
+                    </div>
+                @empty
+                    <p class="text-gray-500 italic">No shift reports submitted for this date.</p>
+                @endforelse
+            </div>
+
+            <!-- Void Requests Section -->
+            <div class="mb-8">
+                <h2 class="text-xl font-medium mb-4 border-b pb-2">Void Requests</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Order #</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Requester</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Reason</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Approver</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @forelse($voidRequests as $void)
+                                <tr>
+                                    <td class="px-4 py-2 text-sm">{{ $void->created_at->format('H:i') }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ $void->order_id }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ $void->requester->name }}</td>
+                                    <td class="px-4 py-2 text-sm">
+                                        @if($void->reason_tags)
+                                            @foreach($void->reason_tags as $tag)
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mr-1">
+                                                    {{ $tag }}
+                                                </span>
+                                            @endforeach
+                                        @endif
+                                        <span class="text-gray-600">{{ $void->reason }}</span>
+                                    </td>
+                                    <td class="px-4 py-2 text-sm">
+                                        <span
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $void->status == 'approved' ? 'bg-green-100 text-green-800' : ($void->status == 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                            {{ ucfirst($void->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 text-sm">{{ $void->approver->name ?? '-' }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-4 py-2 text-sm text-center text-gray-500">No void requests for
+                                        this date.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Inventory Activities Section -->
+            <div class="mb-8">
+                <h2 class="text-xl font-medium mb-4 border-b pb-2">Inventory Activities</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @forelse($inventoryActivities as $activity)
+                                <tr>
+                                    <td class="px-4 py-2 text-sm">{{ $activity->created_at->format('H:i') }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ $activity->user->name }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ $activity->action }}</td>
+                                    <td class="px-4 py-2 text-sm">{{ $activity->details }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-4 py-2 text-sm text-center text-gray-500">No inventory activity
+                                        for this date.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function showExportConfirmation() {
+            const date = '{{ $date }}';
+            AlertModal.showConfirm(
+                'Are you sure you want to export this daily report as PDF?',
+                function () {
+                    window.location.href = `/export/daily?date=${date}`;
+                },
+                null,
+                'Export Confirmation'
+            );
+        }
+    </script>
+@endsection

@@ -73,6 +73,18 @@
                     <h2 class="text-lg font-medium mb-2">Daily Consolidated</h2>
                     <p class="text-gray-600">View daily summary of sales, refunds, voids, and shift reports</p>
                 </a>
+                <a href="{{ route('admin.reports.activities') }}"
+                    class="block bg-white p-6 rounded-lg shadow border hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-center w-12 h-12 bg-gray-100 text-gray-600 rounded-full mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-medium mb-2">Recent Activities</h2>
+                    <p class="text-gray-600">View detailed log of system activities</p>
+                </a>
             </div>
         </div>
     </div>

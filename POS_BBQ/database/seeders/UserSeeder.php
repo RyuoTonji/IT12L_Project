@@ -54,8 +54,8 @@ class UserSeeder extends Seeder
             'role' => 'manager',
             'branch_id' => 1,
             'status' => 'active',
-            'hourly_rate' => 150.00,
         ]);
+
 
         User::create([
             'name' => 'Branch 1 Cashier',
@@ -64,7 +64,6 @@ class UserSeeder extends Seeder
             'role' => 'cashier',
             'branch_id' => 1,
             'status' => 'active',
-            'hourly_rate' => 80.00,
         ]);
 
         User::create([
@@ -74,7 +73,6 @@ class UserSeeder extends Seeder
             'role' => 'inventory',
             'branch_id' => 1,
             'status' => 'active',
-            'hourly_rate' => 70.00,
         ]);
 
         // Branch 2 Users
@@ -85,7 +83,6 @@ class UserSeeder extends Seeder
             'role' => 'manager',
             'branch_id' => 2,
             'status' => 'active',
-            'hourly_rate' => 150.00,
         ]);
 
         User::create([
@@ -95,7 +92,6 @@ class UserSeeder extends Seeder
             'role' => 'cashier',
             'branch_id' => 2,
             'status' => 'active',
-            'hourly_rate' => 80.00,
         ]);
 
         User::create([
@@ -105,7 +101,6 @@ class UserSeeder extends Seeder
             'role' => 'inventory',
             'branch_id' => 2,
             'status' => 'active',
-            'hourly_rate' => 70.00,
         ]);
     }
 }

@@ -35,10 +35,9 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('shift_reports', function (Blueprint $table) {
-            // Remove inventory fields
+
             $table->dropColumn(['report_type', 'stock_in', 'stock_out', 'remaining_stock', 'spoilage', 'returns', 'return_reason']);
 
-            // Revert sales fields to non-nullable (if needed in rollback)
             $table->decimal('total_sales', 10, 2)->default(0)->change();
             $table->decimal('total_refunds', 10, 2)->default(0)->change();
             $table->integer('total_orders')->default(0)->change();

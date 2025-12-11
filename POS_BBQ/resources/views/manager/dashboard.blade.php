@@ -9,7 +9,14 @@
                     <h4 class="font-bold text-blue-800">Recent Activities</h4>
                     <p class="text-2xl">{{ $recentActivities->count() }}</p>
                 </div>
-                <!-- Add more stats here -->
+                <div class="bg-green-100 p-4 rounded-lg">
+                    <h4 class="font-bold text-green-800">Day Sales</h4>
+                    <p class="text-2xl">₱{{ number_format($todaySales, 2) }}</p>
+                </div>
+                <div class="bg-yellow-100 p-4 rounded-lg">
+                    <h4 class="font-bold text-yellow-800">Today's Orders</h4>
+                    <p class="text-2xl">{{ $todayOrders }}</p>
+                </div>
             </div>
         </div>
     </div>

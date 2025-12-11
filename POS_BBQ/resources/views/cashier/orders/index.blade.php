@@ -26,8 +26,10 @@
                 <form action="{{ route('orders.index') }}" method="GET" class="flex gap-2">
                     <div class="flex-1 relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
                         <input type="text" name="search" value="{{ $search ?? '' }}"
@@ -115,13 +117,12 @@
                                                 @endif
                                             </td>
                                             <td class="py-2 px-4">
-                                                <span
-                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                                                                                                                                                                                        {{ $order->status == 'completed' ? 'bg-green-100 text-green-800' :
-                            ($order->status == 'cancelled' ? 'bg-red-100 text-red-800' :
-                                ($order->status == 'new' ? 'bg-blue-100 text-blue-800' :
-                                    ($order->status == 'preparing' ? 'bg-yellow-100 text-yellow-800' :
-                                        ($order->status == 'ready' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800')))) }}">
+                                                <span class="inline-flex text-xs leading-5 font-semibold items-center
+                                                                                                                                                                                                                                                                {{ $order->status == 'completed' ? 'text-green-600' :
+                            ($order->status == 'cancelled' ? 'text-red-600' :
+                                ($order->status == 'new' ? 'text-blue-600' :
+                                    ($order->status == 'preparing' ? 'text-yellow-600' :
+                                        ($order->status == 'ready' ? 'text-indigo-600' : 'text-purple-600')))) }}">
                                                     @if($order->status == 'completed')
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none"
                                                             viewBox="0 0 24 24" stroke="currentColor">
@@ -157,10 +158,9 @@
                                                 </span>
                                             </td>
                                             <td class="py-2 px-4">
-                                                <span
-                                                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                                                                                                                                                                                        {{ $order->payment_status == 'paid' ? 'bg-green-100 text-green-800' :
-                            ($order->payment_status == 'refunded' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                                <span class="inline-flex text-xs leading-5 font-semibold items-center
+                                                                                                                                                                                                                                                                {{ $order->payment_status == 'paid' ? 'text-green-600' :
+                            ($order->payment_status == 'refunded' ? 'text-red-600' : 'text-yellow-600') }}">
                                                     @if($order->payment_status == 'paid')
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none"
                                                             viewBox="0 0 24 24" stroke="currentColor">

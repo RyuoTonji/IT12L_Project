@@ -84,7 +84,7 @@
                     <span class="block sm:inline">{{ session('success') }}</span>
             </div> @endif @if(session('error'))
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3
-                                                                                                rounded relative mb-4"
+                                                                                                                rounded relative mb-4"
                     role="alert">
                     <span class="block sm:inline">{{ session('error') }}</span>
                 </div>
@@ -117,13 +117,12 @@
                             <div>
                                 <p class="text-sm text-gray-600">Status</p>
                                 <p>
-                                    <span
-                                        class="px-2 py-1 rounded text-xs font-semibold
-                                                                    {{ $order->status == 'completed' ? 'bg-green-100 text-green-800' :
-        ($order->status == 'cancelled' ? 'bg-red-100 text-red-800' :
-            ($order->status == 'new' ? 'bg-blue-100 text-blue-800' :
-                ($order->status == 'preparing' ? 'bg-yellow-100 text-yellow-800' :
-                    ($order->status == 'ready' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800')))) }}">
+                                    <span class="inline-flex text-xs font-semibold items-center
+                                                                            {{ $order->status == 'completed' ? 'text-green-600' :
+        ($order->status == 'cancelled' ? 'text-red-600' :
+            ($order->status == 'new' ? 'text-blue-600' :
+                ($order->status == 'preparing' ? 'text-yellow-600' :
+                    ($order->status == 'ready' ? 'text-indigo-600' : 'text-purple-600')))) }}">
                                         {{ ucfirst($order->status) }}
                                     </span>
                                 </p>
@@ -132,9 +131,9 @@
                             <div>
                                 <p class="text-sm text-gray-600">Payment Status</p>
                                 <p>
-                                    <span class="px-2 py-1 rounded text-xs font-semibold
-                                                                                {{ $order->payment_status == 'paid' ? 'bg-green-100 text-green-800' :
-        ($order->payment_status == 'refunded' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                    <span class="inline-flex text-xs font-semibold items-center
+                                                                                        {{ $order->payment_status == 'paid' ? 'text-green-600' :
+        ($order->payment_status == 'refunded' ? 'text-red-600' : 'text-yellow-600') }}">
                                         {{ ucfirst($order->payment_status) }}
                                     </span>
                                 </p>

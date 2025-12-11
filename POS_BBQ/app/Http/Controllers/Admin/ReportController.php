@@ -10,11 +10,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
+use App\Models\Activity;
+
 class ReportController extends Controller
 {
     public function index()
     {
         return view('admin.reports.index');
+    }
+
+    public function activities()
+    {
+        $activities = Activity::with('user')->latest()->paginate(20);
+        return view('admin.reports.activities', compact('activities'));
     }
 
     public function sales(Request $request)

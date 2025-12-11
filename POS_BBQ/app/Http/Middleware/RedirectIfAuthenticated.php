@@ -21,16 +21,24 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             if (Auth::guard($guard)->check()) {
-                // Redirect based on user role
                 $user = Auth::guard($guard)->user();
 
-                return match ($user->role) {
+                $redirect = match ($user->role ?? '') {
                     'admin' => redirect()->route('admin.dashboard'),
                     'manager' => redirect()->route('manager.dashboard'),
                     'inventory' => redirect()->route('inventory.dashboard'),
                     'cashier' => redirect()->route('cashier.dashboard'),
-                    default => redirect()->route('cashier.dashboard'),
+                    default => function () use ($user, $guard) {
+                            \Log::error('User login failed: Invalid or missing role', [
+                            'user_id' => $user->id,
+                            'role' => $user->role ?? 'null'
+                            ]);
+                            Auth::guard($guard)->logout();
+                            abort(403, 'Access denied: No role assigned to your account or the account is not registered. Please contact administrator.');
+                        }
                 };
+
+                return is_callable($redirect) ? $redirect() : $redirect;
             }
         }
 
