@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Cart;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +11,19 @@ use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
 {
+    /**
+     * Get or create cart for current user/guest
+     */
+    private function getCart()
+    {
+        if (auth()->check()) {
+            return Cart::getOrCreate(auth()->id(), null);
+        } else {
+            $sessionId = session()->getId();
+            return Cart::getOrCreate(null, $sessionId);
+        }
+    }
+
     public function index(Request $request)
     {
         // Debug logging
@@ -217,14 +231,26 @@ class CheckoutController extends Controller
 
             Log::info('Order items created', ['order_id' => $orderId, 'items_count' => count($orderItems)]);
 
+            // ===== CLEAR CART AFTER SUCCESSFUL ORDER =====
+            // Clear database cart
+            $cartModel = $this->getCart();
+            $cartModel->clear();
+            Log::info('Database cart cleared after order', [
+                'cart_id' => $cartModel->id,
+                'order_id' => $orderId
+            ]);
+            
+            // Clear session cart
+            session()->forget('checkout_cart');
+            Log::info('Session cart cleared after order', ['order_id' => $orderId]);
+            // ============================================
+
             DB::commit();
 
             Log::info('Order completed successfully', ['order_id' => $orderId]);
             
-            // Clear the checkout cart from session
-            session()->forget('checkout_cart');
-            
             // Redirect to order confirmation page
+            // The confirmation page will clear localStorage cart via JavaScript
             return redirect()->route('checkout.confirm', ['order_id' => $orderId])
                 ->with('success', 'Order placed successfully!');
 

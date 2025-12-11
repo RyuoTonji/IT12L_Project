@@ -83,7 +83,7 @@
                     <a href="{{ route('admin.branches.index') }}" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Cancel
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-success">
                         <i class="fas fa-save"></i> Update Branch
                     </button>
                 </div>

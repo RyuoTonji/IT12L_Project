@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container my-4">
     <!-- Page Header -->
@@ -316,32 +314,26 @@
     }
 
     .status-badge.active {
-        
         color: #146c43;
     }
 
     .status-badge.inactive {
-        
         color: #bb2d3b;
     }
 
     .status-badge.pending {
-        
         color: #ffc107;
     }
 
     .status-badge.confirmed {
-        
         color: #0aa2c0;
     }
 
     .status-badge.completed {
-        
         color: #198754;
     }
 
     .status-badge.cancelled {
-        
         color: #dc3545;
     }
 
@@ -438,6 +430,31 @@
         color: #495057;
     }
 
+    /* VIEW BUTTON STYLES - MATCHING ORDERS PAGE WITH !IMPORTANT FLAGS */
+    .detail-table .btn-primary,
+    .detail-table .btn-sm.btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+        border: none !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        color: white !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.375rem !important;
+        white-space: nowrap !important;
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+
+    .detail-table .btn-primary:hover,
+    .detail-table .btn-sm.btn-primary:hover {
+        background: linear-gradient(135deg, #0a58ca 0%, #084298 100%) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4) !important;
+        color: white !important;
+    }
+
     /* Action Buttons */
     .btn-warning {
         background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
@@ -474,18 +491,6 @@
     .btn-success:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-        border: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
     }
 
     /* Empty State */

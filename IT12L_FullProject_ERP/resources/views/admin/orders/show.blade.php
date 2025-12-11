@@ -161,7 +161,7 @@
             <!-- Update Status -->
             <div class="card detail-card">
                 <div class="card-header bg-warning">
-                    <h5 class="mb-0 text-dark"><i class="fas fa-edit"></i> Update Status</h5>
+                    <h5 class="mb-0 text-light"><i class="fas fa-edit"></i> Update Status</h5>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
@@ -176,7 +176,7 @@
                                 <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-success w-100">
                             <i class="fas fa-save"></i> Update Status
                         </button>
                     </form>
@@ -305,8 +305,8 @@
 
     /* Quantity Badge */
     .quantity-badge {
-        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
-        color: white;
+
+        color: #000000ff;
         padding: 0.25rem 0.75rem;
         border-radius: 12px;
         font-weight: 600;
@@ -344,7 +344,7 @@
     .total-highlight {
         font-size: 1.25rem;
         font-weight: 700;
-        color: #A52A2A !important;
+        color: #000000ff !important;
     }
 
     /* Status Badges */
@@ -358,17 +358,14 @@
     }
 
     .status-badge.pending {
-        
         color: #ffc107;
     }
 
-    .status-badge.confirmed {
-        
+    .status-badge.confirmed {      
         color: #0aa2c0;
     }
 
-    .status-badge.completed {
-       
+    .status-badge.completed { 
         color: #198754;
     }
 

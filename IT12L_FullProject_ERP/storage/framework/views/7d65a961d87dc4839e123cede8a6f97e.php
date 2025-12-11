@@ -1,32 +1,32 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container-fluid my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-archive"></i> Archived Orders</h2>
-        <a href="{{ route('admin.orders.index') }}" class="btn btn-primary">
+        <a href="<?php echo e(route('admin.orders.index')); ?>" class="btn btn-primary">
             <i class="fas fa-arrow-left"></i> Back to Active Orders
         </a>
     </div>
 
-    <!-- @if(session('success'))
+    <!-- <?php if(session('success')): ?>
         <div class="alert alert-success alert-dismissible fade show">
-            {{ session('success') }}
+            <?php echo e(session('success')); ?>
+
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    @endif -->
+    <?php endif; ?> -->
 
     <div class="card">
         <div class="card-header">
-            <form method="GET" action="{{ route('admin.orders.archived') }}" class="row g-3">
+            <form method="GET" action="<?php echo e(route('admin.orders.archived')); ?>" class="row g-3">
                 <div class="col-md-3">
                     <select name="branch_id" class="form-select">
                         <option value="">All Branches</option>
-                        @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
-                                {{ $branch->name }}
+                        <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                            <option value="<?php echo e($branch->id); ?>" <?php echo e(request('branch_id') == $branch->id ? 'selected' : ''); ?>>
+                                <?php echo e($branch->name); ?>
+
                             </option>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -52,17 +52,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($orders as $order)
+                        <?php $__empty_1 = true; $__currentLoopData = $orders; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $order): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                         <tr>
-                            <td>#{{ $order->id }}</td>
+                            <td>#<?php echo e($order->id); ?></td>
                             <td>
-                                <div>{{ $order->user_name }}</div>
-                                <small class="text-muted">{{ $order->user_email }}</small>
+                                <div><?php echo e($order->user_name); ?></div>
+                                <small class="text-muted"><?php echo e($order->user_email); ?></small>
                             </td>
-                            <td>{{ $order->branch_name }}</td>
-                            <td>₱{{ number_format($order->total_amount, 2) }}</td>
+                            <td><?php echo e($order->branch_name); ?></td>
+                            <td>₱<?php echo e(number_format($order->total_amount, 2)); ?></td>
                                                         <td>
-                                @php
+                                <?php
                                     $statusClass = [
                                         'pending' => 'warning',
                                         'confirmed' => 'info',
@@ -70,38 +70,41 @@
                                         'cancelled' => 'danger'
                                     ];
                                     $textClass = $statusClass[$order->status] ?? 'secondary';
-                                @endphp
-                                <span class="text-{{ $textClass }} fw-semibold">
-                                    {{ ucfirst($order->status) }}
+                                ?>
+                                <span class="text-<?php echo e($textClass); ?> fw-semibold">
+                                    <?php echo e(ucfirst($order->status)); ?>
+
                                 </span>
                             </td>
-                            <td>{{ \Carbon\Carbon::parse($order->created_at)->format('M j, Y g:i A') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($order->deleted_at)->format('M j, Y g:i A') }}</td>
+                            <td><?php echo e(\Carbon\Carbon::parse($order->created_at)->format('M j, Y g:i A')); ?></td>
+                            <td><?php echo e(\Carbon\Carbon::parse($order->deleted_at)->format('M j, Y g:i A')); ?></td>
                             <td>
-                                <form action="{{ route('admin.orders.restore', $order->id) }}" 
+                                <form action="<?php echo e(route('admin.orders.restore', $order->id)); ?>" 
                                       method="POST" 
                                       onsubmit="return confirm('Are you sure you want to restore this order?');"
                                       class="d-inline">
-                                    @csrf
+                                    <?php echo csrf_field(); ?>
                                     <button type="submit" class="btn btn-sm btn-success">
                                         <i class="fas fa-undo"></i> Restore
                                     </button>
                                 </form>
                             </td>
                         </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
                             <td colspan="8" class="text-center">No archived orders found</td>
                         </tr>
-                        @endforelse
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
 
             <div class="mt-3">
-                {{ $orders->links() }}
+                <?php echo e($orders->links()); ?>
+
             </div>
         </div>
     </div>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\resources\views/admin/orders/archived.blade.php ENDPATH**/ ?>

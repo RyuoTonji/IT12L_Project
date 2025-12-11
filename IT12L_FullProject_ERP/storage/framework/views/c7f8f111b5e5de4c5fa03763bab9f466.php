@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid my-4">
     <!-- Page Header -->
@@ -10,7 +8,7 @@
                 <a href="<?php echo e(route('admin.branches.archived')); ?>" class="btn btn-light">
                     <i class="fas fa-archive"></i> View Archived
                 </a>
-                <a href="<?php echo e(route('admin.branches.create')); ?>" class="btn btn-success">
+                <a href="<?php echo e(route('admin.branches.create')); ?>" class="btn btn-light">
                     <i class="fas fa-plus"></i> Add New Branch
                 </a>
             </div>
@@ -126,7 +124,8 @@
 
     /* Branch Card */
     .branch-card {
-        background: white;
+        background-color: white;
+        border: 4px solid #A52A2A;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -143,7 +142,9 @@
 
     /* Branch Card Header */
     .branch-card-header {
-        background-color: #A52A2A;
+        /* background-color: #A52A2A; */
+
+        outline-color: #A52A2A;
         padding: 1.5rem;
         border-bottom: 3px solid #A52A2A;
     }
@@ -156,7 +157,7 @@
     }
 
     .branch-name {
-        color: #ffffffff;
+        color: #A52A2A;
         font-weight: 700;
         font-size: 1.5rem;
         margin: 0;
@@ -376,6 +377,19 @@
             font-size: 1.5rem;
         }
     }
+
+    /* Archive Button - Gray Color */
+.branch-actions .btn-danger {
+    background: #6c757d;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.branch-actions .btn-danger:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+}
 </style>
 <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>

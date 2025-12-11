@@ -7,10 +7,7 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <h2 class="mb-0"><i class="fas fa-users"></i> Customer Management</h2>
             <div class="d-flex gap-2">
-                <a href="{{ route('admin.customers.archived') }}" class="btn btn-light">
-                    <i class="fas fa-archive"></i> Archived Customers
-                </a>
-                <a href="{{ route('admin.customers.create') }}" class="btn btn-success">
+                <a href="{{ route('admin.customers.create') }}" class="btn btn-light">
                     <i class="fas fa-user-plus"></i> Add New Customer
                 </a>
             </div>
@@ -130,16 +127,6 @@
                                             <i class="fas fa-{{ $customer->is_active ? 'ban' : 'check' }}"></i>
                                         </button>
                                     </form>
-                                    
-                                    <form action="{{ route('admin.customers.destroy', $customer->id) }}" 
-                                          method="POST" 
-                                          onsubmit="return confirm('Are you sure you want to archive this customer?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Archive">
-                                            <i class="fas fa-archive"></i>
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>
@@ -191,19 +178,6 @@
         color: white;
     }
 
-    .page-header .btn-light {
-        background: rgba(255, 255, 255, 0.9);
-        border: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .page-header .btn-light:hover {
-        background: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
     .page-header .btn-success {
         background: linear-gradient(135deg, #198754 0%, #146c43 100%);
         border: none;
@@ -240,6 +214,18 @@
     .filter-group .form-group {
         flex: 1;
         min-width: 160px;
+    }
+
+    .filter-group .form-group:has(.btn) {
+        flex: 0 0 160px;
+        min-width: 160px;
+        max-width: 160px;
+    }
+
+    .filter-group .form-group .btn {
+        width: 100%;
+        margin: 0;
+        padding: 0.625rem 1rem;
     }
 
     .filter-group label {
@@ -338,7 +324,7 @@
         color: #212529;
     }
 
-    /* Status Badges - Updated to match products page */
+    /* Status Badges */
     .status-badge {
         padding: 0.5rem 1rem;
         border-radius: 20px;
@@ -356,7 +342,7 @@
         color: #A52A2A;
     }
 
-    /* Action Buttons - FIXED to match products page */
+    /* Action Buttons - WITH IMPORTANT FLAGS */
     .action-buttons {
         display: flex;
         gap: 0.5rem;
@@ -378,65 +364,76 @@
         gap: 0.375rem;
     }
 
+    /* Override any existing btn-primary styles */
+  
     .action-buttons .btn-primary {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-        border: none;
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+        border: none !important;
         font-weight: 600;
         transition: all 0.3s ease;
+        color: white !important;
     }
 
+    
     .action-buttons .btn-primary:hover {
+        background: linear-gradient(135deg, #0a58ca 0%, #084298 100%) !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+        color: white !important;
     }
 
+    /* Override any existing btn-warning styles */
+    .customers-table .btn-warning,
     .action-buttons .btn-warning {
-        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
-        border: none;
-        color: #000;
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+        border: none !important;
+        color: #000 !important;
         font-weight: 600;
         transition: all 0.3s ease;
     }
 
+    .customers-table .btn-warning:hover,
     .action-buttons .btn-warning:hover {
+        background: linear-gradient(135deg, #e0a800 0%, #cc9a06 100%) !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+        color: #000 !important;
     }
 
+    /* Override any existing btn-secondary styles */
+    .customers-table .btn-secondary,
     .action-buttons .btn-secondary {
-        background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
-        border: none;
+        background: linear-gradient(135deg, #6c757d 0%, #545b62 100%) !important;
+        border: none !important;
         font-weight: 600;
         transition: all 0.3s ease;
+        color: white !important;
     }
 
+    .customers-table .btn-secondary:hover,
     .action-buttons .btn-secondary:hover {
+        background: linear-gradient(135deg, #545b62 0%, #3d4349 100%) !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+        color: white !important;
     }
 
+    /* Override any existing btn-success styles */
+    .customers-table .btn-success,
     .action-buttons .btn-success {
-        background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-        border: none;
+        background: linear-gradient(135deg, #198754 0%, #146c43 100%) !important;
+        border: none !important;
         font-weight: 600;
         transition: all 0.3s ease;
+        color: white !important;
     }
 
+    .customers-table .btn-success:hover,
     .action-buttons .btn-success:hover {
+        background: linear-gradient(135deg, #146c43 0%, #0f5132 100%) !important;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
-    }
-
-    .action-buttons .btn-danger {
-        background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
-        border: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .action-buttons .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        color: white !important;
     }
 
     /* Empty State */

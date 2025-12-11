@@ -24,12 +24,12 @@
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-card sales">
                 <div class="stat-card-content">
-                    <div class="stat-info">
-                        <div class="stat-label">Today's Sales</div>
+                    <div class="stat-label">Today's Sales</div>
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
                         <div class="stat-value">₱{{ number_format($todaySales, 2) }}</div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-dollar-sign"></i>
                     </div>
                 </div>
             </div>
@@ -37,12 +37,12 @@
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-card orders">
                 <div class="stat-card-content">
-                    <div class="stat-info">
-                        <div class="stat-label">Today's Orders</div>
+                    <div class="stat-label">Today's Orders</div>
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
                         <div class="stat-value">{{ $todayOrders }}</div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-shopping-cart"></i>
                     </div>
                 </div>
             </div>
@@ -50,12 +50,12 @@
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-card active">
                 <div class="stat-card-content">
-                    <div class="stat-info">
-                        <div class="stat-label">Active Orders</div>
+                    <div class="stat-label">Active Orders</div>
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
                         <div class="stat-value">{{ $activeOrders->count() }}</div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
                     </div>
                 </div>
             </div>
@@ -63,12 +63,12 @@
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-card menu">
                 <div class="stat-card-content">
-                    <div class="stat-info">
-                        <div class="stat-label">Available Menu</div>
+                    <div class="stat-label">Available Menu</div>
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div class="stat-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
                         <div class="stat-value">{{ $menuItems->flatten()->count() }}</div>
-                    </div>
-                    <div class="stat-icon">
-                        <i class="fas fa-utensils"></i>
                     </div>
                 </div>
             </div>
@@ -125,7 +125,8 @@
                                                 <span>{{ \Carbon\Carbon::parse($order->created_at)->format('M d, Y h:i A') }}</span>
                                             </div>
                                             <div class="order-total">
-                                                Total: ₱{{ number_format($order->total_amount, 2) }}
+                                                <span>Total:</span>
+                                                <span>₱{{ number_format($order->total_amount, 2) }}</span>
                                             </div>
                                             <a href="{{ route('admin.orders.show', $order->id) }}" class="btn btn-primary btn-sm w-100 mt-2">
                                                 <i class="fas fa-eye"></i> View Details
@@ -164,7 +165,7 @@
                                         <tr>
                                             <td><span class="order-id">#{{ $order->id }}</span></td>
                                             <td>{{ $order->user_name }}</td>
-                                            <td><strong class="text-primary">₱{{ number_format($order->total_amount, 2) }}</strong></td>
+                                            <td><strong class="text-dark">₱{{ number_format($order->total_amount, 2) }}</strong></td>
                                             <td>
                                                 @php
                                                     $statusMap = [
@@ -305,8 +306,8 @@
 
     .stat-card-content {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
+        flex-direction: column;
+        width: 100%;
     }
 
     .stat-label {
@@ -447,10 +448,40 @@
     .order-total {
         font-weight: 700;
         font-size: 1.125rem;
-        color: #A52A2A;
+        color: #000000ff;
         margin-top: 1rem;
         padding-top: 1rem;
         border-top: 2px solid #f8f9fa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Action Buttons - MATCHING ORDER PAGE STYLE WITH !IMPORTANT */
+    /* .order-card-body .btn-primary, */
+    .recent-orders-table .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+        border: none !important;
+        font-weight: 600 !important;
+        transition: all 0.3s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.375rem !important;
+    }
+
+    /* .order-card-body .btn-primary:hover, */
+    .recent-orders-table .btn-primary:hover {
+        background: linear-gradient(135deg, #0a58ca 0%, #084298 100%) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4) !important;
+    }
+
+    /* Ensure consistent button sizing */
+    /* .order-card-body .btn-sm, */
+    .recent-orders-table .btn-sm {
+        padding: 0.375rem 0.75rem !important;
+        font-size: 0.875rem !important;
     }
 
     /* Status Badges */
@@ -468,17 +499,14 @@
     }
 
     .status-badge.confirmed {
-
         color: #0aa2c0;
     }
 
     .status-badge.completed {
-   
         color: #146c43;
     }
 
     .status-badge.cancelled {
-        
         color: #bb2d3b;
     }
 
@@ -548,8 +576,9 @@
         justify-content: space-between;
         align-items: center;
         padding: 0.75rem;
-        border-bottom: 1px solid #f8f9fa;
+        border-bottom: 1.5px solid #A52A2A;
         transition: all 0.2s ease;
+        outline: #212529;
     }
 
     .menu-item:last-child {
@@ -567,13 +596,12 @@
     }
 
     .menu-item-price {
-        color: #A52A2A;
+        color: #000000ff;
         font-weight: 600;
     }
 
     .availability-badge {
-        
-        color: #0a3622;
+        color: #146c43;
         padding: 0.35rem 0.75rem;
         border-radius: 12px;
         font-size: 0.8rem;
@@ -636,7 +664,6 @@
         .operations-tabs-card .card-body {
             padding: 1rem;
         }
-
     }
 </style>
 @endpush

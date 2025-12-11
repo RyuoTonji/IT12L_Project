@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
@@ -17,21 +15,21 @@
                     </p>
                     
                     <div class="alert alert-info">
-                        <strong>Order #{{ $order->id }}</strong>
+                        <strong>Order #<?php echo e($order->id); ?></strong>
                         <br>
-                        <small>Branch: {{ $order->branch_name }}</small>
+                        <small>Branch: <?php echo e($order->branch_name); ?></small>
                         <br>
-                        <small>Total: ₱{{ number_format($order->total_amount, 2) }}</small>
+                        <small>Total: ₱<?php echo e(number_format($order->total_amount, 2)); ?></small>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
-                        <a href="{{ route('orders.show', $order->id) }}" class="btn btn-primary">
+                        <a href="<?php echo e(route('orders.show', $order->id)); ?>" class="btn btn-primary">
                             <i class="fas fa-eye"></i> View Order Details
                         </a>
-                        <a href="{{ route('orders.index') }}" class="btn btn-outline-secondary">
+                        <a href="<?php echo e(route('orders.index')); ?>" class="btn btn-outline-secondary">
                             <i class="fas fa-list"></i> View All Orders
                         </a>
-                        <a href="{{ route('home') }}" class="btn btn-outline-primary">
+                        <a href="<?php echo e(route('home')); ?>" class="btn btn-outline-primary">
                             <i class="fas fa-home"></i> Continue Shopping
                         </a>
                     </div>
@@ -41,7 +39,7 @@
     </div>
 </div>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 // Clear cart immediately when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -115,5 +113,6 @@ function updateCartCount() {
     console.log('Cart count updated to 0');
 }
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\resources\views/user/checkout/confirm.blade.php ENDPATH**/ ?>

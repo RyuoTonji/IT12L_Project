@@ -14,25 +14,28 @@
     </nav>
 
     <!-- Header: Order ID + Status Badge -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>
-            <i class="fas fa-receipt"></i> Order #{{ $order->id }}
-        </h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-receipt"></i> Order #{{ $order->id }}
+    </h2>
 
-        @php
-            $statusBadges = [
-                'pending'    => 'bg-warning',
-                'confirmed'  => 'bg-info',
-                'delivered'  => 'bg-success',
-                'cancelled'  => 'bg-danger',
-            ];
-            $badgeClass = $statusBadges[$order->status] ?? 'bg-secondary';
-        @endphp
+    @php
+        $statusTextClasses = [
+            'pending'    => 'text-warning',
+            'confirmed'  => 'text-info',
+            'delivered'  => 'text-success',
+            'cancelled'  => 'text-danger',
+            'processing' => 'text-primary',
+            'shipped'    => 'text-cyan',
+            // add more as needed
+        ];
+        $textClass = $statusTextClasses[$order->status] ?? 'text-muted';
+    @endphp
 
-        <span class="badge {{ $badgeClass }} fs-5 text-white">
-            {{ ucfirst(str_replace('_', ' ', $order->status)) }}
-        </span>
-    </div>
+    <span class="badge rounded-pill {{ $textClass }} fs-5 fw-semibold">
+        {{ ucfirst(str_replace('_', ' ', $order->status)) }}
+    </span>
+</div>
 
     <div class="row">
         <!-- Left Column: Items & Timeline -->
@@ -70,7 +73,7 @@
                             <tfoot>
                                 <tr class="fw-bold">
                                     <th colspan="3" class="text-end">Total:</th>
-                                    <th class="text-primary fs-5 text-end">
+                                    <th class="text-dark fs-5 text-end">
                                         ₱{{ number_format($order->total_amount, 2) }}
                                     </th>
                                 </tr>

@@ -9,7 +9,7 @@
             <div class="card-body p-0">
 
                 
-                <div class="row g-0 mb-4">
+                <div class="row g-0 mb-6">
                     
                     <div class="col-md-6 p-4 d-flex align-items-center justify-content-center bg-white text-center">
                         <div>
@@ -27,7 +27,7 @@
                     
                     <div class="col-md-6 p-4 text-white" style="background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%); border-radius: 0 0.5rem 0.5rem 0;">
                         <div class="text-center">
-                            <h2 class="fw-bold mb-4">Taste the 🔥 Difference</h2>
+                            <h2 class="fw-bold mb-3">Taste the 🔥 Difference</h2>
                             <img src="<?php echo e(asset('images/pares.png')); ?>" alt="Delicious Pares" class="img-fluid d-block mx-auto" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
                             <p class="mt-4 fs-5">
                                 <strong>Delicious BBQ and Pares, Ready When You Are!</strong><br>
@@ -113,7 +113,7 @@
 <?php $__env->startPush('styles'); ?>
 <style>
 /* ========================================================================
-   BRANCH CARD STYLES - HIGHLY VISIBLE BORDERS
+   BRANCH CARD STYLES - HIGHLY VISIBLE BORDERS WITH HOVER GLOW
    ======================================================================== */
 
 .branch-card {
@@ -121,7 +121,7 @@
     border: 4px solid #A52A2A;
     border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 6px 16px rgba(165, 42, 42, 0.2);
+    box-shadow: 0 4px 12px rgba(165, 42, 42, 0.15);
     transition: all 0.3s ease;
     position: relative;
     height: 100%;
@@ -129,28 +129,13 @@
     flex-direction: column;
 }
 
-.branch-card::before {
-    content: '';
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    bottom: -4px;
-    left: -4px;
-    background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
-    border-radius: 16px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
 .branch-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 12px 28px rgba(165, 42, 42, 0.35);
-    border-color: #8B0000;
-}
-
-.branch-card:hover::before {
-    opacity: 0.1;
+    transform: translateY(-8px) !important;
+    box-shadow: 0 12px 28px rgba(165, 42, 42, 0.6),
+                /* 0 0 0 6px rgba(165, 42, 42, 0.25),
+                0 0 40px rgba(165, 42, 42, 0.7), */
+                0 0 60px rgba(165, 42, 42, 0.4) !important;
+    border-color: #8B0000 !important;
 }
 
 /* Branch Card Icon */
@@ -160,17 +145,15 @@
     right: 20px;
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 8px rgba(165, 42, 42, 0.3);
 }
 
 .branch-card-icon i {
     font-size: 1.75rem;
-    color: white;
+    color: #A52A2A;
 }
 
 /* Branch Title */

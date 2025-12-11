@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container my-4">
     <div class="row">
@@ -161,7 +159,7 @@ unset($__errorArgs, $__bag); ?>
                                        value="1" 
                                        <?php echo e(old('is_active', $customer->is_active) ? 'checked' : ''); ?>>
                                 <label for="is_active" class="form-check-label">
-                                    Account Active
+                                    Disable Account
                                 </label>
                             </div>
                         </div>
@@ -170,7 +168,7 @@ unset($__errorArgs, $__bag); ?>
                             <a href="<?php echo e(route('admin.customers.show', $customer->id)); ?>" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Cancel
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i> Update Customer
                             </button>
                         </div>

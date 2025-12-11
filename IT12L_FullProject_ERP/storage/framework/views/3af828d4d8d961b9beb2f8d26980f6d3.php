@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid my-4">
     <!-- Header Section -->
@@ -57,12 +55,14 @@
                 <div class="stat-card stat-card-large">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
-                            <div>
+                            <div class="w-100">
                                 <h6 class="stat-subtitle">Total Sales (All Time)</h6>
-                                <h2 class="stat-value">₱<?php echo e(number_format($totalRevenueAllTime ?? 0, 2)); ?></h2>
-                            </div>
-                            <div class="stat-icon-large">
-                                <i class="fas fa-chart-line"></i>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="stat-icon-large">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <h2 class="stat-value">₱<?php echo e(number_format($totalRevenueAllTime ?? 0, 2)); ?></h2>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -74,12 +74,14 @@
                 <div class="stat-card stat-card-large">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
-                            <div>
+                            <div class="w-100">
                                 <h6 class="stat-subtitle">Total Orders (All Time)</h6>
-                                <h2 class="stat-value"><?php echo e(number_format($totalOrdersAllTime ?? 0)); ?></h2>
-                            </div>
-                            <div class="stat-icon-large">
-                                <i class="fas fa-shopping-cart"></i>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="stat-icon-large">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </div>
+                                    <h2 class="stat-value"><?php echo e(number_format($totalOrdersAllTime ?? 0, )); ?></h2>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -92,14 +94,12 @@
             <div class="col-md-3">
                 <div class="stat-card stat-card-small stat-card-today-sales">
                     <div class="card-body">
+                        <h6 class="stat-subtitle-small">Today's Sales</h6>
                         <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="stat-subtitle-small">Today's Sales</h6>
-                                <h3 class="stat-value-small">₱<?php echo e(number_format($todayRevenue ?? 0, 2)); ?></h3>
-                            </div>
                             <div class="stat-icon-small">
                                 <i class="fas fa-peso-sign"></i>
                             </div>
+                            <h3 class="stat-value-small">₱<?php echo e(number_format($todayRevenue ?? 0, 2)); ?></h3>
                         </div>
                     </div>
                 </div>
@@ -108,14 +108,12 @@
             <div class="col-md-3">
                 <div class="stat-card stat-card-small stat-card-today-orders">
                     <div class="card-body">
+                        <h6 class="stat-subtitle-small">Today's Orders</h6>
                         <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="stat-subtitle-small">Today's Orders</h6>
-                                <h3 class="stat-value-small"><?php echo e(number_format($todayOrders ?? 0)); ?></h3>
-                            </div>
                             <div class="stat-icon-small">
                                 <i class="fas fa-receipt"></i>
                             </div>
+                            <h3 class="stat-value-small"><?php echo e(number_format($todayOrders ?? 0)); ?></h3>
                         </div>
                     </div>
                 </div>
@@ -124,14 +122,12 @@
             <div class="col-md-3">
                 <div class="stat-card stat-card-small stat-card-pending">
                     <div class="card-body">
+                        <h6 class="stat-subtitle-small">Pending Orders</h6>
                         <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="stat-subtitle-small">Pending Orders</h6>
-                                <h3 class="stat-value-small"><?php echo e(number_format($pendingOrders ?? 0)); ?></h3>
-                            </div>
                             <div class="stat-icon-small">
                                 <i class="fas fa-clock"></i>
                             </div>
+                            <h3 class="stat-value-small"><?php echo e(number_format($pendingOrders ?? 0)); ?></h3>
                         </div>
                     </div>
                 </div>
@@ -140,14 +136,12 @@
             <div class="col-md-3">
                 <div class="stat-card stat-card-small stat-card-products">
                     <div class="card-body">
+                        <h6 class="stat-subtitle-small">Total Products</h6>
                         <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="stat-subtitle-small">Total Products</h6>
-                                <h3 class="stat-value-small"><?php echo e(number_format($totalProducts ?? 0)); ?></h3>
-                            </div>
                             <div class="stat-icon-small">
                                 <i class="fas fa-utensils"></i>
                             </div>
+                            <h3 class="stat-value-small"><?php echo e(number_format($totalProducts ?? 0)); ?></h3>
                         </div>
                     </div>
                 </div>
@@ -171,16 +165,16 @@
                             <thead>
                                 <tr>
                                     <th>Branch</th>
-                                    <th class="text-end">Orders</th>
-                                    <th class="text-end">Total Sales</th>
+                                    <th class="text">Orders</th>
+                                    <th class="text">Total Sales</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php $__empty_1 = true; $__currentLoopData = $salesByBranch; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr>
                                     <td class="fw-medium"><?php echo e($branch->branch_name); ?></td>
-                                    <td class="text-end"><?php echo e(number_format($branch->total_orders)); ?></td>
-                                    <td class="text-end fw-semibold text-success">₱<?php echo e(number_format($branch->total_sales, 2)); ?></td>
+                                    <td class="text"><?php echo e(number_format($branch->total_orders)); ?></td>
+                                    <td class="text fw-semibold text-dark">₱<?php echo e(number_format($branch->total_sales, 2)); ?></td>
                                 </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
@@ -213,16 +207,16 @@
                             <thead>
                                 <tr>
                                     <th>Product</th>
-                                    <th class="text-end">Quantity</th>
-                                    <th class="text-end">Sales</th>
+                                    <th class="text">Quantity</th>
+                                    <th class="text">Sales</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php $__empty_1 = true; $__currentLoopData = $topProducts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr>
                                     <td class="fw-medium"><?php echo e($product->name); ?></td>
-                                    <td class="text-end"><?php echo e(number_format($product->total_quantity)); ?></td>
-                                    <td class="text-end fw-semibold text-success">₱<?php echo e(number_format($product->total_sales, 2)); ?></td>
+                                    <td class="text"><?php echo e(number_format($product->total_quantity)); ?></td>
+                                    <td class="text fw-semibold text-dark">₱<?php echo e(number_format($product->total_sales, 2)); ?></td>
                                 </tr>
                                 <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
@@ -633,7 +627,7 @@
     /* Amount Text */
     .amount-text {
         font-weight: 700;
-        color: #A52A2A;
+        color: #000000ff;
         font-size: 1rem;
     }
 
@@ -648,41 +642,60 @@
     }
 
     .status-warning {
-        
         color: #ffc107;
     }
 
     .status-info {
-        
         color: #0dcaf0;
     }
 
     .status-success {
-        
         color: #198754;
     }
 
     .status-danger {
-        
         color: #dc3545;
     }
 
     .status-secondary {
-        
         color: #6c757d;
     }
 
-    /* Buttons */
-    .btn-primary {
-        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
-        border: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
+    /* Action Buttons - Matching Orders Page */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: stretch;
     }
 
-    .btn-primary:hover {
+    .action-buttons .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        white-space: nowrap;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+
+    /* Override any existing btn-primary styles */
+    .data-table .btn-primary,
+    .btn-primary.btn-sm {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%) !important;
+        border: none !important;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        color: white !important;
+    }
+
+    .data-table .btn-primary:hover,
+    .btn-primary.btn-sm:hover {
+        background: linear-gradient(135deg, #0a58ca 0%, #084298 100%) !important;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(165, 42, 42, 0.3);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
+        color: white !important;
     }
 
     .btn-secondary {

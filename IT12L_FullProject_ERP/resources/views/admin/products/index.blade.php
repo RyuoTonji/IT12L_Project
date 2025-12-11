@@ -10,14 +10,14 @@
                 <a href="{{ route('admin.products.archived') }}" class="btn btn-light">
                     <i class="fas fa-archive"></i> Archived Products
                 </a>
-                <a href="{{ route('admin.products.create') }}" class="btn btn-success">
+                <a href="{{ route('admin.products.create') }}" class="btn btn-light">
                     <i class="fas fa-plus"></i> Add New Dish
                 </a>
             </div>
         </div>
     </div>
 
-    @if(session('success'))
+    <!-- @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -29,7 +29,7 @@
             <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    @endif
+    @endif -->
 
     <!-- Filters Card -->
     <div class="filters-card mb-4">
@@ -177,7 +177,7 @@
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger">
-                                            <i class="fas fa-archive"></i> Archive
+                                            <i class="fas fa-trash"></i> Archive
                                         </button>
                                     </form>
                                 </div>
@@ -191,7 +191,7 @@
                                     <h4>No Products Found</h4>
                                     <p>{{ request()->hasAny(['search', 'category_id', 'branch_id', 'is_available', 'price_range']) ? 'No products match your filters.' : 'Start by adding your first product.' }}</p>
                                     @if(!request()->hasAny(['search', 'category_id', 'branch_id', 'is_available', 'price_range']))
-                                    <a href="{{ route('admin.products.create') }}" class="btn btn-success mt-2">
+                                    <a href="{{ route('admin.products.create') }}" class="btn btn-light mt-2">
                                         <i class="fas fa-plus"></i> Add New Dish
                                     </a>
                                     @endif
@@ -207,9 +207,6 @@
         <!-- Pagination -->
         @if($products->hasPages())
         <div class="pagination-wrapper">
-            <!-- <div class="pagination-info">
-                Showing {{ $products->firstItem() }} to {{ $products->lastItem() }} of {{ $products->total() }} products
-            </div> -->
             {{ $products->links() }}
         </div>
         @endif
@@ -231,29 +228,54 @@
         color: white;
     }
 
-    .page-header .btn-light {
-        background: rgba(255, 255, 255, 0.9);
-        border: none;
-        font-weight: 600;
-        transition: all 0.3s ease;
+    /* Header Buttons - Force Override Bootstrap */
+    .page-header .btn.btn-light,
+    .page-header a.btn-light,
+    .page-header button.btn-light {
+        background: #f8f9fa !important;
+        background-color: #f8f9fa !important;
+        background-image: none !important;
+        border: none !important;
+        border-color: transparent !important;
+        font-weight: 600 !important;
+        color: #212529 !important;
+        transition: all 0.3s ease !important;
+        box-shadow: none !important;
     }
 
-    .page-header .btn-light:hover {
+    .page-header .btn.btn-light:hover,
+    .page-header a.btn-light:hover,
+    .page-header button.btn-light:hover {
+        background: white !important;
+        background-color: white !important;
+        background-image: none !important;
+        color: #212529 !important;
+        border-color: transparent !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    .page-header .btn.btn-light:focus,
+    .page-header .btn.btn-light:active {
+        background: white !important;
+        background-color: white !important;
+        color: #212529 !important;
+        border-color: transparent !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Empty State Button */
+    .empty-state .btn-light {
         background: white;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .page-header .btn-success {
-        background: linear-gradient(135deg, #198754 0%, #146c43 100%);
-        border: none;
+        color: #A52A2A;
+        border: 2px solid #dee2e6;
         font-weight: 600;
-        transition: all 0.3s ease;
     }
 
-    .page-header .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    .empty-state .btn-light:hover {
+        background: #f8f9fa;
+        border-color: #A52A2A;
+        color: #8B0000;
     }
 
     /* Filters Card */
@@ -438,7 +460,7 @@
     .product-price {
         font-weight: 700;
         font-size: 1.125rem;
-        color: #A52A2A;
+        color: #000000ff;
     }
 
     /* Status Badges */
@@ -452,7 +474,6 @@
     }
 
     .status-badge.available {
-        
         color: #146c43;
     }
 
@@ -460,7 +481,7 @@
         color: #A52A2A;
     }
 
-    /* Action Buttons - FIXED */
+    /* Action Buttons - Matching Branch Page Style */
     .action-buttons {
         display: flex;
         gap: 0.5rem;
@@ -495,16 +516,18 @@
         box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
     }
 
+    /* Archive Button - Gray Color Matching Branch Page */
     .action-buttons .btn-danger {
-        background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+        background: #6c757d;
         border: none;
         font-weight: 600;
         transition: all 0.3s ease;
     }
 
     .action-buttons .btn-danger:hover {
+        background: #5a6268;
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
     }
 
     /* Empty State */
@@ -554,7 +577,6 @@
         display: flex;
         justify-content: center;
         align-items: center;
-
     }
 
     .pagination-info {

@@ -127,7 +127,7 @@
                             <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i> Update Dish
                             </button>
                         </div>

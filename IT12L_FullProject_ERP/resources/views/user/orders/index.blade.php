@@ -23,9 +23,9 @@
                 <div class="col-12">
                     <div class="card order-card shadow-sm">
                         <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <h5 class="card-title mb-2">
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <h5 class="card-title mb-3">
                                         Order #{{ $order->id }}
                                         @php
                                             $statusClasses = [
@@ -34,40 +34,45 @@
                                                 'delivered' => 'success',
                                                 'cancelled' => 'danger'
                                             ];
-                                            $badgeClass = $statusClasses[$order->status] ?? 'secondary';
+                                            $textClass = $statusClasses[$order->status] ?? 'secondary';
                                         @endphp
-                                        <span class="badge bg-{{ $badgeClass }}">
+                                        <span class="text-{{ $textClass }} fw-semibold">
                                             {{ ucfirst($order->status) }}
                                         </span>
                                     </h5>
                                     
                                     <p class="card-text text-muted mb-2">
-                                        <i class="fas fa-store"></i> {{ $order->branch->name }}
-                                        <br>
-                                        <i class="fas fa-calendar"></i> 
+                                        <i class="fas fa-store me-1"></i> {{ $order->branch->name }}
+                                    </p>
+                                    
+                                    <p class="card-text text-muted mb-3">
+                                        <i class="fas fa-calendar me-1"></i> 
                                         {{ $order->ordered_at->format('F j, Y g:i A') }}
                                     </p>
 
                                     <p class="card-text mb-0">
                                         <strong>Total:</strong> 
-                                        <span class="text-primary fs-5">
+                                        <span class="text-dark fs-5 fw-bold">
                                             ₱{{ number_format($order->total_amount, 2) }}
                                         </span>
                                     </p>
                                 </div>
 
-                                <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                                    <a href="{{ route('orders.show', $order->id) }}" class="btn btn-primary mb-2">
-                                        <i class="fas fa-eye"></i> View Details
-                                    </a>
-                                    
-                                    @if($order->status === 'pending')
-                                        <button class="btn btn-danger cancel-order" 
-                                                data-order-id="{{ $order->id }}">
-                                            <i class="fas fa-times"></i> Cancel Order
-                                        </button>
-                                    @endif
-                                </div>
+                            <div class="col-md-3 d-flex flex-column justify-content-center align-items-stretch gap-2">
+                                <a href="{{ route('orders.show', $order->id) }}" 
+                                class="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 text-nowrap">
+                                    <i class="fas fa-eye"></i>
+                                    <span>View Details</span>
+                                </a>
+
+                                @if($order->status === 'pending')
+                                    <button class="btn btn-danger cancel-order d-flex align-items-center justify-content-center gap-2 px-3 py-2 text-nowrap"
+                                            data-order-id="{{ $order->id }}">
+                                        <i class="fas fa-times"></i>
+                                        <span>Cancel Order</span>
+                                    </button>
+                                @endif
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -76,6 +81,24 @@
         </div>
     @endif
 </div>
+
+@push('styles')
+<style>
+    .order-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    }
+    
+    .order-card .btn {
+        white-space: nowrap;
+    }
+</style>
+@endpush
 
 @push('scripts')
 <script>

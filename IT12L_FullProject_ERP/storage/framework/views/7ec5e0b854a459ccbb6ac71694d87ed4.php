@@ -24,148 +24,199 @@
                             </div>
                         </div>
 
-                        
-                        <div class="col-md-7 p-4 p-md-5 text-white" style="background-color: #A52A2A; background-size: cover; background-position: center; border-radius: 0 0.75rem 0.75rem 0;">
-                            
-                            <h2 class="fw-bold mb-4 text-center text-uppercase border-bottom pb-3">Account Login</h2>
 
-                            <form method="POST" action="<?php echo e(route('login')); ?>">
-                                <?php echo csrf_field(); ?>
+<div class="col-md-7 p-4 p-md-5 text-white position-relative" 
+     style="background: linear-gradient(135deg, #8B1A1A 0%, #A52A2A 50%, #C84B31 100%); 
+            background-size: cover; 
+            background-position: center; 
+            border-radius: 0 0.75rem 0.75rem 0;
+            overflow: hidden;">
+    
+    
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="opacity: 0.1; pointer-events: none;">
+        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; 
+                    background: white; border-radius: 50%; filter: blur(60px);"></div>
+        <div style="position: absolute; bottom: -80px; left: -80px; width: 250px; height: 250px; 
+                    background: white; border-radius: 50%; filter: blur(80px);"></div>
+    </div>
+    
+    
+    <div class="position-relative" style="z-index: 1;">
+        <h2 class="fw-bold mb-4 text-center text-uppercase pb-3" 
+            style="border-bottom: 2px solid rgba(255,255,255,0.3); 
+                   letter-spacing: 1px;
+                   text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+            Account Login
+        </h2>
 
-                                
-                                <div class="mb-3">
-                                    <label for="email" class="form-label visually-hidden">Email</label>
-                                    <div class="input-group input-group-lg">
-                                        <span class="input-group-text bg-transparent border-0 text-white-50"><i class="fas fa-envelope"></i></span>
-                                        <input id="email" type="email" class="form-control <?php $__errorArgs = ['email'];
+        <form method="POST" action="<?php echo e(route('login')); ?>">
+            <?php echo csrf_field(); ?>
+
+            
+            <div class="mb-3">
+                <label for="email" class="form-label text-white-50 small fw-semibold mb-3">
+                    <i class="fas fa-envelope me-1"></i> Email Address
+                </label>
+                <div class="input-group input-group-lg">
+                    <input id="email" 
+                           type="email" 
+                           class="form-control form-control-enhanced <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
-unset($__errorArgs, $__bag); ?>" name="email" value="<?php echo e(old('email')); ?>" required autocomplete="email" autofocus placeholder="Email Address">
-                                        <?php $__errorArgs = ['email'];
+unset($__errorArgs, $__bag); ?>" 
+                           name="email" 
+                           value="<?php echo e(old('email')); ?>" 
+                           required 
+                           autocomplete="email" 
+                           autofocus 
+                           placeholder="Enter your email">
+                    <?php $__errorArgs = ['email'];
 $__bag = $errors->getBag($__errorArgs[1] ?? 'default');
 if ($__bag->has($__errorArgs[0])) :
 if (isset($message)) { $__messageOriginal = $message; }
 $message = $__bag->first($__errorArgs[0]); ?>
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong><?php echo e($message); ?></strong>
-                                            </span>
-                                        <?php unset($message);
+                        <span class="invalid-feedback" role="alert">
+                            <strong><?php echo e($message); ?></strong>
+                        </span>
+                    <?php unset($message);
 if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
-                                    </div>
-                                </div>
-
-                                
-                                <div class="mb-4">
-                                    <label for="password" class="form-label visually-hidden">Password</label>
-                                    <div class="input-group input-group-lg">
-                                        <span class="input-group-text bg-transparent border-0 text-white-50"><i class="fas fa-lock"></i></span>
-                                        <input id="password" type="password" class="form-control <?php $__errorArgs = ['password'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" name="password" required autocomplete="current-password" placeholder="Password">
-                                        <?php $__errorArgs = ['password'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong><?php echo e($message); ?></strong>
-                                            </span>
-                                        <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                                    </div>
-                                </div>
-
-                                
-                                <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-light btn-lg fw-bold mb-3" style="color: #A52A2A;">
-                                        <i class="fas fa-sign-in-alt me-2"></i> Login
-                                    </button>
-                                </div>
-                            </form>
-                            
-                            
-                            <div class="text-center pt-3 border-top border-white border-opacity-25">
-                                <p class="mb-2">Don't have an account?</p>
-                                <a href="<?php echo e(route('register')); ?>" class="btn btn-outline-light w-100 fw-bold">
-                                    Register Here
-                                </a>
-                            </div>
-
-                        </div>
-                    </div>
                 </div>
-
-                
-                <div class="card mt-3 shadow-sm border-0" style="border-radius: 0.5rem;">
-                    <div class="card-body p-3">
-                        <h6 class="card-title fw-bold mb-2">
-                            <i class="fas fa-info-circle text-info me-1"></i> Demo Credentials
-                        </h6>
-                        <p class="card-text small mb-1 text-muted">
-                            <span class="fw-bold">Admin:</span>
-                            Email: admin@foodorder.com | Password: admin12345
-                        </p>
-                    </div>
-                </div>
-
             </div>
+
+            
+            <div class="mb-2">
+                <label for="password" class="form-label text-white-50 small fw-semibold mb-3">
+                    <i class="fas fa-lock me-1"></i> Password
+                </label>
+                <div class="input-group input-group-lg">
+                    <input id="password" 
+                           type="password" 
+                           class="form-control form-control-enhanced <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                           name="password" 
+                           required 
+                           autocomplete="current-password" 
+                           placeholder="Enter your password">
+                    <?php $__errorArgs = ['password'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                        <span class="invalid-feedback" role="alert">
+                            <strong><?php echo e($message); ?></strong>
+                        </span>
+                    <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                </div>
+            </div>
+
+            
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" 
+                        class="btn btn-light btn-lg fw-bold py-3 login-btn" 
+                        style="color: #A52A2A; 
+                               border-radius: 0.5rem;
+                               box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                               transition: all 0.3s ease;">
+                    <i class="fas fa-sign-in-alt me-2"></i> Login
+                </button>
+            </div>
+        </form>
+        
+        
+        <div class="text-center pt-4 mt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+            <p class="mb-3 text-white-50">Don't have an account?</p>
+            <a href="<?php echo e(route('register')); ?>" 
+               class="btn btn-outline-light w-100 fw-bold py-2 register-btn"
+               style="border-radius: 0.5rem; 
+                      border-width: 2px;
+                      transition: all 0.3s ease;">
+                <i class="fas fa-user-plus me-2"></i> Register Here
+            </a>
         </div>
     </div>
+
 </div>
 
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('styles'); ?>
 <style>
-/* Define Primary Color to match the dark side of the design */
-:root {
-    --bs-primary: #A52A2A; 
+/* Enhanced Form Control Styles */
+.form-control-enhanced {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #333 !important;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
 }
 
-/* Custom styles for inputs on the dark background */
-.col-md-7 input.form-control {
-    /* background-color: rgba(255, 255, 255, 0.15); */
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    border-radius: 0.3rem;
+.form-control-enhanced::placeholder {
+    color: rgba(0, 0, 0, 0.4);
 }
-.col-md-7 input.form-control::placeholder {
-    color: rgba(255, 255, 255, 0.7);
-}
-.col-md-7 input.form-control:focus {
-    /* background-color: rgba(255, 255, 255, 0.25); */
-    box-shadow: none; /* Removed default Bootstrap shadow for cleaner look */
+
+.form-control-enhanced:focus {
+    background-color: rgba(255, 255, 255, 1) !important;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
     border-color: white;
+    color: #333 !important;
+    transform: translateY(-2px);
 }
 
-/* Customizing input group text for the dark side */
-.input-group-text {
-    border-right: none !important;
+/* Login Button Hover Effect */
+.login-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    background-color: white !important;
 }
 
-/* Styling the secondary register button */
-.btn-outline-light {
-    border-color: rgba(255, 255, 255, 0.5);
-    color: white;
+.login-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Register Button Hover Effect */
+.register-btn {
+    border-color: rgba(255, 255, 255, 0.6);
+    background-color: transparent;
+}
+
+.register-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Label Animation */
+.form-label {
     transition: all 0.3s ease;
 }
-.btn-outline-light:hover {
-    background-color: rgba(255, 255, 255, 0.15);
-    color: white;
-    border-color: white;
+
+.form-control-enhanced:focus + .form-label,
+.form-control-enhanced:not(:placeholder-shown) + .form-label {
+    color: white !important;
+}
+
+/* Remove input group text styling if not needed */
+.input-group-text {
+    display: none;
 }
 </style>
 <?php $__env->stopPush(); ?>

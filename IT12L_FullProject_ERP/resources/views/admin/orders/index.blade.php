@@ -12,7 +12,7 @@
         </div>
     </div>
 
-    @if(session('success'))
+    <!-- @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -24,7 +24,7 @@
             <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-    @endif
+    @endif -->
 
     <!-- Filters Card -->
     <div class="filters-card mb-4">
@@ -142,7 +142,7 @@
                                           onsubmit="return confirm('Are you sure you want to archive this order?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger">
+                                        <button type="submit" class="btn btn-sm btn-secondary">
                                             <i class="fas fa-archive"></i> Archive
                                         </button>
                                     </form>
@@ -317,7 +317,7 @@
     .order-total {
         font-weight: 700;
         font-size: 1.125rem;
-        color: #A52A2A;
+        color: #000000ff;
     }
 
     /* Status Badges */
@@ -382,12 +382,13 @@
 }
 
 .action-buttons .btn-primary:hover {
+    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.3);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
 }
 
 .action-buttons .btn-danger {
-    background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
     border: none;
     font-weight: 600;
     transition: all 0.3s ease;

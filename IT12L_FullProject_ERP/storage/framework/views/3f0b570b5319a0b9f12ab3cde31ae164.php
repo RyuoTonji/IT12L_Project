@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container my-4">
     <div class="row">
@@ -180,7 +178,7 @@ unset($__errorArgs, $__bag); ?>
                             <a href="<?php echo e(route('admin.customers.index')); ?>" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i> Create Customer
                             </button>
                         </div>

@@ -877,6 +877,38 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="<?php echo e(asset('js/cart.js')); ?>"></script>
     <script src="<?php echo e(asset('js/main.js')); ?>"></script>
+
+    <script>
+        // Global phone number restriction for all phone inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const phoneInputs = document.querySelectorAll('input[type="tel"], input[name="phone"]');
+            
+            phoneInputs.forEach(function(phoneInput) {
+                // Restrict input to numbers only
+                phoneInput.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                });
+                
+                // Handle paste events
+                phoneInput.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                    this.value = pastedText.replace(/[^0-9]/g, '');
+                });
+                
+                // Prevent non-numeric keypress
+                phoneInput.addEventListener('keypress', function(e) {
+                    if (e.charCode < 48 || e.charCode > 57) {
+                        e.preventDefault();
+                    }
+                });
+                
+                // Set attributes for mobile keyboards
+                phoneInput.setAttribute('inputmode', 'numeric');
+                phoneInput.setAttribute('pattern', '[0-9]*');
+            });
+        });
+    </script>
     
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>

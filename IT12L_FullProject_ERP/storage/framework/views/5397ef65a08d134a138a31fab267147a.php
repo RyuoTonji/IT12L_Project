@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('title', 'Order #' . $order->id); ?>
 
 <?php $__env->startSection('content'); ?>
@@ -14,27 +12,30 @@
     </nav>
 
     <!-- Header: Order ID + Status Badge -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>
-            <i class="fas fa-receipt"></i> Order #<?php echo e($order->id); ?>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="fas fa-receipt"></i> Order #<?php echo e($order->id); ?>
 
-        </h2>
+    </h2>
 
-        <?php
-            $statusBadges = [
-                'pending'    => 'bg-warning',
-                'confirmed'  => 'bg-info',
-                'delivered'  => 'bg-success',
-                'cancelled'  => 'bg-danger',
-            ];
-            $badgeClass = $statusBadges[$order->status] ?? 'bg-secondary';
-        ?>
+    <?php
+        $statusTextClasses = [
+            'pending'    => 'text-warning',
+            'confirmed'  => 'text-info',
+            'delivered'  => 'text-success',
+            'cancelled'  => 'text-danger',
+            'processing' => 'text-primary',
+            'shipped'    => 'text-cyan',
+            // add more as needed
+        ];
+        $textClass = $statusTextClasses[$order->status] ?? 'text-muted';
+    ?>
 
-        <span class="badge <?php echo e($badgeClass); ?> fs-5 text-white">
-            <?php echo e(ucfirst(str_replace('_', ' ', $order->status))); ?>
+    <span class="badge rounded-pill <?php echo e($textClass); ?> fs-5 fw-semibold">
+        <?php echo e(ucfirst(str_replace('_', ' ', $order->status))); ?>
 
-        </span>
-    </div>
+    </span>
+</div>
 
     <div class="row">
         <!-- Left Column: Items & Timeline -->
@@ -72,7 +73,7 @@
                             <tfoot>
                                 <tr class="fw-bold">
                                     <th colspan="3" class="text-end">Total:</th>
-                                    <th class="text-primary fs-5 text-end">
+                                    <th class="text-dark fs-5 text-end">
                                         ₱<?php echo e(number_format($order->total_amount, 2)); ?>
 
                                     </th>

@@ -91,7 +91,7 @@
                                        value="1" 
                                        {{ old('is_active', $customer->is_active) ? 'checked' : '' }}>
                                 <label for="is_active" class="form-check-label">
-                                    Account Active
+                                    Disable Account
                                 </label>
                             </div>
                         </div>
@@ -100,7 +100,7 @@
                             <a href="{{ route('admin.customers.show', $customer->id) }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Cancel
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i> Update Customer
                             </button>
                         </div>

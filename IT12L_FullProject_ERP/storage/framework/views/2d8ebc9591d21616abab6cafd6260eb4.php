@@ -1,5 +1,3 @@
-
-
 <?php $__env->startSection('content'); ?>
 <div class="container-fluid my-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -132,7 +130,7 @@ unset($__errorArgs, $__bag); ?>
                     <a href="<?php echo e(route('admin.branches.index')); ?>" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Cancel
                     </a>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-success">
                         <i class="fas fa-save"></i> Update Branch
                     </button>
                 </div>
