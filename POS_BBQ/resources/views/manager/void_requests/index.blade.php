@@ -4,19 +4,24 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Void/Refund Requests</h1>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Void/Refund Requests
+                </h1>
                 <a href="{{ route(Auth::user()->role === 'manager' ? 'manager.void-requests.export-pdf' : 'admin.void-requests.export-pdf') }}"
                     class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2zm2-10l4 4m-4 0l4-4m-4 4V7" />
                     </svg>
                     Export PDF
                 </a>
             </div>
 
-            <div x-data="{ activeTab: 'pending' }">
+            <div x-data="{ activeTab: '{{ request('history_page') ? 'history' : 'pending' }}' }">
                 <div class="border-b border-gray-200 mb-4">
                     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
                         <button @click="activeTab = 'pending'"
@@ -24,7 +29,7 @@
                             class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
                             Pending Requests
                             @if($voidRequests->total() > 0)
-                                <span class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ $voidRequests->total() }}</span>
+                                <span class="ml-2 inline-flex text-xs leading-5 font-semibold text-red-600">{{ $voidRequests->total() }}</span>
                             @endif
                         </button>
                         <button @click="activeTab = 'history'"
@@ -53,21 +58,21 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($voidRequests as $request)
-                                        <tr>
+                                        <tr onclick="window.location='{{ route('orders.show', $request->order_id) }}'" class="hover:bg-gray-50 cursor-pointer transition-colors duration-150">
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <a href="{{ route('orders.show', $request->order_id) }}" class="text-blue-600 hover:text-blue-900">#{{ $request->order_id }}</a>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $request->requester->name }}</td>
                                             <td class="px-6 py-4">
+                                                @if($request->reason)
+                                                    <div class="text-sm text-gray-700 mb-1">{{ $request->reason }}</div>
+                                                @endif
                                                 @if($request->reason_tags && count($request->reason_tags) > 0)
-                                                    <div class="mb-1">
+                                                    <div class="flex flex-wrap gap-2">
                                                         @foreach($request->reason_tags as $tag)
-                                                            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1 mb-1">{{ $tag }}</span>
+                                                            <span class="text-xs font-medium text-blue-600">{{ str_replace('_', ' ', $tag) }}</span>
                                                         @endforeach
                                                     </div>
-                                                @endif
-                                                @if($request->reason)
-                                                    <div class="text-sm text-gray-700">{{ $request->reason }}</div>
                                                 @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $request->created_at->format('M d, Y H:i') }}</td>
@@ -75,7 +80,7 @@
                                                 <div class="flex space-x-2">
                                                     <form id="approveForm{{ $request->id }}" action="{{ route(Auth::user()->role === 'manager' ? 'manager.void-requests.approve' : 'admin.void-requests.approve', $request) }}" method="POST">
                                                         @csrf
-                                                        <button type="button" onclick="showConfirm('Are you sure you want to approve this void/refund request? The order will be cancelled.', function() { document.getElementById('approveForm{{ $request->id }}').submit(); })" class="text-green-600 hover:text-green-900 flex items-center">
+                                                        <button type="button" onclick="event.stopPropagation(); showConfirm('Are you sure you want to approve this void/refund request? The order will be cancelled.', function() { document.getElementById('approveForm{{ $request->id }}').submit(); })" class="text-green-600 hover:text-green-900 flex items-center">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                             </svg>
@@ -84,7 +89,7 @@
                                                     </form>
                                                     <form id="rejectForm{{ $request->id }}" action="{{ route(Auth::user()->role === 'manager' ? 'manager.void-requests.reject' : 'admin.void-requests.reject', $request) }}" method="POST">
                                                         @csrf
-                                                        <button type="button" onclick="showConfirm('Are you sure you want to reject this void/refund request?', function() { document.getElementById('rejectForm{{ $request->id }}').submit(); })" class="text-red-600 hover:text-red-900 flex items-center">
+                                                        <button type="button" onclick="event.stopPropagation(); showConfirm('Are you sure you want to reject this void/refund request?', function() { document.getElementById('rejectForm{{ $request->id }}').submit(); })" class="text-red-600 hover:text-red-900 flex items-center">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                                             </svg>
@@ -123,25 +128,25 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($voidRequestHistory as $request)
-                                        <tr>
+                                        <tr onclick="window.location='{{ route('orders.show', $request->order_id) }}'" class="hover:bg-gray-50 cursor-pointer transition-colors duration-150">
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 <a href="{{ route('orders.show', $request->order_id) }}" class="text-blue-600 hover:text-blue-900">#{{ $request->order_id }}</a>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $request->requester->name }}</td>
                                             <td class="px-6 py-4">
+                                                @if($request->reason)
+                                                    <div class="text-sm text-gray-700 mb-1">{{ $request->reason }}</div>
+                                                @endif
                                                 @if($request->reason_tags && count($request->reason_tags) > 0)
-                                                    <div class="mb-1">
+                                                    <div class="flex flex-wrap gap-2">
                                                         @foreach($request->reason_tags as $tag)
-                                                            <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mr-1 mb-1">{{ $tag }}</span>
+                                                            <span class="text-xs font-medium text-blue-600">{{ str_replace('_', ' ', $tag) }}</span>
                                                         @endforeach
                                                     </div>
                                                 @endif
-                                                @if($request->reason)
-                                                    <div class="text-sm text-gray-700">{{ $request->reason }}</div>
-                                                @endif
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                <span class="inline-flex text-xs leading-5 font-semibold items-center {{ $request->status === 'approved' ? 'text-green-600' : 'text-red-600' }}">
                                                     {{ ucfirst($request->status) }}
                                                 </span>
                                             </td>

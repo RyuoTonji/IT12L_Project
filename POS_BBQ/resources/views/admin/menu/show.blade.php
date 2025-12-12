@@ -36,8 +36,7 @@
                     <!-- Availability Badge -->
                     <div class="absolute top-4 right-4">
                         @if ($menu->is_available)
-                            <span
-                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <span class="inline-flex items-center text-sm font-medium text-green-600">
                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -46,8 +45,7 @@
                                 Available
                             </span>
                         @else
-                            <span
-                                class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                            <span class="inline-flex items-center text-sm font-medium text-red-600">
                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd"
                                         d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -66,8 +64,7 @@
                         <div>
                             <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $menu->name }}</h1>
                             <div class="flex items-center">
-                                <span
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                                <span class="inline-flex items-center text-xs font-medium text-indigo-600">
                                     {{ $menu->category->name }}
                                 </span>
                             </div>
@@ -111,7 +108,8 @@
                                 <h3 class="text-lg font-semibold text-gray-900">Availability</h3>
                             </div>
                             <p class="text-gray-600">
-                                {{ $menu->is_available ? 'Currently Available' : 'Currently Unavailable' }}</p>
+                                {{ $menu->is_available ? 'Currently Available' : 'Currently Unavailable' }}
+                            </p>
                         </div>
                     </div>
 

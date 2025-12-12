@@ -69,12 +69,13 @@
                     @if($activeOrders->count() > 0)
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($activeOrders as $order)
-                                <div class="bg-white border rounded-lg shadow-sm p-4">
+                                <div class="bg-white border rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
+                                    onclick="openOrderModal({{ $order->id }})">
                                     <div class="flex justify-between items-start mb-2">
                                         <span class="font-bold text-lg">Order #{{ $order->id }}</span>
                                         <span
-                                            class="px-2 py-1 text-xs font-semibold rounded-full 
-                                                                                {{ $order->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800' }}">
+                                            class="inline-flex text-xs leading-5 font-semibold items-center 
+                                                                                                                                                {{ $order->status === 'pending' ? 'text-yellow-600' : 'text-blue-600' }}">
                                             {{ ucfirst($order->status) }}
                                         </span>
                                     </div>
@@ -139,7 +140,7 @@
                                         <div class="flex justify-between items-center">
                                             <span class="text-sm text-gray-700">{{ $item->name }}</span>
                                             <span
-                                                class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Available</span>
+                                                class="inline-flex text-xs leading-5 font-semibold text-green-600">Available</span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -150,4 +151,43 @@
             </div>
         </div>
     </div>
+
+    <!-- Order Details Modals -->
+    @foreach($activeOrders as $order)
+        <div id="order-modal-{{ $order->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <!-- Dark overlay background -->
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity"
+                    onclick="closeOrderModal({{ $order->id }})"></div>
+
+                <div class="relative bg-white rounded-lg shadow-xl transform transition-all max-w-md w-full z-10">
+                    <div class="absolute top-0 right-0 pt-4 pr-4 z-20">
+                        <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none"
+                            onclick="closeOrderModal({{ $order->id }})">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-white px-6 py-6 rounded-lg">
+                        @include('admin.orders.partials.details', ['order' => $order])
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    <script>
+        function openOrderModal(orderId) {
+            document.getElementById(`order-modal-${orderId}`).classList.remove('hidden');
+        }
+
+        function closeOrderModal(orderId) {
+            document.getElementById(`order-modal-${orderId}`).classList.add('hidden');
+        }
+    </script>
 @endsection

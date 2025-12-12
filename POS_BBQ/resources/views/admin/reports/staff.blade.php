@@ -4,14 +4,21 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Staff Performance Report</h1>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Staff Performance Report
+                </h1>
                 <div>
                     <button onclick="showExportConfirmation()"
                         class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2 flex items-center inline-flex">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2zm2-10l4 4m-4 0l4-4m-4 4V7" />
                         </svg>
                         Export PDF
                     </button>
@@ -33,26 +40,18 @@
                     <div>
                         <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                         <input type="date" name="start_date" id="start_date" value="{{ $startDate }}"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            onchange="this.form.submit()">
                     </div>
 
                     <div>
                         <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                         <input type="date" name="end_date" id="end_date" value="{{ $endDate }}"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            onchange="this.form.submit()">
                     </div>
 
-                    <div>
-                        <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V4z" />
-                            </svg>
-                            Apply Filter
-                        </button>
-                    </div>
+
                 </form>
             </div>
 
@@ -122,14 +121,14 @@
                         @foreach($staffPerformance as $staff)
                             '{{ $staff->name }}',
                         @endforeach
-                                ],
+                                                    ],
                     datasets: [{
                         label: 'Total Sales',
                         data: [
                             @foreach($staffPerformance as $staff)
                                 {{ $staff->total_sales }},
                             @endforeach
-                                    ],
+                                                        ],
                         backgroundColor: 'rgba(59, 130, 246, 0.7)',
                         borderColor: 'rgba(59, 130, 246, 1)',
                         borderWidth: 1
@@ -143,7 +142,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function (value) {
-                                    return '$' + value;
+                                    return '₱' + value;
                                 }
                             }
                         }

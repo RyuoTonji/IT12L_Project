@@ -4,7 +4,14 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Categories</h1>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    Categories
+                </h1>
                 <div class="flex gap-4">
                     <a href="{{ route('menu.index') }}"
                         class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center inline-flex">
@@ -72,21 +79,12 @@
                                         </svg>
                                         <span>View</span>
                                     </a>
-                                    <a href="{{ route('categories.edit', $category) }}"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-green-600 hover:bg-green-100 rounded">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                            stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                        </svg>
-                                        <span>Edit</span>
-                                    </a>
                                     <form id="deleteCategoryForm{{ $category->id }}"
                                         action="{{ route('categories.destroy', $category) }}" method="POST" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-100 rounded"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded"
                                             onclick="confirmArchiveCategory({{ $category->id }})">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">

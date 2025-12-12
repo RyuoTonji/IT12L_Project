@@ -60,9 +60,11 @@ class OrderController extends Controller
                 return $query->where('branch_id', $user->branch_id);
             })
             ->get();
+
         $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true)->orderBy('id');
+                $query->where('is_available', true)
+                    ->orderBy('name');
             }
         ])->get();
 
@@ -182,7 +184,8 @@ class OrderController extends Controller
 
         $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true)->orderBy('id');
+                $query->where('is_available', true)
+                    ->orderBy('name');
             }
         ])->get();
 

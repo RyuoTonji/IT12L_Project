@@ -16,11 +16,16 @@ class MenuController extends Controller
         $menuItems = MenuItem::select('menu_items.*')
             ->join('categories', 'menu_items.category_id', '=', 'categories.id')
             ->orderBy('categories.sort_order')
-            ->orderBy('categories.name')
-            ->orderBy('menu_items.id')
+            ->orderBy('menu_items.name')
             ->with(['category', 'branches'])
             ->get();
-        return view('admin.menu.index', compact('menuItems'));
+
+        // Group menu items by category for the view
+        $menuItemsByCategory = $menuItems->groupBy(function ($item) {
+            return $item->category->name;
+        });
+
+        return view('admin.menu.index', compact('menuItems', 'menuItemsByCategory'));
     }
 
     public function create()
@@ -158,14 +163,26 @@ class MenuController extends Controller
             'is_available' => 'required|boolean',
         ]);
 
+        $isAvailable = $request->is_available;
+
+        // Update the menu item's global availability
         $menu->update([
-            'is_available' => $request->is_available,
+            'is_available' => $isAvailable,
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Availability updated successfully',
-        ]);
+        // Sync branch availability - update all branches to match global availability
+        // Get existing branch associations
+        $branches = $menu->branches()->pluck('branches.id')->toArray();
+
+        if (!empty($branches)) {
+            $syncData = [];
+            foreach ($branches as $branchId) {
+                $syncData[$branchId] = ['is_available' => $isAvailable];
+            }
+            $menu->branches()->sync($syncData);
+        }
+
+        return redirect()->route('menu.index')->with('success', 'Availability updated successfully');
     }
 
     /**
@@ -200,9 +217,6 @@ class MenuController extends Controller
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Branch availability updated successfully',
-        ]);
+        return redirect()->route('menu.index')->with('success', 'Branch availability updated successfully');
     }
 }

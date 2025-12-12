@@ -64,4 +64,12 @@ class DashboardController extends Controller
 
         return view('cashier.kitchen-display', compact('orders'));
     }
+
+    public function getOrderDetails($id)
+    {
+        $order = Order::with(['user', 'branch', 'table', 'orderItems.menuItem', 'payments'])
+            ->findOrFail($id);
+
+        return view('cashier.orders.partials.details', compact('order'));
+    }
 }

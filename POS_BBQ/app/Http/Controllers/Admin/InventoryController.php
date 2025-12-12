@@ -20,11 +20,14 @@ class InventoryController extends Controller
             $query->where('category', $request->category);
         }
 
-        $inventoryItems = $query->get();
+        $inventoryItems = $query->orderBy('category')->orderBy('name')->get();
         $suppliers = Inventory::select('supplier')->distinct()->whereNotNull('supplier')->pluck('supplier');
         $categories = Inventory::select('category')->distinct()->whereNotNull('category')->pluck('category');
 
-        return view('admin.inventory.index', compact('inventoryItems', 'suppliers', 'categories'));
+        // Group inventory items by category
+        $inventoryByCategory = $inventoryItems->groupBy('category');
+
+        return view('admin.inventory.index', compact('inventoryItems', 'suppliers', 'categories', 'inventoryByCategory'));
     }
 
     public function create()

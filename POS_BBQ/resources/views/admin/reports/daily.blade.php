@@ -4,32 +4,27 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Daily Consolidated Report</h1>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Daily Consolidated Report
+                </h1>
                 <div class="flex items-center space-x-2">
                     <form action="{{ route('admin.reports.daily') }}" method="GET" class="flex items-center space-x-2">
                         <label for="date" class="text-sm text-gray-600">Date:</label>
                         <input type="date" name="date" id="date" value="{{ $date }}"
                             class="px-3 py-2 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             onchange="this.form.submit()">
-
-                        @if(request('date') && request('date') != \Carbon\Carbon::today()->format('Y-m-d'))
-                            <a href="{{ route('admin.reports.daily') }}"
-                                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear Filter
-                            </a>
-                        @endif
                     </form>
                     <button onclick="showExportConfirmation()"
                         class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2zm2-10l4 4m-4 0l4-4m-4 4V7" />
                         </svg>
                         Export PDF
                     </button>
@@ -72,7 +67,7 @@
                                 <span class="text-sm text-gray-500 ml-2">({{ ucfirst($report->user->role) }})</span>
                             </div>
                             <span
-                                class="px-2 py-1 text-xs rounded-full {{ $report->status == 'reviewed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                class="inline-flex text-xs leading-5 font-semibold items-center {{ $report->status == 'reviewed' ? 'text-green-600' : 'text-yellow-600' }}">
                                 {{ ucfirst($report->status) }}
                             </span>
                         </div>
@@ -135,7 +130,7 @@
                                     </td>
                                     <td class="px-4 py-2 text-sm">
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $void->status == 'approved' ? 'bg-green-100 text-green-800' : ($void->status == 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                            class="inline-flex text-xs leading-5 font-semibold items-center {{ $void->status == 'approved' ? 'text-green-600' : ($void->status == 'rejected' ? 'text-red-600' : 'text-yellow-600') }}">
                                             {{ ucfirst($void->status) }}
                                         </span>
                                     </td>

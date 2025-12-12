@@ -56,7 +56,7 @@
 
                     <div class="bg-yellow-100 p-6 rounded-lg shadow">
                         <h3 class="text-lg font-medium text-yellow-800">Active Orders</h3>
-                        <p class="text-3xl font-bold text-yellow-900 mt-2 text-right">{{ $activeOrders }}</p>
+                        <p class="text-3xl font-bold text-yellow-900 mt-2 text-right">{{ $activeOrdersCount }}</p>
                         <div class="mt-3 text-sm text-yellow-700 space-y-1">
                             <div class="flex justify-between">
                                 <span>Branch 1:</span>
@@ -83,17 +83,6 @@
                                 class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                                 onchange="this.form.submit()">
                         </div>
-                        @if($filterDate)
-                            <a href="{{ route('admin.dashboard') }}"
-                                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear Filter
-                            </a>
-                        @endif
                     </form>
                 </div>
 
@@ -269,7 +258,14 @@
 
                 <!-- Recent Orders -->
                 <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Recent Orders</h2>
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-gray-800" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Recent Orders
+                    </h2>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
                             <thead>
@@ -290,14 +286,32 @@
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 @forelse($recentOrders as $order)
-                                                        <tr class="hover:bg-gray-50">
+                                                        <tr class="hover:bg-gray-50 cursor-pointer" onclick="openOrderModal({{ $order->id }})">
                                                             <td class="py-3 px-4 text-sm text-gray-900">#{{ $order->id }}</td>
                                                             <td class="py-3 px-4 text-sm text-gray-600">{{ $order->branch->name ?? 'N/A' }}</td>
                                                             <td class="py-3 px-4 text-sm">
-                                                                <span
-                                                                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded
-                                                                                                                                                                                                                                                                            {{ $order->status == 'completed' ? 'bg-green-100 text-green-800' :
-                                    ($order->status == 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                                                <span class="inline-flex items-center text-xs leading-5 font-semibold
+                                                                                                                                                                                                                                                                                {{ $order->status == 'completed' ? 'text-green-600' :
+                                    ($order->status == 'cancelled' ? 'text-red-600' : 'text-yellow-600') }}">
+                                                                    @if($order->status == 'completed')
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                                            viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                d="M5 13l4 4L19 7" />
+                                                                        </svg>
+                                                                    @elseif($order->status == 'cancelled')
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                                            viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                d="M6 18L18 6M6 6l12 12" />
+                                                                        </svg>
+                                                                    @else
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                                            viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                        </svg>
+                                                                    @endif
                                                                     {{ ucfirst($order->status) }}
                                                                 </span>
                                                             </td>
@@ -317,6 +331,35 @@
             </div>
         </div>
     </div>
+
+    <!-- Order Details Modals -->
+    @foreach($recentOrders as $order)
+        <div id="order-modal-{{ $order->id }}" class="fixed inset-0 z-50 hidden overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <!-- Dark overlay background -->
+                <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity"
+                    onclick="closeOrderModal({{ $order->id }})"></div>
+
+                <div class="relative bg-white rounded-lg shadow-xl transform transition-all max-w-md w-full z-10">
+                    <div class="absolute top-0 right-0 pt-4 pr-4 z-20">
+                        <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none"
+                            onclick="closeOrderModal({{ $order->id }})">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="bg-white px-6 py-6 rounded-lg">
+                        @include('admin.orders.partials.details', ['order' => $order])
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -526,5 +569,14 @@
             const inventoryChart = new ApexCharts(document.querySelector("#inventoryChart"), inventoryOptions);
             inventoryChart.render();
         });
+
+        // Order Modal Functions
+        function openOrderModal(orderId) {
+            document.getElementById(`order-modal-${orderId}`).classList.remove('hidden');
+        }
+
+        function closeOrderModal(orderId) {
+            document.getElementById(`order-modal-${orderId}`).classList.add('hidden');
+        }
     </script>
 @endsection

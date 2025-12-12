@@ -11,8 +11,12 @@ class InventoryController extends Controller
 {
     public function index()
     {
-        $inventories = Inventory::all();
-        return view('inventory.dashboard', compact('inventories'));
+        $inventories = Inventory::orderBy('category')->orderBy('name')->get();
+
+        // Group inventory items by category for the view
+        $inventoriesByCategory = $inventories->groupBy('category');
+
+        return view('inventory.dashboard', compact('inventories', 'inventoriesByCategory'));
     }
 
     public function addStock(Request $request)

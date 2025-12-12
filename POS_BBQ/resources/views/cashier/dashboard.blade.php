@@ -33,7 +33,7 @@
                                 <a href="{{ route('tables.show', $table) }}" class="block">
                                     <div
                                         class="aspect-square flex flex-col items-center justify-center rounded-lg shadow border
-                                            {{ $table->status == 'available' ? 'bg-green-100 border-green-300' :
+                                                            {{ $table->status == 'available' ? 'bg-green-100 border-green-300' :
                         ($table->status == 'occupied' ? 'bg-red-100 border-red-300' : 'bg-yellow-100 border-yellow-300') }}">
                                         <span class="text-lg font-bold">{{ $table->name }}</span>
                                         <span class="text-sm">{{ ucfirst($table->status) }}</span>
@@ -70,18 +70,30 @@
                         </thead>
                         <tbody>
                             @forelse($activeOrders as $order)
-                                                <tr>
-                                                    <td class="py-2 px-4 border-b">{{ $order->id }}</td>
-                                                    <td class="py-2 px-4 border-b">{{ $order->table ? $order->table->name : 'Takeout' }}</td>
-                                                    <td class="py-2 px-4 border-b">
-                                                        <span
-                                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                                                {{ $order->status == 'new' ? 'bg-blue-100 text-blue-800' :
-                                ($order->status == 'preparing' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800') }}">
+                                                <tr class="hover:bg-gray-50">
+                                                    <td class="py-2 px-4 border-b cursor-pointer" onclick="openOrderModal({{ $order->id }})">{{ $order->id }}</td>
+                                                    <td class="py-2 px-4 border-b cursor-pointer" onclick="openOrderModal({{ $order->id }})">{{ $order->table ? $order->table->name : 'Takeout' }}</td>
+                                                    <td class="py-2 px-4 border-b cursor-pointer" onclick="openOrderModal({{ $order->id }})">
+                                                        <span class="inline-flex text-xs leading-5 font-semibold items-center
+                                                                                        {{ $order->status == 'new' ? 'text-blue-600' :
+                                ($order->status == 'preparing' ? 'text-yellow-600' : 'text-green-600') }}">
+                                                            @if($order->status == 'new')
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                                                </svg>
+                                                            @elseif($order->status == 'preparing')
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                            @else
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                                </svg>
+                                                            @endif
                                                             {{ ucfirst($order->status) }}
                                                         </span>
                                                     </td>
-                                                    <td class="py-2 px-4 border-b text-right">₱{{ number_format($order->total_amount, 2) }}</td>
+                                                    <td class="py-2 px-4 border-b text-right cursor-pointer" onclick="openOrderModal({{ $order->id }})">₱{{ number_format($order->total_amount, 2) }}</td>
                                                     <td class="py-2 px-4 border-b text-center">
                                                         <a href="{{ route('orders.show', $order) }}"
                                                             class="text-blue-600 hover:text-blue-900 mr-2 flex items-center inline-flex">
@@ -125,4 +137,76 @@
             </div>
         </div>
     </div>
+
+    <!-- Order Details Modals -->
+    <!-- Order Details Modal (Singleton) -->
+    <div id="order-details-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            
+            <!-- Background overlay -->
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" aria-hidden="true" onclick="closeOrderModal()"></div>
+
+            <!-- Modal panel -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+                
+                <!-- Close button -->
+                <div class="absolute top-0 right-0 pt-4 pr-4 z-10">
+                    <button type="button" class="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" onclick="closeOrderModal()">
+                        <span class="sr-only">Close</span>
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div id="order-modal-content">
+                        <!-- Content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Order Modal Functions
+        function openOrderModal(orderId) {
+            const modal = document.getElementById('order-details-modal');
+            const content = document.getElementById('order-modal-content');
+
+            // Show modal
+            modal.classList.remove('hidden');
+
+            // Show loading state
+            content.innerHTML = `
+                <div class="flex justify-center items-center py-12">
+                    <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+            `;
+
+            // Fetch order details
+            fetch(`/cashier/orders/${orderId}/details`)
+                .then(response => response.text())
+                .then(html => {
+                    content.innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('Error fetching order details:', error);
+                    content.innerHTML = `
+                        <div class="text-center py-8 text-red-600">
+                            <p>Failed to load order details. Please try again.</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function closeOrderModal() {
+            const modal = document.getElementById('order-details-modal');
+            modal.classList.add('hidden');
+        }
+    </script>
 @endsection

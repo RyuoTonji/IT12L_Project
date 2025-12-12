@@ -7,7 +7,7 @@
                 <h1 class="text-2xl font-semibold">
                     {{ $table->name }}
                     <span class="text-sm font-normal ml-2 px-2 py-1 rounded
-                            {{ $table->status == 'available' ? 'bg-green-100 text-green-800' :
+                                {{ $table->status == 'available' ? 'bg-green-100 text-green-800' :
         ($table->status == 'occupied' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                         {{ ucfirst($table->status) }}
                     </span>
@@ -44,7 +44,7 @@
                                 <p><strong>Status:</strong>
                                     <span
                                         class="px-2 py-1 rounded text-sm
-                                                    {{ $activeOrder->status == 'new' ? 'bg-blue-100 text-blue-800' :
+                                                            {{ $activeOrder->status == 'new' ? 'bg-blue-100 text-blue-800' :
                 ($activeOrder->status == 'preparing' ? 'bg-yellow-100 text-yellow-800' :
                     ($activeOrder->status == 'ready' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800')) }}">
                                         {{ ucfirst($activeOrder->status) }}
@@ -57,7 +57,7 @@
                                 <p><strong>Payment:</strong>
                                     <span
                                         class="px-2 py-1 rounded text-sm
-                                                    {{ $activeOrder->payment_status == 'paid' ? 'bg-green-100 text-green-800' :
+                                                            {{ $activeOrder->payment_status == 'paid' ? 'bg-green-100 text-green-800' :
                 ($activeOrder->payment_status == 'refunded' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                         {{ ucfirst($activeOrder->payment_status) }}
                                     </span>

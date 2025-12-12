@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/export', [ProfileController::class, 'exportData'])->name('profile.export');
 });
 
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
@@ -76,6 +77,9 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/void-requests/{voidRequest}/approve', [\App\Http\Controllers\Manager\VoidRequestController::class, 'approve'])->name('admin.void-requests.approve');
     Route::post('/void-requests/{voidRequest}/reject', [\App\Http\Controllers\Manager\VoidRequestController::class, 'reject'])->name('admin.void-requests.reject');
     Route::get('/void-requests/export-pdf', [\App\Http\Controllers\Manager\VoidRequestController::class, 'exportPdf'])->name('admin.void-requests.export-pdf');
+
+    // Order details route for modal
+    Route::get('/orders/{order}/details', [AdminDashboardController::class, 'getOrderDetails'])->name('admin.orders.details');
 });
 
 Route::prefix('cashier')->middleware(['auth', 'role:cashier'])->group(function () {
@@ -86,6 +90,9 @@ Route::prefix('cashier')->middleware(['auth', 'role:cashier'])->group(function (
     Route::post('orders/{order}/request-void', [OrderController::class, 'requestVoid'])->name('orders.request-void');
     Route::resource('payments', PaymentController::class);
     Route::get('/kitchen-display', [CashierDashboardController::class, 'kitchenDisplay'])->name('cashier.kitchen');
+
+    // Order details route for modal
+    Route::get('/orders/{order}/details', [CashierDashboardController::class, 'getOrderDetails'])->name('cashier.orders.details');
 });
 
 

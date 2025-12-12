@@ -38,7 +38,13 @@ class DashboardController extends Controller
         // Get ALL TIME total orders
         $totalOrders = Order::count();
 
-        $activeOrders = Order::whereNotIn('status', ['completed', 'cancelled'])->count();
+        // Get active orders collection for modals
+        $activeOrders = Order::with(['user', 'branch', 'table', 'orderItems.menuItem', 'payments'])
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->get();
+
+        // Get active orders count for display
+        $activeOrdersCount = $activeOrders->count();
 
         // Branch 1 Stats
         $branch1Sales = Order::where('branch_id', 1)
@@ -106,7 +112,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        $recentOrders = Order::with(['user', 'branch'])->latest()->take(5)->get();
+        $recentOrders = Order::with(['user', 'branch', 'table', 'orderItems.menuItem', 'payments'])->latest()->take(5)->get();
 
         // Prepare chart data
         $dates = collect();
@@ -177,6 +183,7 @@ class DashboardController extends Controller
             'todaySales',
             'todayOrders',
             'activeOrders',
+            'activeOrdersCount',
             'branch1Sales',
             'branch1Orders',
             'branch1ActiveOrders',
@@ -197,5 +204,13 @@ class DashboardController extends Controller
             'inventoryChartData',
             'filterDate'
         ));
+    }
+
+    public function getOrderDetails($id)
+    {
+        $order = Order::with(['user', 'branch', 'table', 'orderItems.menuItem', 'payments'])
+            ->findOrFail($id);
+
+        return view('admin.orders.partials.details', compact('order'));
     }
 }

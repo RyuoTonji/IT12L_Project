@@ -12,18 +12,6 @@
                         <input type="date" name="date" id="date" value="{{ request('date') }}"
                             class="border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                             onchange="this.form.submit()">
-
-                        @if(request('date'))
-                            <a href="{{ route('admin.shift-reports.index') }}"
-                                class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300 transition flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                                Clear Filter
-                            </a>
-                        @endif
                     </form>
                     <a href="{{ route('admin.reports') }}"
                         class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">

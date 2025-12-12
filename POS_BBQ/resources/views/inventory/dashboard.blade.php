@@ -4,7 +4,14 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">Inventory Management</h3>
+                <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    Inventory Management
+                </h3>
                 <button onclick="document.getElementById('addStockModal').classList.remove('hidden')"
                     class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
@@ -15,99 +22,104 @@
                 </button>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col"
-                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Ingredient Name
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Sold
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Unsold
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Spoilage
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Stock-In
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Stock-Out
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Remaining
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Unit
-                            </th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($inventories as $inventory)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                                    {{ $inventory->name }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                    {{ number_format($inventory->sold, 2) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                    {{ number_format($inventory->quantity - $inventory->sold, 2) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-red-600">
-                                    {{ number_format($inventory->spoilage, 2) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-green-600">
-                                    {{ number_format($inventory->stock_in, 2) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-orange-600">
-                                    {{ number_format($inventory->stock_out, 2) }}
-                                </td>
-                                <td
-                                    class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= $inventory->reorder_level ? 'text-red-600' : 'text-green-600' }}">
-                                    {{ number_format($inventory->quantity, 2) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                    {{ $inventory->unit }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                    <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')"
-                                        class="text-indigo-600 hover:text-indigo-900 mr-3">Update Stock</button>
-                                    <form action="{{ route('inventory.destroy', $inventory->id) }}" method="POST"
-                                        class="inline-block" onsubmit="return false;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button"
-                                            onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())"
-                                            class="text-red-600 hover:text-red-900">Archive</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                    No ingredients found. Click "Add New Ingredient" to get started.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+            <!-- Category-Grouped Tables -->
+            @forelse($inventoriesByCategory as $categoryName => $items)
+                <div class="mb-8 category-section">
+                    <div class="bg-gray-100 px-4 py-3 rounded-t-lg border-l-4 border-green-500">
+                        <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                            {{ $categoryName ?? 'Uncategorized' }}
+                            <span class="ml-2 text-sm font-normal text-gray-500">({{ $items->count() }} items)</span>
+                        </h2>
+                    </div>
+                    <div class="overflow-x-auto border border-t-0 rounded-b-lg">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Ingredient Name</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Sold</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Unsold</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Spoilage</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Stock-In</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Stock-Out</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Remaining</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Unit</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                @foreach($items as $inventory)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ $inventory->name }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                                            {{ number_format($inventory->sold, 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                                            {{ number_format($inventory->quantity - $inventory->sold, 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-red-600">
+                                            {{ number_format($inventory->spoilage, 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-green-600">
+                                            {{ number_format($inventory->stock_in, 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-orange-600">
+                                            {{ number_format($inventory->stock_out, 2) }}
+                                        </td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= $inventory->reorder_level ? 'text-red-600' : 'text-green-600' }}">
+                                            {{ number_format($inventory->quantity, 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                                            {{ $inventory->unit }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                                            <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')"
+                                                class="text-indigo-600 hover:text-indigo-900 mr-3">Update Stock</button>
+                                            <form action="{{ route('inventory.destroy', $inventory->id) }}" method="POST"
+                                                class="inline-block" onsubmit="return false;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button"
+                                                    onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())"
+                                                    class="text-gray-600 hover:text-gray-900">Archive</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-8 text-gray-500">
+                    <p class="text-lg font-medium">No ingredients found</p>
+                    <p class="text-sm">Click "Add New Ingredient" to get started.</p>
+                </div>
+            @endforelse
         </div>
     </div>
 

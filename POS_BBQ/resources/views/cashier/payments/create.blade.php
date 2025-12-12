@@ -176,7 +176,7 @@
 
                         <div class="flex justify-end space-x-2">
                             <button type="button"
-                                onclick="showConfirm('Cancel payment processing?', function() { window.location.href='{{ route('cashier.dashboard') }}' })"
+                                onclick="showConfirm('Cancel payment processing?', function() { window.location.href='{{ request()->get('source') === 'list' ? route('orders.index') : route('orders.show', $order) }}' })"
                                 class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                                 Cancel
                             </button>

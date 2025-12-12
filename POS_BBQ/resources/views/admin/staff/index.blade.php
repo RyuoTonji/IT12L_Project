@@ -4,7 +4,14 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Staff Management</h1>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    Staff Management
+                </h1>
                 <a href="{{ route('staff.create') }}"
                     class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
@@ -53,9 +60,11 @@
                                 <td class="py-2 px-4">{{ $user->name }}</td>
                                 <td class="py-2 px-4">{{ $user->email }}</td>
                                 <td class="py-2 px-4 text-center">
-                                    <span
-                                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded
-                                                                                                                    {{ $user->role == 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded
+                                                                            @if($user->role == 'admin') bg-red-100 text-red-800
+                                                                            @elseif($user->role == 'manager') bg-yellow-100 text-yellow-800
+                                                                            @else bg-blue-100 text-blue-800
+                                                                            @endif">
                                         {{ ucfirst($user->role) }}
                                     </span>
                                 </td>
@@ -149,7 +158,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="button"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-red-600 hover:bg-red-100 rounded"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded"
                                                 onclick="confirmArchiveStaff({{ $user->id }})">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">

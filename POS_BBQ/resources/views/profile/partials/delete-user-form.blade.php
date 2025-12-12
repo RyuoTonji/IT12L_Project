@@ -1,6 +1,31 @@
 <section class="space-y-6">
     <header>
         <h2 class="text-lg font-medium text-gray-900">
+            {{ __('Download Your Data') }}
+        </h2>
+
+        <p class="mt-1 text-sm text-gray-600">
+            {{ __('Download your transaction history and profile data before deleting your account.') }}
+        </p>
+    </header>
+
+    <div class="flex flex-wrap gap-3">
+        <a href="{{ route('profile.export') }}"
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download All Data (PDF)
+        </a>
+    </div>
+</section>
+
+
+<section class="space-y-6">
+    <header>
+        <h2 class="text-lg font-medium text-gray-900">
             {{ __('Delete Account') }}
         </h2>
 

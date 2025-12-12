@@ -13,7 +13,17 @@ class StaffController extends Controller
 {
     public function index()
     {
-        $staff = User::all();
+        // Only fetch necessary columns for better performance
+        $staff = User::select([
+            'id',
+            'name',
+            'email',
+            'role',
+            'status',
+            'last_login_at',
+            'created_at'
+        ])->get();
+
         return view('admin.staff.index', compact('staff'));
     }
 

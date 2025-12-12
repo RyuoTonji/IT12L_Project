@@ -39,31 +39,30 @@
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($activities as $activity)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $activity->created_at->format('Y-m-d H:i') }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $activity->user->name ?? 'System' }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $activity->action }}</td>
-                                        <td class="px-6 py-4 text-sm text-gray-500">{{ $activity->details }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            @php
-                                                $statusClasses = match ($activity->status) {
-                                                    'success' => 'bg-green-100 text-green-800',
-                                                    'warning' => 'bg-yellow-100 text-yellow-800',
-                                                    'error', 'danger' => 'bg-red-100 text-red-800',
-                                                    'info' => 'bg-blue-100 text-blue-800',
-                                                    default => 'bg-gray-100 text-gray-800',
-                                                };
-                                            @endphp
-                         <span
-                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClasses }}">
-                                                {{ ucfirst($activity->status ?? 'N/A') }}
-                                            </span>
-                                        </td>
-                                    </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ $activity->created_at->format('Y-m-d H:i') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {{ $activity->user->name ?? 'System' }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $activity->action }}</td>
+                            <td class="px-6 py-4 text-sm text-gray-500">{{ $activity->details }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @php
+                                    $statusClasses = match ($activity->status) {
+                                        'success' => 'text-green-600',
+                                        'warning' => 'text-yellow-600',
+                                        'error', 'danger' => 'text-red-600',
+                                        'info' => 'text-blue-600',
+                                        default => 'text-gray-600',
+                                    };
+                                @endphp
+                                <span class="inline-flex text-xs leading-5 font-semibold items-center {{ $statusClasses }}">
+                                    {{ ucfirst($activity->status ?? 'N/A') }}
+                                </span>
+                            </td>
+                        </tr>
                     @empty
                         <tr>
                             <td colspan="5" class="px-6 py-4 text-center text-gray-500">No recent activities found.</td>
