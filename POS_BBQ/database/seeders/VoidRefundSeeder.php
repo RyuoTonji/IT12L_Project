@@ -27,11 +27,11 @@ class VoidRefundSeeder extends Seeder
             return;
         }
 
-        // Seed 25 Refund Requests (Paid Orders)
-        $this->seedRequests(25, 'paid', $cashier, $manager, $menuItems, $tables);
+        // Seed 50 Refund Requests (Paid Orders)
+        $this->seedRequests(50, 'paid', $cashier, $manager, $menuItems, $tables);
 
-        // Seed 25 Void Requests (Unpaid Orders)
-        $this->seedRequests(25, 'pending', $cashier, $manager, $menuItems, $tables);
+        // Seed 50 Void Requests (Unpaid Orders)
+        $this->seedRequests(50, 'pending', $cashier, $manager, $menuItems, $tables);
     }
 
     private function seedRequests($count, $paymentStatus, $requester, $approver, $menuItems, $tables)

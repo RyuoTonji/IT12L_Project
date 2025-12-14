@@ -15,6 +15,21 @@
                         </svg>
                         Back to Categories
                     </a>
+                    <form id="deleteCategoryForm" action="{{ route('categories.destroy', $category) }}" method="POST"
+                        class="inline-block mr-2">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button"
+                            class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center inline-flex"
+                            onclick="confirmArchiveCategory()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            </svg>
+                            Archive
+                        </button>
+                    </form>
                     <a href="{{ route('categories.edit', $category) }}"
                         class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
@@ -54,25 +69,21 @@
                             <th
                                 class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Available</th>
-                            <th
-                                class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions</th>
+                            <!-- Actions Header Removed -->
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($category->menuItems as $item)
-                            <tr>
+                            <tr onclick="window.location='{{ route('menu.show', ['menu' => $item, 'source' => 'category']) }}'"
+                                class="hover:bg-gray-50 cursor-pointer transition-colors duration-200">
                                 <td class="py-2 px-4">{{ $item->id }}</td>
-                                <td class="py-2 px-4">{{ $item->name }}</td>
+                                <td class="py-2 px-4 font-medium text-gray-900">{{ $item->name }}</td>
                                 <td class="py-2 px-4 text-right">₱{{ number_format($item->price, 2) }}</td>
                                 <td class="py-2 px-4 text-center">
                                     <span class="inline-flex text-xs leading-5 font-semibold items-center
-                                            {{ $item->is_available ? 'text-green-600' : 'text-red-600' }}">
+                                                            {{ $item->is_available ? 'text-green-600' : 'text-red-600' }}">
                                         {{ $item->is_available ? 'Yes' : 'No' }}
                                     </span>
-                                </td>
-                                <td class="py-2 px-4 text-center">
-                                    <a href="{{ route('menu.show', $item) }}" class="text-blue-600 hover:text-blue-900">View</a>
                                 </td>
                             </tr>
                         @empty
@@ -85,4 +96,17 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function confirmArchiveCategory() {
+            AlertModal.showConfirm(
+                'Are you sure you want to archive this category?',
+                function () {
+                    document.getElementById('deleteCategoryForm').submit();
+                },
+                null,
+                'Archive Confirmation'
+            );
+        }
+    </script>
 @endsection

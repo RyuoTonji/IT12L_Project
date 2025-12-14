@@ -63,19 +63,19 @@
                     </nav>
                 </div>
 
-                <!-- Orders Tab -->
+                <!-- Active Orders Tab -->
                 <div x-show="activeTab === 'orders'" class="space-y-6">
                     <h3 class="text-lg font-medium text-gray-900">Active Orders</h3>
                     @if($activeOrders->count() > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div id="active-orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($activeOrders as $order)
-                                <div class="bg-white border rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
+                                <div class="bg-white border rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow active-order-card"
                                     onclick="openOrderModal({{ $order->id }})">
                                     <div class="flex justify-between items-start mb-2">
                                         <span class="font-bold text-lg">Order #{{ $order->id }}</span>
                                         <span
                                             class="inline-flex text-xs leading-5 font-semibold items-center 
-                                                                                                                                                {{ $order->status === 'pending' ? 'text-yellow-600' : 'text-blue-600' }}">
+                                                                                                                                                                        {{ $order->status === 'pending' ? 'text-yellow-600' : 'text-blue-600' }}">
                                             {{ ucfirst($order->status) }}
                                         </span>
                                     </div>
@@ -95,6 +95,8 @@
                                 </div>
                             @endforeach
                         </div>
+                        <!-- Pagination Controls -->
+                        <div id="pagination-active-orders" class="mt-4 flex justify-end items-center space-x-2"></div>
                     @else
                         <p class="text-gray-500 italic">No active orders at the moment.</p>
                     @endif
@@ -189,5 +191,47 @@
         function closeOrderModal(orderId) {
             document.getElementById(`order-modal-${orderId}`).classList.add('hidden');
         }
+
+        // Pagination Logic for Active Orders
+        document.addEventListener('DOMContentLoaded', function () {
+            const container = document.getElementById('active-orders-container');
+            if (container) {
+                const items = Array.from(container.getElementsByClassName('active-order-card'));
+                const itemsPerPage = 9;
+                const pageCount = Math.ceil(items.length / itemsPerPage);
+                const paginationDiv = document.getElementById('pagination-active-orders');
+
+                if (items.length <= itemsPerPage) {
+                    paginationDiv.classList.add('hidden');
+                    return;
+                }
+
+                let currentPage = 1;
+                const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
+                const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
+
+                const render = (page) => {
+                    items.forEach((item, i) => {
+                        item.style.display = (i >= (page - 1) * itemsPerPage && i < page * itemsPerPage) ? '' : 'none';
+                    });
+
+                    paginationDiv.innerHTML = `
+                                <button onclick="window.changeBranchPage(-1)" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === 1 ? 'disabled' : ''}>${prevIcon}</button>
+                                <span class="text-sm text-gray-500 mx-4">Page ${page} of ${pageCount}</span>
+                                <button onclick="window.changeBranchPage(1)" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === pageCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === pageCount ? 'disabled' : ''}>${nextIcon}</button>
+                            `;
+                };
+
+                window.changeBranchPage = (dir) => {
+                    let newPage = currentPage + dir;
+                    if (newPage >= 1 && newPage <= pageCount) {
+                        currentPage = newPage;
+                        render(currentPage);
+                    }
+                };
+
+                render(1);
+            }
+        });
     </script>
 @endsection

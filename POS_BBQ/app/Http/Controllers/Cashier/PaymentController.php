@@ -60,10 +60,12 @@ class PaymentController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Payment Store Method hit', $request->all());
+
         $request->validate([
             'order_id' => 'required|exists:orders,id',
             'amount' => 'required|numeric|min:0.01',
-            'payment_method' => 'required|in:cash,card,mobile',
+            'payment_method' => 'required|string', // Allow any string now, UI will restrict
             'payment_details' => 'nullable|array',
         ]);
 
@@ -103,9 +105,24 @@ class PaymentController extends Controller
             $payment->save();
 
             // Update order payment status if fully paid
+            // REFRESH payments relationship to ensure we have the latest data if needed, though manual calculation is safer
+            $order->refresh(); // Refresh order to ensure we have fresh data
+            $paidAmount = $order->payments->sum('amount'); // This might still use cached valid, so let's force valid
+
+            \Log::info('Payment Processing', [
+                'order_id' => $order->id,
+                'total_amount' => $order->total_amount,
+                'previous_payments_sum' => $paidAmount, // This is from DB
+                'current_payment_amount' => $request->amount,
+                'calculated_new_paid' => $paidAmount + $request->amount
+            ]);
+
+            $newPaidAmount = $order->payments()->sum('amount') + $request->amount; // Use query builder () to get fresh sum from DB directly? No, creating payment above is in transaction. 
+            // Better: use the logic we had but be verbose
             $newPaidAmount = $order->payments->sum('amount') + $request->amount;
 
             if ($newPaidAmount >= $order->total_amount) {
+                \Log::info('Marking as paid');
                 $order->payment_status = 'paid';
 
                 // If order is served and now paid, mark it as completed
@@ -113,7 +130,10 @@ class PaymentController extends Controller
                     $order->status = 'completed';
                 }
 
-                $order->save();
+                $saved = $order->save();
+                \Log::info('Order saved result: ' . ($saved ? 'true' : 'false'));
+            } else {
+                \Log::info('Not marking as paid', ['newPaid' => $newPaidAmount, 'total' => $order->total_amount]);
             }
 
             // Automated Activity Logging

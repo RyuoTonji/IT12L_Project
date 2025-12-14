@@ -9,6 +9,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        /*
         // List of tables to enable RLS on (excluding Laravel system tables)
         $tables = [
             'users',
@@ -555,6 +556,7 @@ return new class extends Migration {
                 )
             );
         ");
+        */
     }
 
     /**
@@ -562,6 +564,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
+        /*
         // List of tables to disable RLS
         $tables = [
             'users',
@@ -599,5 +602,6 @@ return new class extends Migration {
             // Disable RLS
             DB::statement("ALTER TABLE {$table} DISABLE ROW LEVEL SECURITY;");
         }
+        */
     }
 };

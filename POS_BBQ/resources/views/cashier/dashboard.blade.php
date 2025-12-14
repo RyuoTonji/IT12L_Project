@@ -48,7 +48,7 @@
             <div class="bg-white p-4 rounded-lg shadow border">
                 <h2 class="text-xl font-medium mb-4">Active Orders</h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full">
+                    <table class="min-w-full" id="cashier-active-orders-table">
                         <thead>
                             <tr>
                                 <th
@@ -133,6 +133,7 @@
                             @endforelse
                         </tbody>
                     </table>
+                    <div id="pagination-cashier-active" class="p-4 flex justify-end items-center space-x-2"></div>
                 </div>
             </div>
         </div>
@@ -202,6 +203,68 @@
                         </div>
                     `;
                 });
+        }
+
+        // Pagination Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            paginateTable('cashier-active-orders-table', 10);
+        });
+
+        function paginateTable(tableId, rowsPerPage) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const rowCount = rows.length;
+            const pageCount = Math.ceil(rowCount / rowsPerPage);
+
+            const paginationDiv = document.getElementById('pagination-cashier-active');
+            if (!paginationDiv) return;
+
+            if (rowCount <= rowsPerPage) {
+                paginationDiv.classList.add('hidden');
+                rows.forEach(row => row.style.display = '');
+                return;
+            }
+
+            paginationDiv.classList.remove('hidden');
+
+            const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
+            const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
+
+            const render = (page) => {
+                rows.forEach((row, i) => row.style.display = (i >= (page - 1) * rowsPerPage && i < page * rowsPerPage) ? '' : 'none');
+                paginationDiv.innerHTML = `
+                        <button onclick="changePage('${tableId}', -1, ${rowsPerPage}, ${pageCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === 1 ? 'disabled' : ''}>${prevIcon}</button>
+                        <span class="text-sm text-gray-500 mx-4">Page ${page} of ${pageCount}</span>
+                        <button onclick="changePage('${tableId}', 1, ${rowsPerPage}, ${pageCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === pageCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === pageCount ? 'disabled' : ''}>${nextIcon}</button>
+                    `;
+                table.dataset.currentPage = page;
+            };
+
+            window.changePage = (tId, dir, rPP, pCount) => {
+                const t = document.getElementById(tId);
+                if(!t) return;
+                let cur = parseInt(t.dataset.currentPage || 1);
+                let newPage = cur + dir;
+                
+                if (newPage >= 1 && newPage <= pCount) {
+                    const tb = t.querySelector('tbody');
+                    const rs = Array.from(tb.querySelectorAll('tr'));
+                    rs.forEach((row, i) => row.style.display = (i >= (newPage - 1) * rPP && i < newPage * rPP) ? '' : 'none');
+                    
+                    const pDiv = document.getElementById('pagination-cashier-active');
+                    pDiv.innerHTML = `
+                        <button onclick="changePage('${tId}', -1, ${rPP}, ${pCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${newPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${newPage === 1 ? 'disabled' : ''}>${prevIcon}</button>
+                        <span class="text-sm text-gray-500 mx-4">Page ${newPage} of ${pCount}</span>
+                        <button onclick="changePage('${tId}', 1, ${rPP}, ${pCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${newPage === pCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${newPage === pCount ? 'disabled' : ''}>${nextIcon}</button>
+                     `;
+                    t.dataset.currentPage = newPage;
+                }
+            };
+
+            render(1);
         }
 
         function closeOrderModal() {

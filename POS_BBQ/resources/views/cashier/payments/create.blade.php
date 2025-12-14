@@ -137,34 +137,28 @@
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                                 required>
                                 <option value="cash">Cash</option>
-                                <option value="card">Card</option>
-                                <option value="mobile">Mobile Payment</option>
+                                <option value="e-payment">E-Payment (GCash, PayPal, PayMongo)</option>
                             </select>
                         </div>
 
-                        <div id="card_details" class="mb-4 hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Card Details</label>
-                            <div class="grid grid-cols-2 gap-4">
+                        <div id="epayment_details" class="mb-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">E-Payment Details</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="card_number" class="block text-xs text-gray-500 mb-1">Card Number</label>
-                                    <input type="text" name="payment_details[card_number]" id="card_number"
-                                        placeholder="**** **** **** ****"
+                                    <label for="provider" class="block text-xs text-gray-500 mb-1">Provider</label>
+                                    <select name="payment_details[provider]" id="provider"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <option value="">Select Provider</option>
+                                        <option value="gcash">GCash</option>
+                                        <option value="paypal">PayPal</option>
+                                        <option value="paymongo">PayMongo</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label for="card_holder" class="block text-xs text-gray-500 mb-1">Card Holder</label>
-                                    <input type="text" name="payment_details[card_holder]" id="card_holder"
+                                    <label for="reference_number" class="block text-xs text-gray-500 mb-1">Reference Number / Transaction ID</label>
+                                    <input type="text" name="payment_details[reference_number]" id="reference_number"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                 </div>
-                            </div>
-                        </div>
-
-                        <div id="mobile_details" class="mb-4 hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Payment Details</label>
-                            <div>
-                                <label for="transaction_id" class="block text-xs text-gray-500 mb-1">Transaction ID</label>
-                                <input type="text" name="payment_details[transaction_id]" id="transaction_id"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                             </div>
                         </div>
 
@@ -200,26 +194,22 @@
         document.addEventListener('DOMContentLoaded', function () {
             const paymentForm = document.getElementById('paymentForm');
             const paymentMethod = document.getElementById('payment_method');
-            const cardDetails = document.getElementById('card_details');
-            const mobileDetails = document.getElementById('mobile_details');
+            const epaymentDetails = document.getElementById('epayment_details');
 
             paymentMethod.addEventListener('change', function () {
-                cardDetails.classList.add('hidden');
-                mobileDetails.classList.add('hidden');
+                epaymentDetails.classList.add('hidden');
 
-                if (this.value === 'card') {
-                    cardDetails.classList.remove('hidden');
-                } else if (this.value === 'mobile') {
-                    mobileDetails.classList.remove('hidden');
+                if (this.value === 'e-payment') {
+                    epaymentDetails.classList.remove('hidden');
                 }
             });
 
-            paymentForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                showConfirm('Are you sure you want to process this payment?', function () {
-                    paymentForm.submit();
-                });
-            });
+            //            paymentForm.addEventListener('submit', function (e) {
+            //                e.preventDefault();
+            //                showConfirm('Are you sure you want to process this payment?', function () {
+            //                    paymentForm.submit();
+            //                });
+            //            });
         });
     </script>
 @endsection

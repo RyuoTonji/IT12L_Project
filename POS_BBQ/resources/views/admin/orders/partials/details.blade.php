@@ -3,6 +3,27 @@
 <div class="space-y-4">
     <!-- Order Information -->
     <div class="border-b pb-3">
+        @if($order->status === 'cancelled' || $order->payment_status === 'refunded')
+            @php
+                $voidRequest = $order->voidRequests->where('status', 'approved')->sortByDesc('created_at')->first();
+            @endphp
+            @if($voidRequest)
+                <div class="bg-red-50 border border-red-200 rounded p-3 mb-4">
+                    <h4 class="text-red-800 font-semibold text-sm mb-1">
+                        {{ $order->status === 'cancelled' ? 'Cancellation Reason' : 'Refund Reason' }}
+                    </h4>
+                    <p class="text-red-700 text-sm">{{ $voidRequest->reason ?? 'No reason provided' }}</p>
+                    @if($voidRequest->reason_tags)
+                        <div class="mt-2 flex flex-wrap gap-1">
+                            @foreach($voidRequest->reason_tags as $tag)
+                                <span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">{{ $tag }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @endif
+        @endif
+
         <div class="grid grid-cols-2 gap-2 text-sm">
             <div>
                 <span class="text-gray-600">Table:</span>
@@ -83,7 +104,7 @@
                 <div>
                     <span class="text-gray-600">Status:</span>
                     <span class="inline-flex items-center text-xs leading-5 font-semibold
-                                            {{ $order->payment_status == 'paid' ? 'text-green-600' :
+                                                {{ $order->payment_status == 'paid' ? 'text-green-600' :
             ($order->payment_status == 'refunded' ? 'text-red-600' : 'text-yellow-600') }}">
                         @if($order->payment_status == 'paid')
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"

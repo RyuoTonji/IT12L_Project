@@ -57,7 +57,7 @@
 
                             <div class="mt-4 flex justify-end">
                                 @if($order->status == 'new')
-                                    <form action="{{ route('cashier.orders.status', $order) }}" method="POST" style="display: inline;">
+                                    <form action="{{ route('orders.update-status', $order) }}" method="POST" style="display: inline;">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="status" value="preparing">
@@ -74,7 +74,7 @@
                                         </button>
                                     </form>
                                 @elseif($order->status == 'preparing')
-                                    <form action="{{ route('cashier.orders.status', $order) }}" method="POST" style="display: inline;">
+                                    <form action="{{ route('orders.update-status', $order) }}" method="POST" style="display: inline;">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="status" value="ready">

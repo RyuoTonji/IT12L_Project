@@ -54,47 +54,17 @@
                             <th
                                 class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Menu Items</th>
-                            <th
-                                class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions</th>
-                        </tr>
+                            <th </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($categories as $category)
-                            <tr>
+                            <tr onclick="window.location='{{ route('categories.show', $category) }}'"
+                                class="hover:bg-gray-50 cursor-pointer transition-colors duration-200">
                                 <td class="py-2 px-4">{{ $category->id }}</td>
-                                <td class="py-2 px-4">{{ $category->name }}</td>
+                                <td class="py-2 px-4 font-medium text-gray-900">{{ $category->name }}</td>
                                 <td class="py-2 px-4">{{ $category->sort_order }}</td>
-                                <td class="py-2 px-4">{{ Str::limit($category->description, 50) }}</td>
+                                <td class="py-2 px-4 text-gray-500">{{ Str::limit($category->description, 50) }}</td>
                                 <td class="py-2 px-4 text-center">{{ $category->menu_items_count }}</td>
-                                <td class="py-2 px-4 text-center">
-                                    <a href="{{ route('categories.show', $category) }}"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-100 rounded">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                            stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        <span>View</span>
-                                    </a>
-                                    <form id="deleteCategoryForm{{ $category->id }}"
-                                        action="{{ route('categories.destroy', $category) }}" method="POST" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="button"
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded"
-                                            onclick="confirmArchiveCategory({{ $category->id }})">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                            </svg>
-                                            <span>Archive</span>
-                                        </button>
-                                    </form>
-                                </td>
                             </tr>
                         @empty
                             <tr>

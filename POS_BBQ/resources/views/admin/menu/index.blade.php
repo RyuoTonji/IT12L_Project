@@ -49,159 +49,240 @@
                 </div>
             </div>
 
-            <!-- Category-Grouped Tables -->
-            @forelse($menuItemsByCategory as $categoryName => $items)
-                <div class="mb-8 category-section" data-category="{{ $categoryName }}">
-                    <div class="bg-gray-100 px-4 py-3 rounded-t-lg border-l-4 border-blue-500">
-                        <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            {{ $categoryName }}
-                            <span class="ml-2 text-sm font-normal text-gray-500">({{ $items->count() }} items)</span>
-                        </h2>
-                    </div>
-                    <div class="overflow-x-auto border border-t-0 rounded-b-lg">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr>
-                                    <th class="py-2 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="py-2 px-4 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                    <th class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
-                                    <th class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
-                                    <th class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach($items as $item)
-                                    @php
-                                        $branch1Available = $item->branches->firstWhere('id', 1)?->pivot->is_available ?? false;
-                                        $branch2Available = $item->branches->firstWhere('id', 2)?->pivot->is_available ?? false;
+            <!-- Tabbed Interface -->
+            <div x-data="{ activeTab: 'cat-0' }">
+                <!-- Tabs Navigation -->
+                <div class="border-b border-gray-200 mb-6 overflow-x-auto">
+                    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                        @foreach($menuItemsByCategory as $categoryName => $items)
+                            <button @click="activeTab = 'cat-{{ $loop->index }}'"
+                                :class="{ 'border-blue-500 text-blue-600': activeTab === 'cat-{{ $loop->index }}', 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'cat-{{ $loop->index }}' }"
+                                class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">
+                                {{ $categoryName }}
+                                <span class="bg-gray-100 text-gray-900 ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium md:inline-block">
+                                    {{ $items->count() }}
+                                </span>
+                            </button>
+                        @endforeach
+                    </nav>
+                </div>
 
-                                        if ($branch1Available && $branch2Available) {
-                                            $branchStatus = 'both';
-                                        } elseif ($branch1Available) {
-                                            $branchStatus = 'branch1';
-                                        } elseif ($branch2Available) {
-                                            $branchStatus = 'branch2';
-                                        } else {
-                                            $branchStatus = 'both';
-                                        }
-                                    @endphp
-                                    <tr class="menu-item-row" data-name="{{ strtolower($item->name) }}">
-                                        <td class="py-2 px-4">{{ $item->name }}</td>
-                                        <td class="py-2 px-4 text-right">₱{{ number_format($item->price, 2) }}</td>
-                                        <td class="py-2 px-4 text-center">
-                                            <div class="inline-flex items-center gap-2">
-                                                <span id="availability-label-{{ $item->id }}" class="flex items-center">
-                                                    @if($item->is_available)
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <!-- Tab Contents -->
+                @forelse($menuItemsByCategory as $categoryName => $items)
+                    <div x-show="activeTab === 'cat-{{ $loop->index }}'" class="mb-8 category-section" data-category="{{ $categoryName }}">
+                        <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+                            <table class="min-w-full bg-white divide-y divide-gray-200" id="table-cat-{{ $loop->index }}">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="py-3 px-6 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                        <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Availability</th>
+                                        <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+                                        <th class="py-3 px-6 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @foreach($items as $item)
+                                        @php
+                                            $branch1Available = $item->branches->firstWhere('id', 1)?->pivot->is_available ?? false;
+                                            $branch2Available = $item->branches->firstWhere('id', 2)?->pivot->is_available ?? false;
+
+                                            if ($branch1Available && $branch2Available) {
+                                                $branchStatus = 'both';
+                                            } elseif ($branch1Available) {
+                                                $branchStatus = 'branch1';
+                                            } elseif ($branch2Available) {
+                                                $branchStatus = 'branch2';
+                                            } else {
+                                                $branchStatus = 'both';
+                                            }
+                                        @endphp
+                                        <tr class="menu-item-row hover:bg-gray-50 transition-colors" data-name="{{ strtolower($item->name) }}">
+                                            <td class="py-4 px-6 text-sm font-medium text-gray-900">{{ $item->name }}</td>
+                                            <td class="py-4 px-6 text-sm text-right text-gray-600">₱{{ number_format($item->price, 2) }}</td>
+                                            <td class="py-4 px-6 text-center">
+                                                <div class="inline-flex items-center gap-2 justify-center w-full">
+                                                    <span id="availability-label-{{ $item->id }}" class="flex items-center">
+                                                        @if($item->is_available)
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                            Available
+                                                        @else
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                            </svg>
+                                                            Not Available
+                                                        @endif
+                                                    </span>
+                                                    <button onclick="showAvailabilityEdit({{ $item->id }})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <div id="availability-edit-{{ $item->id }}" class="hidden inline-flex items-center gap-2 justify-center w-full">
+                                                    <select id="availability-select-{{ $item->id }}" class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 text-sm py-1">
+                                                        <option value="1" {{ $item->is_available ? 'selected' : '' }}>Available</option>
+                                                        <option value="0" {{ !$item->is_available ? 'selected' : '' }}>Not Available</option>
+                                                    </select>
+                                                    <button onclick="saveAvailability({{ $item->id }})" class="text-green-600 hover:text-green-800">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                                         </svg>
-                                                        Available
-                                                    @else
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    </button>
+                                                    <button onclick="cancelAvailabilityEdit({{ $item->id }})" class="text-red-600 hover:text-red-800">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                                         </svg>
-                                                        Not Available
-                                                    @endif
-                                                </span>
-                                                <button onclick="showAvailabilityEdit({{ $item->id }}, {{ $item->is_available ? 1 : 0 }})" class="text-gray-500 hover:text-blue-600">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            <div id="availability-edit-{{ $item->id }}" class="hidden inline-flex items-center gap-2">
-                                                <select id="availability-select-{{ $item->id }}" class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 text-sm">
-                                                    <option value="1" {{ $item->is_available ? 'selected' : '' }}>Available</option>
-                                                    <option value="0" {{ !$item->is_available ? 'selected' : '' }}>Not Available</option>
-                                                </select>
-                                                <button onclick="saveAvailability({{ $item->id }})" class="text-green-600 hover:text-green-800" title="Save">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </button>
-                                                <button onclick="cancelAvailabilityEdit({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Cancel">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="py-2 px-4 text-center">
-                                            <div class="inline-flex items-center gap-2">
-                                                <span id="branch-label-{{ $item->id }}">
-                                                    @if($branchStatus === 'both')
-                                                        Both Branches
-                                                    @elseif($branchStatus === 'branch1')
-                                                        Branch 1
-                                                    @else
-                                                        Branch 2
-                                                    @endif
-                                                </span>
-                                                <button onclick="showBranchEdit({{ $item->id }}, '{{ $branchStatus }}')" class="text-gray-500 hover:text-blue-600">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            <div id="branch-edit-{{ $item->id }}" class="hidden inline-flex items-center gap-2">
-                                                <select id="branch-select-{{ $item->id }}" class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 text-sm">
-                                                    <option value="branch1" {{ $branchStatus === 'branch1' ? 'selected' : '' }}>Branch 1</option>
-                                                    <option value="branch2" {{ $branchStatus === 'branch2' ? 'selected' : '' }}>Branch 2</option>
-                                                    <option value="both" {{ $branchStatus === 'both' ? 'selected' : '' }}>Both Branches</option>
-                                                </select>
-                                                <button onclick="saveBranch({{ $item->id }})" class="text-green-600 hover:text-green-800" title="Save">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </button>
-                                                <button onclick="cancelBranchEdit({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Cancel">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </td>
-                                        <td class="py-2 px-4 text-center">
-                                            <a href="{{ route('menu.show', $item) }}" class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-100 rounded">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                                <span>View</span>
-                                            </a>
-                                            <form id="deleteMenuForm{{ $item->id }}" action="{{ route('menu.destroy', $item) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="button" class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded" onclick="confirmArchiveMenu({{ $item->id }})">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                                    </svg>
-                                                    <span>Archive</span>
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="py-4 px-6 text-center">
+                                                <div class="inline-flex items-center gap-2 justify-center w-full">
+                                                    <span id="branch-label-{{ $item->id }}" class="text-sm text-gray-600">
+                                                        @if($branchStatus === 'both')
+                                                            Both Branches
+                                                        @elseif($branchStatus === 'branch1')
+                                                            Branch 1
+                                                        @else
+                                                            Branch 2
+                                                        @endif
+                                                    </span>
+                                                    <button onclick="showBranchEdit({{ $item->id }})" class="text-gray-400 hover:text-blue-600 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <div id="branch-edit-{{ $item->id }}" class="hidden inline-flex items-center gap-2 justify-center w-full">
+                                                    <select id="branch-select-{{ $item->id }}" class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 text-sm py-1">
+                                                        <option value="branch1" {{ $branchStatus === 'branch1' ? 'selected' : '' }}>Branch 1</option>
+                                                        <option value="branch2" {{ $branchStatus === 'branch2' ? 'selected' : '' }}>Branch 2</option>
+                                                        <option value="both" {{ $branchStatus === 'both' ? 'selected' : '' }}>Both Branches</option>
+                                                    </select>
+                                                    <button onclick="saveBranch({{ $item->id }})" class="text-green-600 hover:text-green-800">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    </button>
+                                                    <button onclick="cancelBranchEdit({{ $item->id }})" class="text-red-600 hover:text-red-800">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <td class="py-4 px-6 text-center">
+                                                <div class="flex justify-center items-center space-x-2">
+                                                    <a href="{{ route('menu.show', ['menu' => $item, 'source' => 'menu']) }}" class="text-blue-600 hover:text-blue-900 inline-flex items-center transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                        View
+                                                    </a>
+                                                    <form id="deleteMenuForm{{ $item->id }}" action="{{ route('menu.destroy', $item) }}" method="POST" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" class="text-gray-500 hover:text-red-600 inline-flex items-center transition-colors ml-2" onclick="confirmArchiveMenu({{ $item->id }})">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                            </svg>
+                                                            Archive
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                             <div id="pagination-cat-{{ $loop->index }}" class="p-4 bg-gray-50 border-t border-gray-200"></div>
+                        </div>
                     </div>
-                </div>
-            @empty
-                <div class="text-center py-8 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <p class="text-lg font-medium">No menu items found</p>
-                    <p class="text-sm">Add your first menu item to get started.</p>
-                </div>
-            @endforelse
+                @empty
+                    <div class="text-center py-8 text-gray-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <p class="text-lg font-medium">No menu items found</p>
+                        <p class="text-sm">Add your first menu item to get started.</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
     </div>
 
     <script>
+        // Pagination Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            @foreach($menuItemsByCategory as $categoryName => $items)
+                paginateTable('table-cat-{{ $loop->index }}', 10);
+            @endforeach
+        });
+
+        function paginateTable(tableId, rowsPerPage) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const rowCount = rows.length;
+            const pageCount = Math.ceil(rowCount / rowsPerPage);
+
+            const paginationDivId = 'pagination-' + tableId.replace('table-', '');
+            let paginationDiv = document.getElementById(paginationDivId);
+            if (!paginationDiv) return;
+
+            if (rowCount <= rowsPerPage) {
+                paginationDiv.classList.add('hidden');
+                rows.forEach(row => row.style.display = '');
+                return;
+            }
+
+            paginationDiv.classList.remove('hidden');
+            paginationDiv.className = 'p-4 bg-gray-50 border-t border-gray-200 flex justify-end items-center space-x-2';
+
+            const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
+            const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
+
+            const render = (page) => {
+                rows.forEach((row, i) => row.style.display = (i >= (page - 1) * rowsPerPage && i < page * rowsPerPage) ? '' : 'none');
+                
+                paginationDiv.innerHTML = `
+                    <button onclick="changePage('${tableId}', -1, ${rowsPerPage}, ${pageCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === 1 ? 'disabled' : ''}>${prevIcon}</button>
+                    <span class="text-sm text-gray-500 mx-4">Page ${page} of ${pageCount}</span>
+                    <button onclick="changePage('${tableId}', 1, ${rowsPerPage}, ${pageCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === pageCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === pageCount ? 'disabled' : ''}>${nextIcon}</button>
+                `;
+                table.dataset.currentPage = page;
+            };
+
+            window.changePage = (tId, dir, rPP, pCount) => {
+                 const t = document.getElementById(tId);
+                 if(!t) return;
+                 let cur = parseInt(t.dataset.currentPage || 1);
+                 let newPage = cur + dir;
+                 if (newPage >= 1 && newPage <= pCount) {
+                     const tb = t.querySelector('tbody');
+                     const rs = Array.from(tb.querySelectorAll('tr'));
+                     rs.forEach((row, i) => row.style.display = (i >= (newPage - 1) * rPP && i < newPage * rPP) ? '' : 'none');
+                     
+                     const pDivId = 'pagination-' + tId.replace('table-', '');
+                     const pDiv = document.getElementById(pDivId);
+                     
+                     pDiv.innerHTML = `
+                        <button onclick="changePage('${tId}', -1, ${rPP}, ${pCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${newPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${newPage === 1 ? 'disabled' : ''}>${prevIcon}</button>
+                        <span class="text-sm text-gray-500 mx-4">Page ${newPage} of ${pCount}</span>
+                        <button onclick="changePage('${tId}', 1, ${rPP}, ${pCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${newPage === pCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${newPage === pCount ? 'disabled' : ''}>${nextIcon}</button>
+                     `;
+                     t.dataset.currentPage = newPage;
+                 }
+            };
+
+            render(1);
+        }
+
         // Search functionality
         function searchMenuItems() {
             const searchValue = document.getElementById('menuSearch').value.toLowerCase();
@@ -218,7 +299,7 @@
         }
 
         // Availability inline editing
-        function showAvailabilityEdit(menuId, currentValue) {
+        function showAvailabilityEdit(menuId) {
             document.getElementById(`availability-label-${menuId}`).parentElement.classList.add('hidden');
             document.getElementById(`availability-edit-${menuId}`).classList.remove('hidden');
         }
@@ -231,7 +312,6 @@
         function saveAvailability(menuId) {
             const isAvailable = document.getElementById(`availability-select-${menuId}`).value;
             
-            // Create and submit form
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = `/admin/menu/${menuId}/update-availability`;
@@ -247,7 +327,7 @@
         }
 
         // Branch inline editing
-        function showBranchEdit(menuId, currentValue) {
+        function showBranchEdit(menuId) {
             document.getElementById(`branch-label-${menuId}`).parentElement.classList.add('hidden');
             document.getElementById(`branch-edit-${menuId}`).classList.remove('hidden');
         }
@@ -260,7 +340,6 @@
         function saveBranch(menuId) {
             const branch = document.getElementById(`branch-select-${menuId}`).value;
             
-            // Create and submit form
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = `/admin/menu/${menuId}/update-branch-availability`;

@@ -94,9 +94,7 @@
                         </div>
                     </div>
                     <div>
-                        <div class="h-64">
-                            <canvas id="categoryChart"></canvas>
-                        </div>
+                        <div id="categoryChart" class="w-full flex justify-center items-center"></div>
                     </div>
                 </div>
             </div>
@@ -149,65 +147,79 @@
         </div>
     </div>
 
+    {{-- ApexCharts CDN --}}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Category Chart
-
-            Chart.defaults.font.size = 16;
-
-            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-            const categoryChart = new Chart(categoryCtx, {
-                type: 'pie',
-                data: {
-                    labels: [
-                        @foreach($categories as $category)
-                            '{{ $category->name }}',
-                        @endforeach
-                                                    ],
-                    datasets: [{
-                        data: [
-                            @foreach($categories as $category)
-                                {{ $category->total_sales }},
-                            @endforeach
-                                                        ],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)',
-                            'rgba(16, 185, 129, 0.7)',
-                            'rgba(139, 92, 246, 0.7)',
-                            'rgba(244, 114, 182, 0.7)',
-                            'rgba(251, 191, 36, 0.7)',
+            // ApexCharts Implementation
+            const categoryData = {
+                series: [
+                    @foreach($categories as $category)
+                        {{ $category->total_sales }},
+                    @endforeach
                         ],
-                        borderColor: [
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(139, 92, 246, 1)',
-                            'rgba(244, 114, 182, 1)',
-                            'rgba(251, 191, 36, 1)',
-                        ],
-                        borderWidth: 1
-                    }]
+                labels: [
+                    @foreach($categories as $category)
+                        '{{ $category->name }}',
+                    @endforeach
+                        ]
+            };
+
+            const options = {
+                series: categoryData.series,
+                chart: {
+                    width: '100%',
+                    height: 350,
+                    type: 'pie',
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    const label = context.label || '';
-                                    const value = context.raw;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: ₱${value.toFixed(2)} (${percentage}%)`;
-                                }
-                            }
+                labels: categoryData.labels,
+                colors: [
+                    '#3B82F6', // Blue
+                    '#10B981', // Emerald
+                    '#8B5CF6', // Violet
+                    '#F472B6', // Pink
+                    '#FBBF24', // Amber
+                    '#6366F1', // Indigo
+                    '#EC4899', // Pink-600
+                ],
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    text: 'Sales Distribution by Category',
+                    align: 'center',
+                    style: {
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: '#374151'
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (value) {
+                            return '₱' + value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
                         }
                     }
-                }
-            });
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 300
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            const chart = new ApexCharts(document.querySelector("#categoryChart"), options);
+            chart.render();
         });
 
         function showExportConfirmation() {

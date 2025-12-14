@@ -12,22 +12,19 @@ class InventoryController extends Controller
     {
         $query = Inventory::query();
 
-        if ($request->filled('supplier')) {
-            $query->where('supplier', 'like', '%' . $request->supplier . '%');
-        }
-
-        if ($request->filled('category')) {
-            $query->where('category', $request->category);
+        // Date Filter
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
         }
 
         $inventoryItems = $query->orderBy('category')->orderBy('name')->get();
-        $suppliers = Inventory::select('supplier')->distinct()->whereNotNull('supplier')->pluck('supplier');
-        $categories = Inventory::select('category')->distinct()->whereNotNull('category')->pluck('category');
+        // $suppliers = Inventory::select('supplier')->distinct()->whereNotNull('supplier')->pluck('supplier'); // No longer needed for dropdown
+        // $categories = Inventory::select('category')->distinct()->whereNotNull('category')->pluck('category'); // No longer needed for dropdown
 
         // Group inventory items by category
         $inventoryByCategory = $inventoryItems->groupBy('category');
 
-        return view('admin.inventory.index', compact('inventoryItems', 'suppliers', 'categories', 'inventoryByCategory'));
+        return view('admin.inventory.index', compact('inventoryItems', 'inventoryByCategory'));
     }
 
     public function create()

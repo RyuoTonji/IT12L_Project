@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             InventorySeeder::class,
             OrderSeeder::class,
             VoidRefundSeeder::class,
+            InventoryAdjustmentSeeder::class,
         ]);
     }
 }

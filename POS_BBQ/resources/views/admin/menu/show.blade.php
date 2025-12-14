@@ -5,14 +5,25 @@
                 {{ __('Menu Item Details') }}
             </h2>
             <div>
-                <a href="{{ route('menu.index') }}"
-                    class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                    Back to Menu
-                </a>
+                @if(request('source') === 'category')
+                    <a href="{{ route('categories.show', $menu->category_id) }}"
+                        class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Category
+                    </a>
+                @else
+                    <a href="{{ route('menu.index') }}"
+                        class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-900 focus:outline-none focus:border-gray-900 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Menu
+                    </a>
+                @endif
             </div>
         </div>
     </x-slot>
@@ -21,55 +32,48 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <!-- Main Content Card -->
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="relative">
-                    <!-- Header with image or gradient background -->
-                    @if ($menu->image)
-                        <div class="h-64 w-full overflow-hidden">
-                            <img src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}"
-                                class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-black bg-opacity-20"></div>
-                        </div>
-                    @else
-                        <div class="h-32 w-full bg-gradient-to-r from-indigo-500 to-purple-600"></div>
-                    @endif
-
-                    <!-- Availability Badge -->
-                    <div class="absolute top-4 right-4">
-                        @if ($menu->is_available)
-                            <span class="inline-flex items-center text-sm font-medium text-green-600">
-                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                                Available
-                            </span>
-                        @else
-                            <span class="inline-flex items-center text-sm font-medium text-red-600">
-                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                                Not Available
-                            </span>
-                        @endif
+                <!-- Header with image -->
+                @if ($menu->image)
+                    <div class="h-64 w-full overflow-hidden">
+                        <img src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->name }}"
+                            class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black bg-opacity-20"></div>
                     </div>
-                </div>
+                @endif
 
                 <!-- Content Section -->
                 <div class="p-8">
                     <!-- Title and Price Row -->
                     <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $menu->name }}</h1>
+                            <h1 class="text-6xl font-black text-gray-900 mb-2">{{ $menu->name }}</h1>
                             <div class="flex items-center">
-                                <span class="inline-flex items-center text-xs font-medium text-indigo-600">
+                                <span class="inline-flex items-center text-xl font-medium text-gray-500">
                                     {{ $menu->category->name }}
                                 </span>
                             </div>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col items-end gap-1">
+                            @if ($menu->is_available)
+                                <span class="inline-flex items-center text-lg font-bold text-green-600">
+                                    <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                    Available
+                                </span>
+                            @else
+                                <span class="inline-flex items-center text-lg font-bold text-red-600">
+                                    <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                            clip-rule="evenodd"></path>
+                                    </svg>
+                                    Not Available
+                                </span>
+                            @endif
+
                             <p class="text-3xl font-bold text-green-600">₱{{ number_format($menu->price, 2) }}</p>
                         </div>
                     </div>
