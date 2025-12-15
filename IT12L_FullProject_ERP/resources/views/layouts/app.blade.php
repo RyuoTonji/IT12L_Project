@@ -5,10 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+
+    {{-- ✅ CRITICAL: Session ID meta tag --}}
+    <meta name="session-id" content="{{ session()->getId() }}">
+
+    {{-- ✅ NEW: Cart migration meta tags --}}
+    @if(session('_cart_migration_needed'))
+        <meta name="cart-migration-needed" content="true">
+        <meta name="cart-old-session" content="{{ session('_cart_old_session_id') }}">
+        <meta name="cart-new-session" content="{{ session('_cart_new_session_id') }}">
+    @endif
     
     @auth
-        <meta name="user-id" content="{{ auth()->user()->id }}">
-        <meta name="user-is-admin" content="{{ auth()->user()->is_admin ? 'true' : 'false' }}">
+        <meta name="user-id" content="{{ auth()->id() ?? '' }}">
+        <meta name="user-is-admin" content="{{ auth()->check() && auth()->user()->is_admin ? 'true' : 'false' }}">
     @else
         <meta name="user-id" content="">
         <meta name="user-is-admin" content="false">
@@ -674,9 +684,13 @@
                 margin-bottom: 1rem;
             }
         }
+
+
     </style>
+
 </head>
 <body>
+
     @php
         $isAdmin = auth()->check() && auth()->user()->is_admin;
         $containerClass = $isAdmin ? 'container-fluid' : 'container';
@@ -758,7 +772,7 @@
                     <ul class="navbar-nav ms-auto align-items-lg-center">
                         @if(!$isAdmin)
                             <li class="nav-item">
-                                <a class="nav-link cart-link {{ request()->routeIs('cart.*') ? 'active' : '' }}" href="{{ route('cart.index') }}">
+                                <a class="nav-link cart-link {{ request()->routeIs('cart.*') ? 'active' : '' }}" href="{{ route('cart.index') }}" style="position: relative;">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Cart</span>
                                     <span class="cart-count" id="cart-count" data-count="0">0</span>
@@ -810,7 +824,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link cart-link {{ request()->routeIs('cart.*') ? 'active' : '' }}" href="{{ route('cart.index') }}">
+                            <a class="nav-link cart-link {{ request()->routeIs('cart.*') ? 'active' : '' }}" href="{{ route('cart.index') }}" style="position: relative;">
                                 <i class="fas fa-shopping-cart"></i>
                                 <span>Cart</span>
                                 <span class="cart-count" id="cart-count" data-count="0">0</span>
@@ -835,31 +849,40 @@
     </nav>
 
     <div class="container-fluid mt-3">
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
-        @if(session('error'))
+    {{-- ✅ FIXED: Don't show error on cart page during migration --}}
+    @if(session('error'))
+        @php
+            $isCartPage = request()->is('cart') || request()->is('cart/*');
+            $isMigrating = session('_cart_migration_needed');
+            $shouldHideError = $isCartPage && $isMigrating;
+        @endphp
+        
+        @unless($shouldHideError)
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle"></i>{{ session('error') }}
+                <i class="fas fa-exclamation-circle"></i> {{ session('error') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        @endif
+        @endunless
+    @endif
 
-        @if($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <ul class="mb-0">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-    </div>
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+</div>
 
     <main>
         @yield('content')
@@ -872,35 +895,174 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+{{-- ✅ Cart.js MUST be loaded before other scripts --}}
     <script src="{{ asset('js/cart.js') }}"></script>
+    
     <script src="{{ asset('js/main.js') }}"></script>
-{{-- Global phone number restriction script --}}
+
+    {{-- ✅ FIXED: localStorage Cart Migration Script --}}
+    {{-- ✅ FIXED: localStorage Cart Migration Script --}}
+@if(session('_cart_migration_needed'))
+<script>
+/**
+ * localStorage Cart Migration After Login
+ * Migrates cart from old session to new session automatically
+ */
+(function() {
+    'use strict';
+    
+    // Get session IDs from meta tags (set by LoginController)
+    const oldSessionId = document.querySelector('meta[name="cart-old-session"]')?.content;
+    const newSessionId = document.querySelector('meta[name="cart-new-session"]')?.content;
+    
+    if (!oldSessionId || !newSessionId || oldSessionId === newSessionId) {
+        return; // Nothing to migrate
+    }
+    
+    // Wait for cart.js to fully load
+    function waitForCartJs() {
+        return new Promise((resolve) => {
+            if (typeof window.migrateCartAfterLogin === 'function') {
+                resolve();
+            } else {
+                setTimeout(() => waitForCartJs().then(resolve), 50);
+            }
+        });
+    }
+    
+    // Execute migration when DOM and cart.js are ready
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            await waitForCartJs();
+            
+            // Build storage keys
+            const oldKey = `cart_session_${oldSessionId}`;
+            const newKey = `cart_session_${newSessionId}`;
+            
+            // Get old cart data
+            const oldCartData = localStorage.getItem(oldKey);
+            
+            if (!oldCartData) {
+                return; // Nothing to migrate
+            }
+            
+            let oldCart;
+            try {
+                oldCart = JSON.parse(oldCartData);
+            } catch (e) {
+                console.error('Failed to parse cart data:', e);
+                return;
+            }
+            
+            if (!Array.isArray(oldCart) || oldCart.length === 0) {
+                localStorage.removeItem(oldKey);
+                return;
+            }
+            
+            // Check if new session already has cart data
+            const newCartData = localStorage.getItem(newKey);
+            let newCart = [];
+            
+            if (newCartData) {
+                try {
+                    newCart = JSON.parse(newCartData);
+                } catch (e) {
+                    newCart = [];
+                }
+            }
+            
+            // Merge carts - old cart items take priority
+            const merged = {};
+            
+            oldCart.forEach(item => {
+                if (item && item.id && item.quantity) {
+                    merged[item.id] = item;
+                }
+            });
+            
+            newCart.forEach(item => {
+                if (item && item.id && item.quantity && !merged[item.id]) {
+                    merged[item.id] = item;
+                }
+            });
+            
+            const mergedCart = Object.values(merged);
+            
+            // Save merged cart to new session
+            localStorage.setItem(newKey, JSON.stringify(mergedCart));
+            
+            // Remove old cart
+            localStorage.removeItem(oldKey);
+            
+            console.log(`Cart migrated successfully: ${mergedCart.length} items`);
+
+            // Clear session flags via AJAX
+            try {
+                await fetch('/cart/cleanup-migration-flags', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    }
+                });
+            } catch (err) {
+                console.warn('Failed to cleanup session flags:', err);
+            }
+            
+            // Update cart count display
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+            
+            // Show success notification
+            if (mergedCart.length > 0 && typeof window.showNotification === 'function') {
+                window.showNotification(
+                    `Welcome back! Your cart has ${mergedCart.length} item(s)`,
+                    'success'
+                );
+            }
+            
+            // Dispatch custom event for other scripts
+            window.dispatchEvent(new CustomEvent('cartMigrated', {
+                detail: { 
+                    itemCount: mergedCart.length,
+                    oldSession: oldSessionId,
+                    newSession: newSessionId
+                }
+            }));
+            
+        } catch (error) {
+            console.error('Cart migration failed:', error);
+        }
+    });
+    
+})();
+</script>
+@endif
+    
+    {{-- Global phone number restriction script --}}
     <script>
-        // Global phone number restriction for all phone inputs
         document.addEventListener('DOMContentLoaded', function() {
             const phoneInputs = document.querySelectorAll('input[type="tel"], input[name="phone"]');
             
             phoneInputs.forEach(function(phoneInput) {
-                // Restrict input to numbers only
                 phoneInput.addEventListener('input', function(e) {
                     this.value = this.value.replace(/[^0-9]/g, '');
                 });
                 
-                // Handle paste events
                 phoneInput.addEventListener('paste', function(e) {
                     e.preventDefault();
                     const pastedText = (e.clipboardData || window.clipboardData).getData('text');
                     this.value = pastedText.replace(/[^0-9]/g, '');
                 });
                 
-                // Prevent non-numeric keypress
                 phoneInput.addEventListener('keypress', function(e) {
                     if (e.charCode < 48 || e.charCode > 57) {
                         e.preventDefault();
                     }
                 });
                 
-                // Set attributes for mobile keyboards
                 phoneInput.setAttribute('inputmode', 'numeric');
                 phoneInput.setAttribute('pattern', '[0-9]*');
             });

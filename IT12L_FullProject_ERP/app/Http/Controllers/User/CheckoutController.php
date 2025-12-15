@@ -12,16 +12,12 @@ use Illuminate\Support\Facades\Log;
 class CheckoutController extends Controller
 {
     /**
-     * Get or create cart for current user/guest
+     * ✅ FIXED: Session-based cart (same for guest and authenticated)
      */
     private function getCart()
     {
-        if (auth()->check()) {
-            return Cart::getOrCreate(auth()->id(), null);
-        } else {
-            $sessionId = session()->getId();
-            return Cart::getOrCreate(null, $sessionId);
-        }
+        $sessionId = session()->getId();
+        return Cart::getOrCreate(auth()->id(), $sessionId);
     }
 
     public function index(Request $request)
@@ -31,7 +27,8 @@ class CheckoutController extends Controller
             'method' => $request->method(),
             'cart_items_input' => $request->input('cart_items'),
             'session_cart' => session('checkout_cart'),
-            'user_id' => auth()->id()
+            'user_id' => auth()->id(),
+            'session_id' => session()->getId()
         ]);
         
         // Get the authenticated user
@@ -118,7 +115,10 @@ class CheckoutController extends Controller
 
     public function process(Request $request)
     {
-        Log::info('Checkout process started', ['user_id' => auth()->id()]);
+        Log::info('Checkout process started', [
+            'user_id' => auth()->id(),
+            'session_id' => session()->getId()
+        ]);
 
         $request->validate([
             'address' => 'required|string|max:500',
@@ -231,28 +231,17 @@ class CheckoutController extends Controller
 
             Log::info('Order items created', ['order_id' => $orderId, 'items_count' => count($orderItems)]);
 
-            // ===== CLEAR CART AFTER SUCCESSFUL ORDER =====
-            // Clear database cart
-            $cartModel = $this->getCart();
-            $cartModel->clear();
-            Log::info('Database cart cleared after order', [
-                'cart_id' => $cartModel->id,
-                'order_id' => $orderId
-            ]);
-            
-            // Clear session cart
-            session()->forget('checkout_cart');
-            Log::info('Session cart cleared after order', ['order_id' => $orderId]);
-            // ============================================
+            // ✅ CLEAR CART AFTER SUCCESSFUL ORDER
+            $this->clearCartAfterCheckout($orderId);
 
             DB::commit();
 
             Log::info('Order completed successfully', ['order_id' => $orderId]);
             
-            // Redirect to order confirmation page
-            // The confirmation page will clear localStorage cart via JavaScript
+            // ✅ Redirect with clear_cart flag for frontend
             return redirect()->route('checkout.confirm', ['order_id' => $orderId])
-                ->with('success', 'Order placed successfully!');
+                ->with('success', 'Order placed successfully!')
+                ->with('clear_cart', true); // ← CRITICAL: Signals frontend to clear localStorage
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -264,6 +253,49 @@ class CheckoutController extends Controller
             
             return redirect()->route('cart.index')
                 ->with('error', 'Failed to place order. Please try again.');
+        }
+    }
+    
+    /**
+     * ✅ CLEAR CART AFTER SUCCESSFUL CHECKOUT
+     */
+    private function clearCartAfterCheckout($orderId)
+    {
+        try {
+            $sessionId = session()->getId();
+            
+            // 1. Clear database cart
+            $cartModel = $this->getCart();
+            if ($cartModel) {
+                $itemsCount = $cartModel->items()->count();
+                $cartModel->items()->delete();
+                $cartModel->delete();
+                
+                Log::info('Database cart cleared after checkout', [
+                    'session_id' => $sessionId,
+                    'user_id' => auth()->id(),
+                    'order_id' => $orderId,
+                    'items_cleared' => $itemsCount
+                ]);
+            }
+            
+            // 2. Clear session cart
+            session()->forget('checkout_cart');
+            
+            // 3. Set flash message to signal frontend
+            session()->flash('clear_cart', true);
+            
+            Log::info('Cart clearing completed', [
+                'order_id' => $orderId,
+                'user_id' => auth()->id()
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error clearing cart after checkout', [
+                'error' => $e->getMessage(),
+                'order_id' => $orderId,
+                'user_id' => auth()->id()
+            ]);
         }
     }
     
@@ -292,7 +324,10 @@ class CheckoutController extends Controller
             return redirect()->route('home')->with('error', 'Order not found!');
         }
         
-        Log::info('Order confirmation page displayed', ['order_id' => $orderId]);
+        Log::info('Order confirmation page displayed', [
+            'order_id' => $orderId,
+            'clear_cart_flag' => session('clear_cart')
+        ]);
         
         return view('user.checkout.confirm', compact('order'));
     }

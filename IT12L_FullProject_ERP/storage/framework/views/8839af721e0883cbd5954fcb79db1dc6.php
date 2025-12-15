@@ -38,81 +38,231 @@
         </div>
     </div>
 </div>
+<?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('scripts'); ?>
 <script>
-// Clear cart immediately when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    clearCartAfterCheckout();
-});
+/**
+ * ============================================================================
+ * ORDER CONFIRMATION - CART CLEARING SCRIPT
+ * Version: 1.0 (Compatible with cart.js v7.0 SESSION-BASED)
+ * 
+ * Purpose: Clear cart after successful order placement
+ * Trigger: When session('clear_cart') is true
+ * ============================================================================
+ */
 
-function clearCartAfterCheckout() {
-    console.log('=== Clearing Cart After Successful Checkout ===');
+(function() {
+    'use strict';
     
-    // Get the correct cart storage key
-    const cartKey = getCartStorageKey();
-    console.log('Cart key:', cartKey);
+    console.log('📄 Order confirmation page script loaded');
     
-    // Clear the cart from localStorage
-    if (localStorage.getItem(cartKey)) {
-        console.log('Cart found, clearing...');
-        localStorage.removeItem(cartKey);
-    }
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        <?php if(session('clear_cart')): ?>
+            console.log('🎉 Order confirmed successfully');
+            console.log('🛒 Clearing cart after checkout...');
+            
+            // Wait for cart.js to fully initialize
+            setTimeout(function() {
+                performCartClearing();
+            }, 250);
+        <?php else: ?>
+            console.log('ℹ️ No cart clearing needed (no session flag)');
+        <?php endif; ?>
+    });
     
-    // Clear all possible cart keys (safety measure)
-    const possibleKeys = ['cart', 'cart_guest', 'Cart', 'shopping_cart'];
-    possibleKeys.forEach(key => {
-        if (localStorage.getItem(key)) {
-            localStorage.removeItem(key);
+    /**
+     * Main cart clearing function
+     * Uses cart.js functions when available, with manual fallback
+     */
+    function performCartClearing() {
+        console.log('=== Starting Cart Clearing Process ===');
+        
+        try {
+            // PRIORITY 1: Use cart.js clearCartAfterCheckout() if available
+            if (typeof window.clearCartAfterCheckout === 'function') {
+                console.log('✓ Using cart.js clearCartAfterCheckout() function');
+                window.clearCartAfterCheckout();
+                console.log('✅ Cart cleared via cart.js (method 1)');
+                return;
+            }
+            
+            // PRIORITY 2: Use cart.js clearCart() as fallback
+            if (typeof window.clearCart === 'function') {
+                console.log('✓ Using cart.js clearCart() function');
+                window.clearCart();
+                console.log('✅ Cart cleared via cart.js (method 2)');
+                return;
+            }
+            
+            // PRIORITY 3: Manual clearing (last resort)
+            console.warn('⚠️ cart.js functions not available - using manual clearing');
+            manualClearCart();
+            
+        } catch (error) {
+            console.error('❌ Error during cart clearing:', error);
+            // Attempt manual clearing as final fallback
+            try {
+                manualClearCart();
+            } catch (fallbackError) {
+                console.error('❌ Manual clearing also failed:', fallbackError);
+                alert('Warning: Cart may not have been cleared. Please refresh the page.');
+            }
         }
-    });
+    }
     
-    // Clear user-specific carts
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('cart_user_')) {
-            localStorage.removeItem(key);
+    /**
+     * Manual cart clearing (fallback method)
+     * Replicates cart.js session-based cart key logic
+     */
+    function manualClearCart() {
+        console.log('--- Manual Cart Clearing Started ---');
+        
+        try {
+            let sessionId = getSessionId();
+            
+            if (sessionId) {
+                // Clear session-based cart (matches cart.js logic)
+                const cartKey = `cart_session_${sessionId}`;
+                console.log('Clearing cart with key:', cartKey);
+                localStorage.removeItem(cartKey);
+                console.log('✅ Session cart cleared:', cartKey);
+            } else {
+                console.warn('⚠️ Could not determine session ID');
+            }
+            
+            // Clean up legacy cart formats (from older versions)
+            cleanupLegacyCarts();
+            
+            // Update UI
+            manualUpdateCartCount();
+            
+            // Trigger storage event for cross-tab sync
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new CustomEvent('cartCleared'));
+            
+            console.log('✅ Manual cart clearing complete');
+            
+        } catch (error) {
+            console.error('❌ Error in manual cart clearing:', error);
+            throw error;
         }
-    });
-    
-    console.log('✅ Cart cleared from localStorage');
-    
-    // Update cart count in navbar
-    updateCartCount();
-    
-    // Trigger storage event for other tabs/windows
-    window.dispatchEvent(new Event('storage'));
-    
-    console.log('=== Cart Clearing Complete ===');
-}
-
-// Get the cart storage key (must match your cart.js logic)
-function getCartStorageKey() {
-    const userIdMeta = document.querySelector('meta[name="user-id"]');
-    const userId = userIdMeta ? userIdMeta.content : null;
-    
-    if (userId && userId !== '' && userId !== 'null') {
-        return `cart_user_${userId}`;
-    }
-    return 'cart_guest';
-}
-
-// Update cart count in navbar
-function updateCartCount() {
-    // Update badge to 0
-    const badges = document.querySelectorAll('.cart-count, #cart-count, .badge.cart-count, [data-cart-count]');
-    badges.forEach(badge => {
-        badge.textContent = '0';
-        badge.style.display = 'none';
-    });
-    
-    // If there's a global updateCartCount function, call it
-    if (typeof window.updateCartCount === 'function') {
-        window.updateCartCount();
     }
     
-    console.log('Cart count updated to 0');
-}
+    /**
+     * Get session ID using multiple fallback methods
+     * Matches the logic in cart.js getCartStorageKey()
+     */
+    function getSessionId() {
+        // Method 1: Check meta tag (set by Laravel)
+        const sessionMeta = document.querySelector('meta[name="session-id"]');
+        if (sessionMeta && sessionMeta.content) {
+            console.log('✓ Session ID from meta tag');
+            return sessionMeta.content;
+        }
+        
+        // Method 2: Check cookies for Laravel session
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'laravel_session' || name.includes('session')) {
+                if (value) {
+                    console.log('✓ Session ID from cookie:', name);
+                    return decodeURIComponent(value);
+                }
+            }
+        }
+        
+        // Method 3: Check localStorage for session ID
+        const storedSessionId = localStorage.getItem('_cart_session_id');
+        if (storedSessionId) {
+            console.log('✓ Session ID from localStorage');
+            return storedSessionId;
+        }
+        
+        console.warn('⚠️ No session ID found via any method');
+        return null;
+    }
+    
+    /**
+     * Clean up legacy cart storage formats
+     */
+    function cleanupLegacyCarts() {
+        // Old cart key formats
+        const legacyKeys = ['cart', 'cart_guest', 'Cart', 'shopping_cart'];
+        let cleanedCount = 0;
+        
+        legacyKeys.forEach(key => {
+            if (localStorage.getItem(key)) {
+                localStorage.removeItem(key);
+                cleanedCount++;
+                console.log('Cleaned legacy cart:', key);
+            }
+        });
+        
+        // Old user-based cart format (cart_user_123)
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('cart_user_')) {
+                localStorage.removeItem(key);
+                cleanedCount++;
+                console.log('Cleaned old user cart:', key);
+            }
+        });
+        
+        if (cleanedCount > 0) {
+            console.log(`Cleaned ${cleanedCount} legacy cart entries`);
+        }
+    }
+    
+    /**
+     * Manually update cart count badges in the UI
+     */
+    function manualUpdateCartCount() {
+        try {
+            // Try cart.js function first
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+                console.log('✓ Cart count updated via cart.js');
+                return;
+            }
+            
+            // Manual update of all possible cart badge selectors
+            const selectors = [
+                '.cart-count',
+                '#cart-count',
+                '[data-cart-count]',
+                '.badge.cart-badge',
+                '.cart-badge'
+            ];
+            
+            let updatedCount = 0;
+            
+            selectors.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(element => {
+                    element.textContent = '0';
+                    element.setAttribute('data-count', '0');
+                    element.style.display = 'none';
+                    element.classList.add('d-none');
+                    updatedCount++;
+                });
+            });
+            
+            if (updatedCount > 0) {
+                console.log(`✅ Updated ${updatedCount} cart count badges to 0`);
+            } else {
+                console.log('ℹ️ No cart count badges found to update');
+            }
+            
+        } catch (error) {
+            console.error('Error updating cart count:', error);
+        }
+    }
+    
+    console.log('🛒 Order confirmation cart clearing script initialized');
+    
+})();
 </script>
 <?php $__env->stopPush(); ?>
-<?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\resources\views/user/checkout/confirm.blade.php ENDPATH**/ ?>

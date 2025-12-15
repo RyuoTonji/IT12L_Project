@@ -54,6 +54,11 @@
         <form method="POST" action="{{ route('login') }}">
             @csrf
 
+            {{-- Hidden field to preserve redirect parameter --}}
+            @if(request('redirect'))
+                <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+            @endif
+
             {{-- Email Input --}}
             <div class="mb-3">
                 <label for="email" class="form-label text-white-50 small fw-semibold mb-3">
@@ -123,7 +128,14 @@
             </a>
         </div>
     </div>
+</div>
 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
 @endsection
@@ -195,17 +207,3 @@
 </style>
 @endpush
 
-
-@if(session('cart_merged'))
-<script>
-    // Signal that login just happened
-    sessionStorage.setItem('just_logged_in', 'true');
-    
-    // Trigger cart sync
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof checkLoginAndSyncCart === 'function') {
-            checkLoginAndSyncCart();
-        }
-    });
-</script>
-@endif

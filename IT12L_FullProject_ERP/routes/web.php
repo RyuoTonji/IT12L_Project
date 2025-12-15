@@ -156,7 +156,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('/{id}', [BranchController::class, 'destroy'])->name('destroy');
     });
 
-    // Categories Management
+// Categories Management
     Route::prefix('categories')->name('categories.')->group(function () {
         Route::get('/', [CategoryController::class, 'index'])->name('index');
         Route::get('/create', [CategoryController::class, 'create'])->name('create');
@@ -167,4 +167,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/archived', [CategoryController::class, 'archived'])->name('archived');
         Route::post('/{id}/restore', [CategoryController::class, 'restore'])->name('restore');
     });
-});
+    });
+
+    // ✅ ADD THIS ROUTE - Cleanup cart migration flags after successful migration
+Route::post('/cart/cleanup-migration-flags', function() {
+    session()->forget(['_cart_migration_needed', '_cart_old_session_id', '_cart_new_session_id']);
+    return response()->json(['success' => true]);
+})->name('cart.cleanup.flags');
+
+

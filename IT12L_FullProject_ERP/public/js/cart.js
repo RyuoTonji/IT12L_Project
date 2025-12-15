@@ -1,13 +1,14 @@
 /**
  * ============================================================================
- * SESSION-BASED CART MANAGEMENT SYSTEM
+ * SESSION-BASED CART MANAGEMENT SYSTEM - FIXED VERSION
  * File: public/js/cart.js
- * Version: 6.0 - SESSION BASED
+ * Version: 8.0 - FIXED localStorage Migration After Login
  * 
- * Logic: One session = One cart (regardless of login status)
+ * Logic: One session = One cart (persists through login with migration)
  * - Guest adds items → stored in session cart
- * - Same user logs in → SAME session → SAME cart persists
- * - No cart transfer needed - it's already the same cart!
+ * - User logs in → session regenerates → OLD cart migrated to NEW session
+ * - Checkout → Cart auto-clears
+ * - Migration handled automatically!
  * ============================================================================
  */
 
@@ -21,7 +22,7 @@ const CART_CONFIG = {
     MAX_QUANTITY: 99,
     MIN_QUANTITY: 1,
     NOTIFICATION_DURATION: 3000,
-    DEBUG_MODE: true
+    DEBUG_MODE: false
 };
 
 // ============================================================================
@@ -55,8 +56,37 @@ function getUserId() {
 }
 
 /**
+ * ✅ FIXED: Get current session ID from Laravel meta tag
+ */
+function getCurrentSessionId() {
+    const sessionMeta = document.querySelector('meta[name="session-id"]');
+    if (sessionMeta && sessionMeta.content) {
+        return sessionMeta.content;
+    }
+    
+    // Fallback: try to get from cookie
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'laravel_session' || name.includes('session')) {
+            if (value) {
+                return decodeURIComponent(value);
+            }
+        }
+    }
+    
+    // Final fallback: use persistent identifier
+    let sessionId = localStorage.getItem('_cart_session_id');
+    if (!sessionId) {
+        sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('_cart_session_id', sessionId);
+    }
+    
+    return sessionId;
+}
+
+/**
  * SESSION-BASED: Use PHP session ID as cart key
- * This ensures the SAME cart persists across guest → login transition
  */
 function getCartStorageKey() {
     if (isAdmin()) {
@@ -64,33 +94,9 @@ function getCartStorageKey() {
         return null;
     }
     
-    // Use session ID from meta tag (set by Laravel)
-    const sessionMeta = document.querySelector('meta[name="session-id"]');
-    let sessionId = sessionMeta ? sessionMeta.content : null;
-    
-    // Fallback: generate a stable session identifier
-    if (!sessionId) {
-        // Try to get from cookie
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'laravel_session' || name.includes('session')) {
-                sessionId = value;
-                break;
-            }
-        }
-    }
-    
-    // Final fallback: use a persistent identifier
-    if (!sessionId) {
-        sessionId = localStorage.getItem('_cart_session_id');
-        if (!sessionId) {
-            sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('_cart_session_id', sessionId);
-        }
-    }
-    
+    const sessionId = getCurrentSessionId();
     const key = `cart_session_${sessionId}`;
+    
     log('Using SESSION-BASED cart key:', key);
     log('User status:', getUserId() ? `Logged in (ID: ${getUserId()})` : 'Guest');
     
@@ -133,6 +139,144 @@ function isValidCartItem(item) {
            !isNaN(parseInt(item.quantity)) &&
            parseInt(item.id) > 0 &&
            parseInt(item.quantity) > 0;
+}
+
+// ============================================================================
+// ✅ NEW: CART MIGRATION AFTER LOGIN
+// ============================================================================
+
+/**
+ * ✅ CRITICAL FIX: Migrate cart from old session to new session after login
+ * This is called automatically when login is detected
+ */
+function migrateCartAfterLogin() {
+    log('=== Cart Migration After Login ===');
+    
+    try {
+        // Check if we have migration data from the server
+        const oldSessionIdMeta = document.querySelector('meta[name="cart-old-session"]');
+        const newSessionIdMeta = document.querySelector('meta[name="session-id"]');
+        
+        if (!oldSessionIdMeta || !newSessionIdMeta) {
+            log('No migration meta tags found - checking localStorage');
+            return false;
+        }
+        
+        const oldSessionId = oldSessionIdMeta.content;
+        const newSessionId = newSessionIdMeta.content;
+        
+        log('Migration details:', {
+            oldSession: oldSessionId,
+            newSession: newSessionId
+        });
+        
+        // Skip if same session (shouldn't happen, but safety check)
+        if (oldSessionId === newSessionId) {
+            log('Same session ID - no migration needed');
+            return false;
+        }
+        
+        // Build storage keys
+        const oldKey = `cart_session_${oldSessionId}`;
+        const newKey = `cart_session_${newSessionId}`;
+        
+        log('Migrating cart:', { oldKey, newKey });
+        
+        // Get old cart data
+        const oldCartData = localStorage.getItem(oldKey);
+        
+        if (!oldCartData) {
+            log('No old cart data found - nothing to migrate');
+            return false;
+        }
+        
+        let oldCart;
+        try {
+            oldCart = JSON.parse(oldCartData);
+        } catch (e) {
+            logError('Failed to parse old cart data:', e);
+            return false;
+        }
+        
+        if (!Array.isArray(oldCart) || oldCart.length === 0) {
+            log('Old cart is empty - nothing to migrate');
+            localStorage.removeItem(oldKey);
+            return false;
+        }
+        
+        log(`Found ${oldCart.length} items in old cart`);
+        
+        // Check if new session already has cart data
+        const newCartData = localStorage.getItem(newKey);
+        let newCart = [];
+        
+        if (newCartData) {
+            try {
+                newCart = JSON.parse(newCartData);
+                log(`New session already has ${newCart.length} items`);
+            } catch (e) {
+                logError('Failed to parse new cart data:', e);
+                newCart = [];
+            }
+        }
+        
+        // Merge carts (old cart takes priority for quantities)
+        const mergedCart = mergeCartItems(oldCart, newCart);
+        
+        // Save merged cart to new session
+        localStorage.setItem(newKey, JSON.stringify(mergedCart));
+        
+        // Remove old cart
+        localStorage.removeItem(oldKey);
+        
+        log(`✅ Cart migrated successfully! ${mergedCart.length} items in new cart`);
+        
+        // Update UI
+        updateCartCount();
+        
+        // Show success notification
+        if (mergedCart.length > 0 && typeof showNotification === 'function') {
+            showNotification(
+                `Welcome back! Your cart has ${mergedCart.length} item(s)`,
+                'success'
+            );
+        }
+        
+        return true;
+        
+    } catch (error) {
+        logError('Cart migration failed:', error);
+        return false;
+    }
+}
+
+/**
+ * ✅ NEW: Merge two cart arrays intelligently
+ * Priority: old cart quantities take precedence
+ */
+function mergeCartItems(oldCart, newCart) {
+    const merged = {};
+    
+    // Add all old cart items first
+    oldCart.forEach(item => {
+        if (isValidCartItem(item)) {
+            merged[item.id] = item;
+        }
+    });
+    
+    // Add new cart items that don't exist in old cart
+    newCart.forEach(item => {
+        if (isValidCartItem(item) && !merged[item.id]) {
+            merged[item.id] = item;
+        }
+    });
+    
+    // Convert back to array
+    const result = Object.values(merged);
+    
+    log(`Merged ${oldCart.length} old + ${newCart.length} new = ${result.length} total items`);
+    
+    return result;
 }
 
 // ============================================================================
@@ -213,7 +357,6 @@ function saveCart(cart) {
         localStorage.setItem(cartKey, JSON.stringify(validCart));
         
         log('Cart saved to localStorage:', validCart);
-        log('Cart persists across login/logout - same session!');
         
         updateCartCount();
         
@@ -405,6 +548,22 @@ function clearCart() {
         logError('Error clearing cart:', error);
         return false;
     }
+}
+
+/**
+ * ✅ Clear cart after successful checkout
+ */
+function clearCartAfterCheckout() {
+    log('🛒 Order placed - clearing cart after checkout');
+    const result = clearCart();
+    
+    if (result) {
+        log('✅ Cart cleared successfully after checkout');
+    } else {
+        logError('❌ Failed to clear cart after checkout');
+    }
+    
+    return result;
 }
 
 function getCartCount() {
@@ -658,31 +817,17 @@ function updateTotalDisplay(total) {
 function attachCartEventListeners() {
     log('Attaching cart event listeners...');
     
-    document.querySelectorAll('.decrease-qty').forEach(btn => {
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
+    // Clone and replace to remove old listeners
+    document.querySelectorAll('.decrease-qty, .increase-qty, .quantity-input, .remove-item').forEach(el => {
+        const newEl = el.cloneNode(true);
+        if (el.tagName === 'INPUT') newEl.value = el.value;
+        el.parentNode.replaceChild(newEl, el);
     });
     
-    document.querySelectorAll('.increase-qty').forEach(btn => {
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-    });
-    
-    document.querySelectorAll('.quantity-input').forEach(input => {
-        const newInput = input.cloneNode(true);
-        newInput.value = input.value;
-        input.parentNode.replaceChild(newInput, input);
-    });
-    
-    document.querySelectorAll('.remove-item').forEach(btn => {
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-    });
-    
+    // Decrease quantity
     document.querySelectorAll('.decrease-qty').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             const productId = parseInt(this.dataset.productId);
             const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
             let qty = parseInt(input.value);
@@ -696,10 +841,10 @@ function attachCartEventListeners() {
         });
     });
 
+    // Increase quantity
     document.querySelectorAll('.increase-qty').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             const productId = parseInt(this.dataset.productId);
             const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
             let qty = parseInt(input.value);
@@ -713,9 +858,9 @@ function attachCartEventListeners() {
         });
     });
     
+    // Manual quantity input
     document.querySelectorAll('.quantity-input').forEach(input => {
         input.addEventListener('change', function(e) {
-            e.stopPropagation();
             const productId = parseInt(this.dataset.productId);
             let qty = parseInt(this.value);
             
@@ -737,18 +882,19 @@ function attachCartEventListeners() {
         });
     });
     
+    // Remove item
     document.querySelectorAll('.remove-item').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             const productId = parseInt(this.dataset.productId);
             const productName = this.dataset.productName;
             
             removeFromCart(productId, productName);
-            setTimeout(() => loadCartPage(), 500);
+            setTimeout(() => loadCartPage(), 300);
         });
     });
     
+    // Clear cart button
     const clearCartBtn = document.getElementById('clear-cart');
     if (clearCartBtn) {
         const newClearBtn = clearCartBtn.cloneNode(true);
@@ -756,7 +902,6 @@ function attachCartEventListeners() {
         
         newClearBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            e.stopPropagation();
             
             if (confirm('Are you sure you want to clear your entire cart?')) {
                 clearCart();
@@ -772,12 +917,25 @@ function attachCartEventListeners() {
 // ============================================================================
 
 function initializeCart() {
-    log('=== Initializing Cart System (SESSION-BASED) ===');
+    log('=== Initializing Cart System (SESSION-BASED v8.0 - FIXED) ===');
     log('Current page:', window.location.pathname);
     log('User is admin:', isAdmin());
     log('User ID:', getUserId() || 'Guest');
     log('Cart storage key:', getCartStorageKey());
-    log('SESSION LOGIC: Same session = Same cart (before AND after login)');
+    
+    // ✅ CRITICAL: Check for cart migration after login
+    const migrationNeeded = document.querySelector('meta[name="cart-migration-needed"]');
+    if (migrationNeeded && migrationNeeded.content === 'true') {
+        log('🔄 Login detected - initiating cart migration...');
+        setTimeout(() => {
+            const migrated = migrateCartAfterLogin();
+            if (migrated) {
+                log('✅ Cart migration completed successfully');
+            } else {
+                log('ℹ️ No cart migration performed');
+            }
+        }, 100);
+    }
     
     updateCartCount();
     
@@ -886,7 +1044,7 @@ document.addEventListener('visibilitychange', function() {
 // ============================================================================
 
 window.debugCart = function() {
-    console.log('=== CART DEBUG INFO (SESSION-BASED) ===');
+    console.log('=== CART DEBUG INFO (SESSION-BASED v8.0 - FIXED) ===');
     console.log('Configuration:', CART_CONFIG);
     console.log('Cart Key:', getCartStorageKey());
     console.log('Cart Contents:', getCart());
@@ -894,37 +1052,11 @@ window.debugCart = function() {
     console.log('Cart Total:', getCartTotal());
     console.log('Is Admin:', isAdmin());
     console.log('User ID:', getUserId() || 'Guest');
-    console.log('Session Logic: ONE SESSION = ONE CART');
+    console.log('Current Session ID:', getCurrentSessionId());
     console.log('All localStorage keys:', Object.keys(localStorage));
     console.log('======================');
 };
 
-window.clearAllCarts = function() {}
-    console.log('Clearing all cart data from localStorage...');
-
-// ============================================================================
-// DEBUG UTILITIES
-// ============================================================================
-
-/**
- * Logs comprehensive cart debug information to console
- */
-window.debugCart = function() {
-    console.log('=== CART DEBUG INFO ===');
-    console.log('Configuration:', CART_CONFIG);
-    console.log('Cart Key:', getCartStorageKey());
-    console.log('Cart Contents:', getCart());
-    console.log('Cart Count:', getCartCount());
-    console.log('Cart Total:', getCartTotal());
-    console.log('Is Admin:', isAdmin());
-    console.log('User ID:', getUserId());
-    console.log('All localStorage keys:', Object.keys(localStorage));
-    console.log('======================');
-};
-
-/**
- * Clears all cart data from localStorage
- */
 window.clearAllCarts = function() {
     console.log('Clearing all cart data from localStorage...');
     Object.keys(localStorage).forEach(key => {
@@ -937,55 +1069,14 @@ window.clearAllCarts = function() {
     console.log('All carts cleared!');
 };
 
-/**
- * Resets the current user's cart
- */
 window.resetCart = function() {
     console.log('Resetting current cart...');
-    const cartKey = getCartStorageKey();
-    localStorage.removeItem(cartKey);
-    updateCartCount();
+    clearCart();
     console.log('Cart reset complete!');
 };
 
-/**
- * Lists all carts in localStorage
- */
-window.listAllCarts = function() {
-    console.log('=== ALL CARTS ===');
-    Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('cart_')) {
-            const cart = JSON.parse(localStorage.getItem(key));
-            console.log(`${key}:`, cart);
-        }
-    });
-    console.log('=================');
-};
-
-/**
- * Adds a test item to the cart for debugging
- */
-window.addTestItem = function() {
-    const testItem = {
-        id: 'test_' + Date.now(),
-        name: 'Test Product',
-        price: 99.99,
-        quantity: 1
-    };
-    addToCart(testItem);
-    console.log('Test item added:', testItem);
-};
-
-// Make debug functions available globally
-console.log('Cart debug utilities loaded. Available commands:');
-console.log('- debugCart(): View cart debug info');
-console.log('- clearAllCarts(): Clear all carts from localStorage');
-console.log('- resetCart(): Reset current user cart');
-console.log('- listAllCarts(): List all carts');
-console.log('- addTestItem(): Add test item to cart');
-
 // ============================================================================
-// EXPORT FUNCTIONS TO WINDOW
+// EXPORT FUNCTIONS TO WINDOW (for external access)
 // ============================================================================
 
 window.getCart = getCart;
@@ -993,14 +1084,17 @@ window.addToCart = addToCart;
 window.updateCartItem = updateCartItem;
 window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
+window.clearCartAfterCheckout = clearCartAfterCheckout;
 window.getCartCount = getCartCount;
 window.getCartTotal = getCartTotal;
 window.updateCartCount = updateCartCount;
 window.showNotification = showNotification;
 window.loadCartPage = loadCartPage;
 window.getCartStorageKey = getCartStorageKey;
+window.getCurrentSessionId = getCurrentSessionId;
+window.migrateCartAfterLogin = migrateCartAfterLogin;
 window.isAdmin = isAdmin;
 window.getUserId = getUserId;
 window.formatPrice = formatPrice;
 
-log('✅ Cart.js loaded successfully (VERSION 5.0 WITH LOGIN SYNC)');
+log('✅ Cart.js v8.0 loaded successfully - FIXED with localStorage migration');

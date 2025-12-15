@@ -53,6 +53,11 @@
             <?php echo csrf_field(); ?>
 
             
+            <?php if(request('redirect')): ?>
+                <input type="hidden" name="redirect" value="<?php echo e(request('redirect')); ?>">
+            <?php endif; ?>
+
+            
             <div class="mb-3">
                 <label for="email" class="form-label text-white-50 small fw-semibold mb-3">
                     <i class="fas fa-envelope me-1"></i> Email Address
@@ -149,7 +154,14 @@ unset($__errorArgs, $__bag); ?>
             </a>
         </div>
     </div>
+</div>
 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
 <?php $__env->stopSection(); ?>
@@ -222,17 +234,4 @@ unset($__errorArgs, $__bag); ?>
 <?php $__env->stopPush(); ?>
 
 
-<?php if(session('cart_merged')): ?>
-<script>
-    // Signal that login just happened
-    sessionStorage.setItem('just_logged_in', 'true');
-    
-    // Trigger cart sync
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof checkLoginAndSyncCart === 'function') {
-            checkLoginAndSyncCart();
-        }
-    });
-</script>
-<?php endif; ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\resources\views/auth/login.blade.php ENDPATH**/ ?>
