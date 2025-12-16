@@ -75,7 +75,7 @@
                                         <span class="font-bold text-lg">Order #{{ $order->id }}</span>
                                         <span
                                             class="inline-flex text-xs leading-5 font-semibold items-center 
-                                                                                                                                                                        {{ $order->status === 'pending' ? 'text-yellow-600' : 'text-blue-600' }}">
+                                                                                                                                                                                    {{ $order->status === 'pending' ? 'text-yellow-600' : 'text-blue-600' }}">
                                             {{ ucfirst($order->status) }}
                                         </span>
                                     </div>
@@ -105,10 +105,10 @@
                 <!-- Kitchen Tab -->
                 <div x-show="activeTab === 'kitchen'" style="display: none;">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Kitchen Display System</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div id="kitchen-items-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($activeOrders as $order)
                             @if($order->status !== 'ready')
-                                <div class="bg-white border-2 border-gray-200 rounded-lg p-4">
+                                <div class="bg-white border-2 border-gray-200 rounded-lg p-4 kitchen-order-card">
                                     <div class="flex justify-between items-center mb-3 pb-2 border-b">
                                         <span class="font-bold text-xl">#{{ $order->id }}</span>
                                         <span class="text-sm text-gray-500">{{ $order->created_at->diffForHumans() }}</span>
@@ -128,6 +128,8 @@
                             @endif
                         @endforeach
                     </div>
+                    <!-- Pagination Controls -->
+                    <div id="pagination-kitchen-items" class="mt-4 flex justify-end items-center space-x-2"></div>
                 </div>
 
                 <!-- Menu Tab -->
@@ -192,46 +194,92 @@
             document.getElementById(`order-modal-${orderId}`).classList.add('hidden');
         }
 
-        // Pagination Logic for Active Orders
+        // Pagination Logic
         document.addEventListener('DOMContentLoaded', function () {
-            const container = document.getElementById('active-orders-container');
-            if (container) {
-                const items = Array.from(container.getElementsByClassName('active-order-card'));
+            // Function to initialize pagination
+            function initPagination(containerId, itemClass, paginationId) {
+                const container = document.getElementById(containerId);
+                const paginationDiv = document.getElementById(paginationId);
+
+                if (!container || !paginationDiv) return;
+
+                const items = Array.from(container.getElementsByClassName(itemClass));
                 const itemsPerPage = 9;
                 const pageCount = Math.ceil(items.length / itemsPerPage);
-                const paginationDiv = document.getElementById('pagination-active-orders');
 
                 if (items.length <= itemsPerPage) {
                     paginationDiv.classList.add('hidden');
                     return;
                 }
 
-                let currentPage = 1;
-                const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
-                const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
-
-                const render = (page) => {
+                // Render function
+                window['render_' + containerId] = function (page) {
+                    // Show/Hide Items
                     items.forEach((item, i) => {
                         item.style.display = (i >= (page - 1) * itemsPerPage && i < page * itemsPerPage) ? '' : 'none';
                     });
 
-                    paginationDiv.innerHTML = `
-                                <button onclick="window.changeBranchPage(-1)" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === 1 ? 'disabled' : ''}>${prevIcon}</button>
-                                <span class="text-sm text-gray-500 mx-4">Page ${page} of ${pageCount}</span>
-                                <button onclick="window.changeBranchPage(1)" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === pageCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === pageCount ? 'disabled' : ''}>${nextIcon}</button>
-                            `;
-                };
+                    // Render Controls
+                    const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
+                    const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
 
-                window.changeBranchPage = (dir) => {
-                    let newPage = currentPage + dir;
-                    if (newPage >= 1 && newPage <= pageCount) {
-                        currentPage = newPage;
-                        render(currentPage);
+                    let html = '';
+
+                    // Previous Button
+                    html += `<button onclick="window['render_' + '${containerId}'](${page - 1})" 
+                                    class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                    ${page === 1 ? 'disabled' : ''}>
+                                    ${prevIcon}
+                                 </button>`;
+
+                    // Generate Page Numbers
+                    let range = [];
+                    if (pageCount <= 7) {
+                        for (let i = 1; i <= pageCount; i++) range.push(i);
+                    } else {
+                        if (page <= 4) {
+                            range = [1, 2, 3, 4, 5, '...', pageCount];
+                        } else if (page >= pageCount - 3) {
+                            range = [1, '...', pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount];
+                        } else {
+                            range = [1, '...', page - 1, page, page + 1, '...', pageCount];
+                        }
                     }
+
+                    range.forEach(item => {
+                        if (item === '...') {
+                            html += `<span class="w-8 h-8 flex items-center justify-center text-gray-500">...</span>`;
+                        } else {
+                            const isActive = item === page;
+                            const classes = isActive
+                                ? 'bg-gray-800 text-white font-bold'
+                                : 'text-black hover:bg-gray-100';
+                            html += `<button onclick="window['render_' + '${containerId}'](${item})" 
+                                            class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                            ${item}
+                                         </button>`;
+                        }
+                    });
+
+                    // Next Button
+                    html += `<button onclick="window['render_' + '${containerId}'](${page + 1})" 
+                                    class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pageCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                    ${page === pageCount ? 'disabled' : ''}>
+                                    ${nextIcon}
+                                 </button>`;
+
+                    paginationDiv.innerHTML = html;
                 };
 
-                render(1);
+                // Initial Render
+                window['render_' + containerId](1);
             }
+
+            // Initialize for Active Orders
+            initPagination('active-orders-container', 'active-order-card', 'pagination-active-orders');
+
+            // Initialize for Kitchen Display
+            initPagination('kitchen-items-container', 'kitchen-order-card', 'pagination-kitchen-items');
         });
     </script>
 @endsection

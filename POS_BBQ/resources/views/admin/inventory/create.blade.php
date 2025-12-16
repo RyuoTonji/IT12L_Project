@@ -74,14 +74,7 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="reorder_level" class="block text-sm font-medium text-gray-700 mb-1">Reorder Level</label>
-                    <input type="number" name="reorder_level" id="reorder_level" value="{{ old('reorder_level', 10) }}"
-                        step="0.01" min="0"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        required>
-                    <p class="text-sm text-gray-500 mt-1">The minimum quantity at which you should reorder this item</p>
-                </div>
+
 
                 <div class="flex justify-end">
                     <button type="button"

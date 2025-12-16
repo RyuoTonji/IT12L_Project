@@ -99,8 +99,8 @@
                         </div>
                     </div>
                     <div>
-                        <div class="h-64">
-                            <canvas id="staffChart"></canvas>
+                        <div class="h-96">
+                            <div id="staffChart"></div>
                         </div>
                     </div>
                 </div>
@@ -110,45 +110,120 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Staff Performance Chart
-            Chart.defaults.font.size = 16;
+            // Staff Performance Chart using ApexCharts
+            const staffNames = [
+                @foreach($staffPerformance as $staff)
+                    '{{ $staff->name }}',
+                @endforeach
+                    ];
 
-            const staffCtx = document.getElementById('staffChart').getContext('2d');
-            const staffChart = new Chart(staffCtx, {
-                type: 'bar',
-                data: {
-                    labels: [
-                        @foreach($staffPerformance as $staff)
-                            '{{ $staff->name }}',
-                        @endforeach
-                                                    ],
-                    datasets: [{
-                        label: 'Total Sales',
-                        data: [
-                            @foreach($staffPerformance as $staff)
-                                {{ $staff->total_sales }},
-                            @endforeach
-                                                        ],
-                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1
-                    }]
+            const salesData = [
+                @foreach($staffPerformance as $staff)
+                    {{ $staff->total_sales }},
+                @endforeach
+                    ];
+
+            const ordersData = [
+                @foreach($staffPerformance as $staff)
+                    {{ $staff->total_orders }},
+                @endforeach
+                    ];
+
+            const options = {
+                series: [{
+                    name: 'Total Sales',
+                    data: salesData
+                }, {
+                    name: 'Orders',
+                    data: ordersData
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            zoom: false,
+                            zoomin: false,
+                            zoomout: false,
+                            pan: false,
+                            reset: false
+                        }
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function (value) {
-                                    return '₱' + value;
-                                }
+                plotOptions: {
+                    bar: {
+                        horizontal: false,
+                        columnWidth: '55%',
+                        borderRadius: 4,
+                        dataLabels: {
+                            position: 'top'
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                xaxis: {
+                    categories: staffNames,
+                    labels: {
+                        style: {
+                            fontSize: '12px'
+                        }
+                    }
+                },
+                yaxis: [
+                    {
+                        title: {
+                            text: 'Sales (₱)'
+                        },
+                        labels: {
+                            formatter: function (value) {
+                                return '₱' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    {
+                        opposite: true,
+                        title: {
+                            text: 'Orders'
+                        },
+                        labels: {
+                            formatter: function (value) {
+                                return value.toFixed(0);
                             }
                         }
                     }
-                }
-            });
+                ],
+                fill: {
+                    opacity: 1,
+                    colors: ['#3B82F6', '#10B981']
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val, opts) {
+                            if (opts.seriesIndex === 0) {
+                                return '₱' + val.toLocaleString();
+                            }
+                            return val + ' orders';
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'center'
+                },
+                colors: ['#3B82F6', '#10B981']
+            };
+
+            const chart = new ApexCharts(document.querySelector("#staffChart"), options);
+            chart.render();
         });
 
         function showExportConfirmation() {

@@ -34,7 +34,7 @@
                 </div>
             </div>
 
-            <!-- Date Range Filter -->
+            <!-- Date Range & Category Filter -->
             <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                 <form action="{{ route('admin.reports.items') }}" method="GET" class="flex flex-wrap items-end gap-4">
                     <div>
@@ -51,7 +51,20 @@
                             onchange="this.form.submit()">
                     </div>
 
-
+                    <div>
+                        <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Filter
+                            Category</label>
+                        <select name="category_id" id="category_id"
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-full md:w-48"
+                            onchange="this.form.submit()">
+                            <option value="all">All Categories</option>
+                            @foreach($allCategories as $category)
+                                <option value="{{ $category->id }}" {{ isset($categoryId) && $categoryId == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </form>
             </div>
 
@@ -101,7 +114,14 @@
 
             <!-- Top Selling Items -->
             <div class="bg-white p-4 rounded-lg shadow border">
-                <h2 class="text-lg font-medium mb-4">Top Selling Items</h2>
+                <h2 class="text-lg font-medium mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-indigo-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    Top Selling Items
+                </h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white">
                         <thead>
@@ -118,30 +138,27 @@
                                 <th
                                     class="py-2 px-4 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Total Sales</th>
-                                <th
-                                    class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @forelse($topItems as $item)
-                                <tr>
+                                <tr onclick="window.location.href='{{ route('menu.show', ['menu' => $item->id, 'source' => 'report']) }}'"
+                                    class="cursor-pointer hover:bg-gray-50">
                                     <td class="py-2 px-4">{{ $item->name }}</td>
                                     <td class="py-2 px-4">{{ $item->category_name }}</td>
                                     <td class="py-2 px-4 text-right">{{ $item->total_quantity }}</td>
                                     <td class="py-2 px-4 text-right">₱{{ number_format($item->total_sales, 2) }}</td>
-                                    <td class="py-2 px-4 text-center">
-                                        <a href="{{ route('menu.show', $item->id) }}"
-                                            class="text-blue-600 hover:text-blue-900">View Item</a>
-                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="py-4 px-4 text-center text-gray-500">No item data found</td>
+                                    <td colspan="4" class="py-4 px-4 text-center text-gray-500">No item data found</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
+                </div>
+                <div class="mt-4">
+                    {{ $topItems->links('vendor.pagination.custom') }}
                 </div>
             </div>
         </div>
@@ -158,12 +175,12 @@
                     @foreach($categories as $category)
                         {{ $category->total_sales }},
                     @endforeach
-                        ],
+                                    ],
                 labels: [
                     @foreach($categories as $category)
                         '{{ $category->name }}',
                     @endforeach
-                        ]
+                                    ]
             };
 
             const options = {

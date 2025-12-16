@@ -121,21 +121,38 @@ class ShiftReportController extends Controller
     {
         $query = ShiftReport::with('user');
 
-        if ($request->has('status') && $request->status != '') {
-            $query->where('status', $request->status);
+        // Search functionality
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('user', function ($uq) use ($searchTerm) {
+                    $uq->where('name', 'like', '%' . $searchTerm . '%');
+                })->orWhere('content', 'like', '%' . $searchTerm . '%');
+            });
         }
 
+        // Filter by Staff
         if ($request->has('user_id') && $request->user_id != '') {
             $query->where('user_id', $request->user_id);
         }
 
+        // Filter by Status
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by Date
         if ($request->has('date') && $request->date != '') {
             $query->whereDate('shift_date', $request->date);
         }
 
-        $reports = $query->latest()->paginate(20);
+        $reports = $query->latest()->paginate(20)
+            ->appends($request->all()); // Preserve filters in pagination
 
-        return view('admin.shift_reports.index', compact('reports'));
+        // Fetch all users for the filter dropdown
+        $users = \App\Models\User::orderBy('name')->get();
+
+        return view('admin.shift_reports.index', compact('reports', 'users'));
     }
 
     /**

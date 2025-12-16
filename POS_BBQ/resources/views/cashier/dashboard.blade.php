@@ -230,41 +230,70 @@
 
             paginationDiv.classList.remove('hidden');
 
-            const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
-            const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
-
-            const render = (page) => {
-                rows.forEach((row, i) => row.style.display = (i >= (page - 1) * rowsPerPage && i < page * rowsPerPage) ? '' : 'none');
-                paginationDiv.innerHTML = `
-                        <button onclick="changePage('${tableId}', -1, ${rowsPerPage}, ${pageCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === 1 ? 'disabled' : ''}>${prevIcon}</button>
-                        <span class="text-sm text-gray-500 mx-4">Page ${page} of ${pageCount}</span>
-                        <button onclick="changePage('${tableId}', 1, ${rowsPerPage}, ${pageCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${page === pageCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${page === pageCount ? 'disabled' : ''}>${nextIcon}</button>
-                    `;
-                table.dataset.currentPage = page;
-            };
-
-            window.changePage = (tId, dir, rPP, pCount) => {
+            window.renderPagination = function(tId, page, pCount, rPP) {
                 const t = document.getElementById(tId);
-                if(!t) return;
-                let cur = parseInt(t.dataset.currentPage || 1);
-                let newPage = cur + dir;
-                
-                if (newPage >= 1 && newPage <= pCount) {
-                    const tb = t.querySelector('tbody');
-                    const rs = Array.from(tb.querySelectorAll('tr'));
-                    rs.forEach((row, i) => row.style.display = (i >= (newPage - 1) * rPP && i < newPage * rPP) ? '' : 'none');
-                    
-                    const pDiv = document.getElementById('pagination-cashier-active');
-                    pDiv.innerHTML = `
-                        <button onclick="changePage('${tId}', -1, ${rPP}, ${pCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${newPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${newPage === 1 ? 'disabled' : ''}>${prevIcon}</button>
-                        <span class="text-sm text-gray-500 mx-4">Page ${newPage} of ${pCount}</span>
-                        <button onclick="changePage('${tId}', 1, ${rPP}, ${pCount})" class="w-8 h-8 flex items-center justify-center rounded border transition-colors duration-200 ${newPage === pCount ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-blue-600 hover:bg-blue-50 border-blue-200'}" ${newPage === pCount ? 'disabled' : ''}>${nextIcon}</button>
-                     `;
-                    t.dataset.currentPage = newPage;
+                const tb = t.querySelector('tbody');
+                const rs = Array.from(tb.querySelectorAll('tr'));
+
+                // Show/Hide rows
+                rs.forEach((row, i) => row.style.display = (i >= (page - 1) * rPP && i < page * rPP) ? '' : 'none');
+                t.dataset.currentPage = page;
+
+                // Icons
+                const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
+                const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
+
+                let html = '';
+
+                // Previous Button
+                html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
+                            class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                            ${page === 1 ? 'disabled' : ''}>
+                            ${prevIcon}
+                         </button>`;
+
+                // Generate Page Numbers
+                let range = [];
+                if (pCount <= 7) {
+                    for (let i = 1; i <= pCount; i++) range.push(i);
+                } else {
+                    if (page <= 4) {
+                        range = [1, 2, 3, 4, 5, '...', pCount];
+                    } else if (page >= pCount - 3) {
+                        range = [1, '...', pCount - 4, pCount - 3, pCount - 2, pCount - 1, pCount];
+                    } else {
+                        range = [1, '...', page - 1, page, page + 1, '...', pCount];
+                    }
                 }
+
+                range.forEach(item => {
+                    if (item === '...') {
+                        html += `<span class="w-8 h-8 flex items-center justify-center text-gray-500">...</span>`;
+                    } else {
+                        const isActive = item === page;
+                        const classes = isActive 
+                            ? 'bg-blue-600 text-white font-bold' 
+                            : 'text-black hover:bg-gray-100';
+                        html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
+                                    class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                    ${item}
+                                 </button>`;
+                    }
+                });
+
+                // Next Button
+                html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
+                            class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                            ${page === pCount ? 'disabled' : ''}>
+                            ${nextIcon}
+                         </button>`;
+
+                const pDiv = document.getElementById('pagination-cashier-active');
+                pDiv.innerHTML = html;
             };
 
-            render(1);
+            // Initial render
+            window.renderPagination(tableId, 1, pageCount, rowsPerPage);
         }
 
         function closeOrderModal() {

@@ -6,6 +6,10 @@ use App\Models\Activity;
 use Illuminate\Http\Request;
 
 use App\Models\Order;
+use App\Models\InventoryAdjustment;
+use App\Models\OrderItem;
+use App\Models\Inventory;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class ManagerController extends Controller
@@ -127,5 +131,28 @@ class ManagerController extends Controller
             ->get();
 
         return view('manager.reports.sales', compact('sales', 'totalSales', 'totalOrders', 'paymentMethods', 'startDate', 'endDate'));
+    }
+    public function inventory(Request $request)
+    {
+        $date = $request->input('date', Carbon::today()->format('Y-m-d'));
+
+        // Stock In (Ingredients Added)
+        $stockIns = InventoryAdjustment::with(['inventory', 'recorder'])
+            ->where('adjustment_type', 'stock_in')
+            ->whereDate('created_at', $date)
+            ->latest()
+            ->get();
+
+        // Prepared Dishes (Sales)
+        $preparedDishes = OrderItem::with('menuItem')
+            ->whereHas('order', function ($query) use ($date) {
+                $query->whereDate('created_at', $date)
+                    ->whereNotIn('status', ['cancelled']);
+            })
+            ->select('menu_item_id', DB::raw('SUM(quantity) as total_quantity'), DB::raw('SUM(unit_price * quantity) as total_amount'))
+            ->groupBy('menu_item_id')
+            ->get();
+
+        return view('manager.reports.inventory', compact('stockIns', 'preparedDishes', 'date'));
     }
 }

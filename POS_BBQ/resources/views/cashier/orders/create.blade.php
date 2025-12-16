@@ -116,12 +116,19 @@
                                             </div>
                                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                 @foreach($category->menuItems as $item)
-                                                    <div class="menu-item bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
+                                                    <div class="menu-item bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
                                                         data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}"
-                                                        data-category="{{ $category->id }}">
+                                                        data-category="{{ $category->id }}"
+                                                        data-max-quantity="{{ $item->max_quantity }}">
                                                         <div class="font-medium">{{ $item->name }}</div>
                                                         <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}</div>
                                                         <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available: {{ $item->max_quantity > 900000 ? 'Unlimited' : $item->max_quantity }}</div>
+                                                        @if($item->max_quantity < 1)
+                                                            <div class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD OUT</span>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -142,12 +149,19 @@
                                             </div>
                                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                 @foreach($category->menuItems as $item)
-                                                    <div class="menu-item-single bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow"
+                                                    <div class="menu-item-single bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
                                                         data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}"
-                                                        data-category="{{ $category->id }}">
+                                                        data-category="{{ $category->id }}"
+                                                        data-max-quantity="{{ $item->max_quantity }}">
                                                         <div class="font-medium">{{ $item->name }}</div>
                                                         <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}</div>
                                                         <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available: {{ $item->max_quantity > 900000 ? 'Unlimited' : $item->max_quantity }}</div>
+                                                        @if($item->max_quantity < 1)
+                                                            <div class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD OUT</span>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -282,6 +296,11 @@
                     const itemId = this.dataset.id;
                     const itemName = this.dataset.name;
                     const itemPrice = parseFloat(this.dataset.price);
+                    const maxQuantity = parseInt(this.dataset.maxQuantity);
+
+                    if (maxQuantity < 1) {
+                        return; // Sold out
+                    }
 
                     // Check if item already exists in the selected items
                     const existingItem = document.querySelector(`#selected_items_container tr[data-id="${itemId}"]`);
@@ -289,19 +308,25 @@
                     if (existingItem) {
                         // Increment quantity
                         const quantityInput = existingItem.querySelector('.quantity-input');
-                        quantityInput.value = parseInt(quantityInput.value) + 1;
+                        const currentVal = parseInt(quantityInput.value);
+                        if (currentVal < maxQuantity) {
+                            quantityInput.value = currentVal + 1;
+                        } else {
+                            AlertModal.show('Cannot add more. Max available limit reached.', 'warning');
+                        }
                         updateItemSubtotal(existingItem);
                     } else {
                         // Add new item
                         const newRow = document.createElement('tr');
                         newRow.dataset.id = itemId;
                         newRow.dataset.price = itemPrice;
+                        newRow.dataset.maxQuantity = maxQuantity;
 
                         newRow.innerHTML = `
                                 <td class="py-2 px-4">${itemName}</td>
                                 <td class="py-2 px-4 text-right">₱${itemPrice.toFixed(2)}</td>
                                 <td class="py-2 px-4 text-center">
-                                    <input type="number" name="items[${itemId}][quantity]" value="1" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    <input type="number" name="items[${itemId}][quantity]" value="1" min="1" max="${this.dataset.maxQuantity}" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                     <input type="hidden" name="items[${itemId}][menu_item_id]" value="${itemId}">
                                 </td>
                                 <td class="py-2 px-4">
@@ -323,7 +348,14 @@
                         // Add event listeners to the new row
                         const quantityInput = newRow.querySelector('.quantity-input');
                         quantityInput.addEventListener('change', function () {
-                            if (parseInt(this.value) < 1) this.value = 1;
+                            let val = parseInt(this.value);
+                            const max = parseInt(newRow.dataset.maxQuantity);
+                            if (val < 1) val = 1;
+                            if (val > max) {
+                                val = max;
+                                AlertModal.show('Max available limit reached.', 'warning');
+                            }
+                            this.value = val;
                             updateItemSubtotal(newRow);
                         });
 

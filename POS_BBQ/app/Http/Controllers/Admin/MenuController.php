@@ -80,7 +80,43 @@ class MenuController extends Controller
 
     public function show(MenuItem $menu)
     {
-        return view('admin.menu.show', compact('menu'));
+        // Get sales data for the last 30 days
+        $endDate = \Carbon\Carbon::now();
+        $startDate = \Carbon\Carbon::now()->subDays(29);
+
+        $salesData = \Illuminate\Support\Facades\DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->select(
+                \Illuminate\Support\Facades\DB::raw('DATE(orders.created_at) as date'),
+                \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity * order_items.unit_price) as total_sales'),
+                \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_quantity')
+            )
+            ->where('order_items.menu_item_id', $menu->id)
+            ->where('orders.payment_status', 'paid')
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Fill in missing dates with zero values
+        $formattedSales = [];
+        $currentDate = clone $startDate;
+        $salesKeyed = $salesData->keyBy('date');
+
+        while ($currentDate <= $endDate) {
+            $dateString = $currentDate->format('Y-m-d');
+            $record = $salesKeyed->get($dateString);
+
+            $formattedSales[] = [
+                'date' => $currentDate->format('M d'),
+                'total_sales' => $record ? $record->total_sales : 0,
+                'total_quantity' => $record ? $record->total_quantity : 0,
+            ];
+
+            $currentDate->addDay();
+        }
+
+        return view('admin.menu.show', compact('menu', 'formattedSales'));
     }
 
     public function edit(MenuItem $menu)

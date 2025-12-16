@@ -1,7 +1,7 @@
 @extends('layouts.inventory')
 
 @section('content')
-    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" x-data="{ activeTab: 0 }">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold text-gray-800 flex items-center">
@@ -12,6 +12,15 @@
                     </svg>
                     Inventory Management
                 </h3>
+                <a href="{{ route('inventory.report') }}"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 mr-2 flex items-center inline-flex transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Daily Report
+                </a>
                 <button onclick="document.getElementById('addStockModal').classList.remove('hidden')"
                     class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
@@ -22,22 +31,30 @@
                 </button>
             </div>
 
+            <!-- Tabs Navigation -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-8 overflow-x-auto custom-scrollbar" aria-label="Tabs">
+                    @foreach($inventoriesByCategory as $categoryName => $items)
+                        <button @click="activeTab = {{ $loop->index }}"
+                            :class="activeTab === {{ $loop->index }} ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+                            class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center transition-colors duration-200 outline-none focus:outline-none">
+                            {{ $categoryName ?: 'Uncategorized' }}
+                            <span
+                                :class="activeTab === {{ $loop->index }} ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-900'"
+                                class="ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium inline-block transition-colors duration-200">
+                                {{ $items->count() }}
+                            </span>
+                        </button>
+                    @endforeach
+                </nav>
+            </div>
+
             <!-- Category-Grouped Tables -->
             @forelse($inventoriesByCategory as $categoryName => $items)
-                <div class="mb-8 category-section">
-                    <div class="bg-gray-100 px-4 py-3 rounded-t-lg border-l-4 border-green-500">
-                        <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            {{ $categoryName ?? 'Uncategorized' }}
-                            <span class="ml-2 text-sm font-normal text-gray-500">({{ $items->count() }} items)</span>
-                        </h2>
-                    </div>
-                    <div class="overflow-x-auto border border-t-0 rounded-b-lg">
-                        <table class="min-w-full divide-y divide-gray-200">
+                <div x-show="activeTab === {{ $loop->index }}" class="mb-8 category-section"
+                    style="{{ $loop->first ? '' : 'display: none;' }}">
+                    <div class="overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
+                        <table class="min-w-full divide-y divide-gray-200" id="table-cat-{{ $loop->index }}">
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th scope="col"
@@ -90,7 +107,7 @@
                                             {{ number_format($inventory->stock_out, 2) }}
                                         </td>
                                         <td
-                                            class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= $inventory->reorder_level ? 'text-red-600' : 'text-green-600' }}">
+                                            class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= 0 ? 'text-red-600' : 'text-green-600' }}">
                                             {{ number_format($inventory->quantity, 2) }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
@@ -113,6 +130,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <div id="pagination-cat-{{ $loop->index }}" class="p-4 bg-gray-50 border-t border-gray-200"></div>
                 </div>
             @empty
                 <div class="text-center py-8 text-gray-500">
@@ -152,11 +170,7 @@
                     <input type="text" name="unit" id="unit" placeholder="kg, pcs, liters, etc." required
                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
-                <div class="mb-4">
-                    <label for="reorder_level" class="block text-sm font-medium text-gray-700 mb-1">Reorder Level</label>
-                    <input type="number" name="reorder_level" id="reorder_level" step="0.01" required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
+
                 <div class="flex justify-end gap-3">
                     <button type="button" onclick="document.getElementById('addStockModal').classList.add('hidden')"
                         class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 flex items-center inline-flex">
@@ -228,6 +242,104 @@
             document.getElementById('updateItemName').textContent = name;
             document.getElementById('updateStockForm').action = `/inventory/${id}`;
             document.getElementById('updateStockModal').classList.remove('hidden');
+        }
+
+        // Pagination Logic
+        document.addEventListener('DOMContentLoaded', function () {
+            @foreach($inventoriesByCategory as $categoryName => $items)
+                paginateTable('table-cat-{{ $loop->index }}', 10);
+            @endforeach
+                    });
+
+        function paginateTable(tableId, rowsPerPage) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const rowCount = rows.length;
+            const pageCount = Math.ceil(rowCount / rowsPerPage);
+
+            let paginationDivId = 'pagination-' + tableId.replace('table-', '');
+            let paginationDiv = document.getElementById(paginationDivId);
+
+            if (rowCount <= rowsPerPage) {
+                if (paginationDiv) paginationDiv.style.display = 'none';
+                rows.forEach(row => row.style.display = '');
+                return;
+            }
+
+            if (paginationDiv) paginationDiv.style.display = 'flex';
+
+            window.renderPagination = function (tId, page, pCount, rPP) {
+                const t = document.getElementById(tId);
+                const tb = t.querySelector('tbody');
+                const rs = Array.from(tb.querySelectorAll('tr'));
+
+                // Show/Hide rows
+                rs.forEach((row, i) => row.style.display = (i >= (page - 1) * rPP && i < page * rPP) ? '' : 'none');
+
+                // Find Pagination Div
+                let pDivId = 'pagination-' + tId.replace('table-', '');
+                let pDiv = document.getElementById(pDivId);
+                if (!pDiv) return;
+
+                // Icons
+                const prevIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>`;
+                const nextIcon = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>`;
+
+                let html = '';
+
+                // Previous Button
+                html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
+                                                class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                ${page === 1 ? 'disabled' : ''}>
+                                                ${prevIcon}
+                                             </button>`;
+
+                // Generate Page Numbers
+                let range = [];
+                if (pCount <= 7) {
+                    for (let i = 1; i <= pCount; i++) range.push(i);
+                } else {
+                    if (page <= 4) {
+                        range = [1, 2, 3, 4, 5, '...', pCount];
+                    } else if (page >= pCount - 3) {
+                        range = [1, '...', pCount - 4, pCount - 3, pCount - 2, pCount - 1, pCount];
+                    } else {
+                        range = [1, '...', page - 1, page, page + 1, '...', pCount];
+                    }
+                }
+
+                range.forEach(item => {
+                    if (item === '...') {
+                        html += `<span class="w-8 h-8 flex items-center justify-center text-gray-500">...</span>`;
+                    } else {
+                        const isActive = item === page;
+                        const classes = isActive
+                            ? 'bg-blue-600 text-white font-bold'
+                            : 'text-black hover:bg-gray-100';
+                        html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
+                                                        class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                        ${item}
+                                                     </button>`;
+                    }
+                });
+
+                // Next Button
+                html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
+                                                class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                ${page === pCount ? 'disabled' : ''}>
+                                                ${nextIcon}
+                                             </button>`;
+
+                // Add flex styling
+                html = '<div class="flex justify-end items-center space-x-2 w-full">' + html + '</div>';
+                pDiv.innerHTML = html;
+            };
+
+            // Initial render
+            window.renderPagination(tableId, 1, pageCount, rowsPerPage);
         }
     </script>
 @endsection

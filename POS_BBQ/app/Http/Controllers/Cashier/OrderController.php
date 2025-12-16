@@ -120,6 +120,9 @@ class OrderController extends Controller
                 $orderItem->notes = $item['notes'] ?? null;
                 $orderItem->save();
 
+                // Deduct Inventory
+                $this->manageInventory($menuItem, $item['quantity'], 'deduct');
+
                 $total += $menuItem->price * $item['quantity'];
             }
 
@@ -151,6 +154,30 @@ class OrderController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Error creating order: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    private function manageInventory(MenuItem $menuItem, $quantity, $action = 'deduct')
+    {
+        // Reload relationship to ensure fresh data inside transaction
+        $menuItem->load('inventoryItems');
+
+        foreach ($menuItem->inventoryItems as $inventoryItem) {
+            $needed = $inventoryItem->pivot->quantity_needed * $quantity;
+
+            if ($action === 'deduct') {
+                // Refresh inventory item to get latest quantity
+                $inventoryItem->refresh();
+
+                if ($inventoryItem->quantity < $needed) {
+                    throw new \Exception("Insufficient stock for ingredient: {$inventoryItem->name} (Required: {$needed} {$inventoryItem->unit}, Available: {$inventoryItem->quantity} {$inventoryItem->unit}) of Menu Item: {$menuItem->name}");
+                }
+                $inventoryItem->decrement('quantity', $needed);
+                $inventoryItem->increment('stock_out', $needed);
+            } else {
+                $inventoryItem->increment('quantity', $needed);
+                $inventoryItem->decrement('stock_out', $needed);
+            }
         }
     }
 
@@ -254,11 +281,18 @@ class OrderController extends Controller
                 if (isset($item['id']) && $existingItems->has($item['id'])) {
                     // Update existing item
                     $orderItem = $existingItems->get($item['id']);
+
+                    // Restore old inventory
+                    $this->manageInventory(Order::find($orderItem->order_id)->orderItems->where('id', $orderItem->id)->first()->menuItem, $orderItem->quantity, 'restore');
+
                     $orderItem->menu_item_id = $menuItem->id;
                     $orderItem->quantity = $item['quantity'];
                     $orderItem->unit_price = $menuItem->price;
                     $orderItem->notes = $item['notes'] ?? null;
                     $orderItem->save();
+
+                    // Deduct new inventory
+                    $this->manageInventory($menuItem, $item['quantity'], 'deduct');
 
                     $keepItemIds[] = $orderItem->id;
                 } else {
@@ -271,6 +305,9 @@ class OrderController extends Controller
                     $orderItem->notes = $item['notes'] ?? null;
                     $orderItem->save();
 
+                    // Deduct Inventory
+                    $this->manageInventory($menuItem, $item['quantity'], 'deduct');
+
                     $keepItemIds[] = $orderItem->id;
                 }
 
@@ -280,6 +317,8 @@ class OrderController extends Controller
             // Delete removed items
             foreach ($existingItems as $existingItem) {
                 if (!in_array($existingItem->id, $keepItemIds)) {
+                    // Restore Inventory
+                    $this->manageInventory($existingItem->menuItem, $existingItem->quantity, 'restore');
                     $existingItem->delete();
                 }
             }
@@ -404,7 +443,10 @@ class OrderController extends Controller
                 $table->save();
             }
 
-            // Delete order items
+            // Delete order items and restore inventory
+            foreach ($order->orderItems as $item) {
+                $this->manageInventory($item->menuItem, $item->quantity, 'restore');
+            }
             $order->orderItems()->delete();
 
             // Delete the order

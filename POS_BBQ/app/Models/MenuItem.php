@@ -64,4 +64,39 @@ class MenuItem extends Model
             ->wherePivot('is_available', true)
             ->exists();
     }
+
+    /**
+     * Get the maximum quantity of this menu item that can be prepared based on inventory.
+     * Returns a high number if no ingredients are tracked.
+     */
+    public function getMaxQuantityAttribute()
+    {
+        // Load ingredients if not already loaded
+        if (!$this->relationLoaded('inventoryItems')) {
+            $this->load('inventoryItems');
+        }
+
+        $ingredients = $this->inventoryItems;
+
+        if ($ingredients->isEmpty()) {
+            return 999999; // Unlimited if no ingredients are tracked
+        }
+
+        $maxable = [];
+
+        foreach ($ingredients as $ingredient) {
+            $needed = $ingredient->pivot->quantity_needed;
+            if ($needed > 0) {
+                // Determine available quantity of the ingredient
+                // Assuming simple quantity column on inventory. 
+                // If branch specific logic is needed, it would be here, but Inventory model currently doesn't seem to enforce strict branch separation on 'quantity' column in the shared schema provided so far, 
+                // although there is 'branch_id' on inventories table.
+                // For now, using the global quantity.
+                $available = $ingredient->quantity;
+                $maxable[] = floor($available / $needed);
+            }
+        }
+
+        return empty($maxable) ? 999999 : min($maxable);
+    }
 }

@@ -61,6 +61,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/menu/{menu}/update-availability', [MenuController::class, 'updateAvailability'])->name('menu.update-availability');
     Route::post('/menu/{menu}/update-branch-availability', [MenuController::class, 'updateBranchAvailability'])->name('menu.update-branch-availability');
 
+    Route::get('inventory/report', [InventoryController::class, 'report'])->name('admin.inventory.report');
+    Route::post('inventory/stock-in', [InventoryController::class, 'stockIn'])->name('admin.inventory.stock-in');
     Route::resource('inventory', InventoryController::class);
     Route::resource('staff', StaffController::class);
 
@@ -101,12 +103,15 @@ Route::prefix('inventory')->middleware(['auth', 'role:inventory'])->group(functi
     Route::post('/add', [\App\Http\Controllers\InventoryController::class, 'addStock'])->name('inventory.add');
     Route::patch('/{inventory}', [\App\Http\Controllers\InventoryController::class, 'updateStock'])->name('inventory.update');
     Route::delete('/{inventory}', [\App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
+    Route::get('/report', [\App\Http\Controllers\InventoryController::class, 'report'])->name('inventory.report');
+    Route::post('/stock-in', [\App\Http\Controllers\InventoryController::class, 'stockIn'])->name('inventory.stock-in');
 });
 
 Route::prefix('manager')->middleware(['auth', 'role:manager'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\ManagerController::class, 'index'])->name('manager.dashboard');
     Route::get('/reports', [\App\Http\Controllers\ManagerController::class, 'reports'])->name('manager.reports');
     Route::get('/reports/daily', [\App\Http\Controllers\ManagerController::class, 'daily'])->name('manager.reports.daily');
+    Route::get('/reports/inventory', [\App\Http\Controllers\ManagerController::class, 'inventory'])->name('manager.reports.inventory');
     Route::get('/reports/staff', [\App\Http\Controllers\ManagerController::class, 'staff'])->name('manager.reports.staff');
     Route::get('/reports/sales', [\App\Http\Controllers\ManagerController::class, 'sales'])->name('manager.reports.sales');
     Route::get('/void-requests', [\App\Http\Controllers\Manager\VoidRequestController::class, 'index'])->name('manager.void-requests.index');

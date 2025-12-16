@@ -51,6 +51,19 @@
                             class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                             onchange="document.getElementById('dateFilterForm').submit()">
                     </div>
+
+                    <div>
+                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">Filter Staff</label>
+                        <select name="user_id" id="user_id" onchange="document.getElementById('dateFilterForm').submit()"
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-full md:w-48">
+                            <option value="">All Staff</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}" {{ isset($userId) && $userId == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </form>
             </div>
 
@@ -157,6 +170,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
+                    <div class="mt-4">
+                        {{ $sales->links('vendor.pagination.custom') }}
                 </div>
             </div>
 
@@ -222,14 +238,14 @@
                         @foreach($sales as $day)
                             '{{ \Carbon\Carbon::parse($day->date)->format("M d") }}',
                         @endforeach
-                                                        ],
+                                                                ],
                     datasets: [{
                         label: 'Daily Sales',
                         data: [
                             @foreach($sales as $day)
                                 {{ $day->total_sales }},
                             @endforeach
-                                                            ],
+                                                                    ],
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderColor: 'rgba(59, 130, 246, 1)',
                         borderWidth: 2,
@@ -315,13 +331,13 @@
                         @foreach($paymentMethods as $method)
                             '{{ ucfirst($method->payment_method) }}',
                         @endforeach
-                                                        ],
+                                                                ],
                     datasets: [{
                         data: [
                             @foreach($paymentMethods as $method)
                                 {{ $method->total }},
                             @endforeach
-                                                            ],
+                                                                    ],
                         backgroundColor: [
                             'rgba(59, 130, 246, 0.7)',
                             'rgba(16, 185, 129, 0.7)',
