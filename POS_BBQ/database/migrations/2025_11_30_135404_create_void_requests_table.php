@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->foreignId('requester_id')->constrained('users');
             $table->foreignId('approver_id')->nullable()->constrained('users');
             $table->string('reason')->nullable();
+            $table->json('reason_tags')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
         });
