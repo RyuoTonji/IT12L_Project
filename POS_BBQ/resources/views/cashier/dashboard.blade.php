@@ -272,7 +272,7 @@
                     } else {
                         const isActive = item === page;
                         const classes = isActive 
-                            ? 'bg-blue-600 text-white font-bold' 
+                            ? 'bg-gray-800 text-white font-bold'  
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
                                     class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">

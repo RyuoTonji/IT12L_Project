@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(auth()->user()->role === 'manager' ? 'layouts.manager' : 'layouts.admin')
 
 @section('content')
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -15,7 +15,7 @@
                         </svg>
                         Export PDF
                     </button>
-                    <a href="{{ route('admin.reports') }}"
+                    <a href="{{ auth()->user()->role === 'manager' ? route('manager.reports.daily') : route('admin.reports') }}"
                         class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -56,7 +56,7 @@
                         <div class="mb-3">
                             <p class="text-sm text-gray-600">Status</p>
                             <span
-                                class="px-2 py-1 rounded text-xs font-semibold {{ $shiftReport->status == 'reviewed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                class="text-xs font-semibold {{ $shiftReport->status == 'reviewed' ? 'text-green-600' : 'text-yellow-600' }}">
                                 {{ ucfirst($shiftReport->status) }}
                             </span>
                         </div>
@@ -119,7 +119,51 @@
             <div class="mb-6">
                 <h2 class="text-lg font-medium mb-4">Report Content</h2>
                 <div class="bg-gray-50 p-4 rounded-lg border">
-                    <p class="whitespace-pre-wrap">{{ $shiftReport->content }}</p>
+                    @if($parsedReport = $shiftReport->parsed_inventory_report)
+                        @if(!empty($parsedReport['message']))
+                            <div class="mb-4 whitespace-pre-wrap">{{ $parsedReport['message'] }}</div>
+                        @endif
+
+                        @if(!empty($parsedReport['rows']))
+                            <h3 class="text-sm font-bold text-gray-700 uppercase mb-2">Detailed Inventory Report</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow-sm">
+                                    <thead class="bg-gray-100">
+                                        <tr>
+                                            @if($parsedReport['tableType'] === 'start')
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Item Name
+                                                </th>
+                                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Start Qty
+                                                </th>
+                                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">
+                                                    Adjustments</th>
+                                            @elseif($parsedReport['tableType'] === 'end')
+                                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Item Name
+                                                </th>
+                                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Added
+                                                </th>
+                                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">Sold</th>
+                                                <th class="px-4 py-2 text-center text-xs font-medium text-gray-500 uppercase">End</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        @foreach($parsedReport['rows'] as $row)
+                                            <tr>
+                                                @foreach($row as $index => $cell)
+                                                    <td class="px-4 py-2 text-sm text-gray-700 {{ $index > 0 ? 'text-center' : '' }}">
+                                                        {{ $cell }}
+                                                    </td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    @else
+                        <p class="whitespace-pre-wrap">{{ $shiftReport->content }}</p>
+                    @endif
                 </div>
             </div>
 
@@ -139,15 +183,17 @@
                         @csrf
                         <textarea name="admin_reply" rows="4" class="w-full border rounded p-2 mb-4"
                             placeholder="Write your reply to the staff member..." required></textarea>
-                        <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                            </svg>
-                            Send Reply
-                        </button>
+                        <div class="flex justify-end">
+                            <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" style="transform: rotate(90deg);"
+                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                                Send Reply
+                            </button>
+                        </div>
                     </form>
                 </div>
             @endif

@@ -1,4 +1,4 @@
-<h2 class="text-xl font-semibold mb-4">Order #{{ $order->id }}</h2>
+<h2 class="text-xl font-semibold mb-4">Order Details #{{ $order->id }}</h2>
 
 <div class="space-y-4">
     <!-- Order Information -->
@@ -87,7 +87,7 @@
     <!-- Order Total -->
     <div class="border-t pt-3">
         <div class="flex justify-between items-center">
-            <span class="text-lg font-semibold">Total:</span>
+            <span class="text-lg font-semibold">Total Amount:</span>
             <span class="text-xl font-bold">₱{{ number_format($order->total_amount, 2) }}</span>
         </div>
     </div>
@@ -104,7 +104,7 @@
                 <div>
                     <span class="text-gray-600">Status:</span>
                     <span class="inline-flex items-center text-xs leading-5 font-semibold
-                                                {{ $order->payment_status == 'paid' ? 'text-green-600' :
+                                                        {{ $order->payment_status == 'paid' ? 'text-green-600' :
             ($order->payment_status == 'refunded' ? 'text-red-600' : 'text-yellow-600') }}">
                         @if($order->payment_status == 'paid')
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
@@ -127,6 +127,55 @@
                         {{ ucfirst($order->payment_status) }}
                     </span>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Void/Refund Requests -->
+    @if($order->voidRequests && $order->voidRequests->isNotEmpty())
+        <div class="border-t pt-3">
+            <h3 class="font-semibold mb-2">Void/Refund Requests</h3>
+            <div class="space-y-3">
+                @foreach($order->voidRequests as $request)
+                    <div class="bg-gray-50 p-3 rounded text-sm border border-gray-100">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' : ($request->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                    {{ ucfirst($request->status) }}
+                                </span>
+                                <span
+                                    class="text-gray-500 text-xs ml-2">{{ $request->created_at->format('M d, Y h:i A') }}</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <span class="text-gray-600 block text-xs uppercase tracking-wide">Reason</span>
+                            <p class="text-gray-900">{{ $request->reason }}</p>
+                        </div>
+
+                        @if($request->reason_tags)
+                            <div class="flex flex-wrap gap-1 mb-2">
+                                @foreach($request->reason_tags as $tag)
+                                    <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">{{ $tag }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        <div class="grid grid-cols-2 gap-2 text-xs mt-2 pt-2 border-t border-gray-200">
+                            <div>
+                                <span class="text-gray-500 block">Requested By</span>
+                                <span class="font-medium text-gray-900">{{ $request->requester->name ?? 'N/A' }}</span>
+                            </div>
+                            @if($request->approver)
+                                <div>
+                                    <span class="text-gray-500 block">Action By</span>
+                                    <span class="font-medium text-gray-900">{{ $request->approver->name }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
     @endif

@@ -62,7 +62,7 @@ class TableController extends Controller
         // Get menu categories and items for creating new orders
         $categories = Category::with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true);
+                $query->where('availability', true);
             }
         ])->get();
 

@@ -63,21 +63,37 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Order Type</label>
-                            <div class="text-gray-900 font-medium">{{ ucfirst($order->order_type) }}</div>
+                            <label for="order_type" class="block text-sm font-medium text-gray-700 mb-1">Order Type</label>
+                            <select name="order_type" id="order_type"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                                required>
+                                <option value="dine-in" {{ $order->order_type == 'dine-in' ? 'selected' : '' }}>Dine-in
+                                </option>
+                                <option value="takeout" {{ $order->order_type == 'takeout' ? 'selected' : '' }}>Takeout
+                                </option>
+                            </select>
                         </div>
 
-                        @if($order->order_type == 'dine-in')
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Table</label>
-                                <div class="text-gray-900 font-medium">{{ $order->table ? $order->table->name : 'N/A' }}</div>
-                            </div>
-                        @else
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Customer</label>
-                                <div class="text-gray-900 font-medium">{{ $order->customer_name ?: 'Takeout' }}</div>
-                            </div>
-                        @endif
+                        <div class="mb-4" id="table_section"
+                            style="{{ $order->order_type == 'takeout' ? 'display: none;' : '' }}">
+                            <label for="table_id" class="block text-sm font-medium text-gray-700 mb-1">Table</label>
+                            <select name="table_id" id="table_id"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                <option value="">Select a table</option>
+                                @foreach($tables as $table)
+                                    <option value="{{ $table->id }}" {{ $order->table_id == $table->id ? 'selected' : '' }}>
+                                        {{ $table->name }} (Capacity: {{ $table->capacity }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="mb-4" id="customer_section">
+                            <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-1">Customer
+                                Name</label>
+                            <input type="text" name="customer_name" id="customer_name" value="{{ $order->customer_name }}"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        </div>
                     </div>
 
                     <div>
@@ -114,18 +130,81 @@
                         </div>
 
                         <div class="bg-gray-50 p-4 rounded-lg border">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-                                id="menu_items_container">
+                            <!-- All Categories View (Segmented) -->
+                            <div id="all-categories-view">
                                 @foreach($categories as $category)
-                                    @foreach($category->menuItems as $item)
-                                        <div class="menu-item bg-white p-3 rounded shadow-sm border cursor-pointer"
-                                            data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}"
-                                            data-category="{{ $category->id }}">
-                                            <div class="font-medium">{{ $item->name }}</div>
-                                            <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}</div>
-                                            <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                    @if($category->menuItems->count() > 0)
+                                        <div class="category-section mb-6" data-category-section="{{ $category->id }}">
+                                            <div class="mb-3">
+                                                <h3 class="text-lg font-semibold text-gray-800 border-b-2 border-gray-300 pb-2">
+                                                    {{ $category->name }}
+                                                </h3>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                @foreach($category->menuItems as $item)
+                                                    <div class="menu-item bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}"
+                                                        data-price="{{ $item->price }}" data-category="{{ $category->id }}"
+                                                        data-max-quantity="{{ $item->max_quantity }}">
+                                                        <div class="font-medium">{{ $item->name }}</div>
+                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}
+                                                        </div>
+                                                        <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available:
+                                                            {{ $item->max_quantity }}
+                                                        </div>
+                                                        @if($item->max_quantity < 1)
+                                                            <div
+                                                                class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span
+                                                                    class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD
+                                                                    OUT</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
-                                    @endforeach
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            <!-- Single Category View -->
+                            <div id="single-category-view" class="hidden">
+                                @foreach($categories as $category)
+                                    @if($category->menuItems->count() > 0)
+                                        <div class="category-section-single" data-category-section="{{ $category->id }}">
+                                            <div class="mb-3">
+                                                <h3 class="text-lg font-semibold text-gray-800 border-b-2 border-gray-300 pb-2">
+                                                    {{ $category->name }}
+                                                </h3>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                @foreach($category->menuItems as $item)
+                                                    <div class="menu-item-single bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}"
+                                                        data-price="{{ $item->price }}" data-category="{{ $category->id }}"
+                                                        data-max-quantity="{{ $item->max_quantity }}">
+                                                        <div class="font-medium">{{ $item->name }}</div>
+                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}
+                                                        </div>
+                                                        <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available:
+                                                            {{ $item->max_quantity }}
+                                                        </div>
+                                                        @if($item->max_quantity < 1)
+                                                            <div
+                                                                class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span
+                                                                    class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD
+                                                                    OUT</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
                                 @endforeach
                             </div>
                         </div>
@@ -201,6 +280,24 @@
             const totalElement = document.getElementById('total');
             const orderForm = document.getElementById('orderForm');
 
+            // Order Type Logic
+            const orderType = document.getElementById('order_type');
+            const tableSection = document.getElementById('table_section');
+            const tableId = document.getElementById('table_id');
+            const customerSection = document.getElementById('customer_section');
+
+            if (orderType) {
+                orderType.addEventListener('change', function () {
+                    if (this.value === 'dine-in') {
+                        tableSection.style.display = 'block';
+                        // Keep customer section visible as per previous requirement
+                    } else {
+                        tableSection.style.display = 'none';
+                        tableId.value = '';
+                    }
+                });
+            }
+
             // Load existing order items
             @foreach($order->orderItems as $item)
                 addItemToSelection({
@@ -210,7 +307,7 @@
                     quantity: {{ $item->quantity }},
                     notes: @json($item->notes ?? ''),
                     itemId: {{ $item->id }}
-                                        });
+                                                                                });
             @endforeach
 
             // Handle category tab clicks
@@ -222,23 +319,41 @@
                     this.classList.add('bg-blue-600', 'text-white');
 
                     const categoryId = this.dataset.category;
+                    const allCategoriesView = document.getElementById('all-categories-view');
+                    const singleCategoryView = document.getElementById('single-category-view');
 
-                    menuItems.forEach(item => {
-                        if (categoryId === 'all' || item.dataset.category === categoryId) {
-                            item.style.display = 'block';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
+                    if (categoryId === 'all') {
+                        // Show segmented view with all categories
+                        allCategoriesView.classList.remove('hidden');
+                        singleCategoryView.classList.add('hidden');
+                    } else {
+                        // Show single category view
+                        allCategoriesView.classList.add('hidden');
+                        singleCategoryView.classList.remove('hidden');
+
+                        // Show/hide category sections
+                        const categorySections = document.querySelectorAll('.category-section-single');
+                        categorySections.forEach(section => {
+                            if (section.dataset.categorySection === categoryId) {
+                                section.style.display = 'block';
+                            } else {
+                                section.style.display = 'none';
+                            }
+                        });
+                    }
                 });
             });
 
-            // Handle menu item clicks
-            menuItems.forEach(item => {
+            // Handle menu item clicks (helper function)
+            function setupMenuItemClick(item) {
                 item.addEventListener('click', function () {
                     const itemId = this.dataset.id;
                     const itemName = this.dataset.name;
                     const itemPrice = parseFloat(this.dataset.price);
+
+                    // In edit mode we don't strictly enforce max quantity check on click creation 
+                    // because we might just be adding to list, validation happens on input change mainly.
+                    // But if consistent with Create, we can check maxQuantity if we had it.
 
                     // Check if item already exists in the selected items
                     const existingItem = document.querySelector(`#selected_items_container tr[data-id="${itemId}"]`);
@@ -259,7 +374,13 @@
                         });
                     }
                 });
-            });
+            }
+
+            // Setup click handlers for both views
+            const menuItemsOne = document.querySelectorAll('.menu-item');
+            const menuItemsSingle = document.querySelectorAll('.menu-item-single');
+            menuItemsOne.forEach(item => setupMenuItemClick(item));
+            menuItemsSingle.forEach(item => setupMenuItemClick(item));
 
             function addItemToSelection(item) {
                 const newRow = document.createElement('tr');
@@ -270,21 +391,21 @@
                 const itemIdField = item.itemId ? `<input type="hidden" name="items[${index}][id]" value="${item.itemId}">` : '';
 
                 newRow.innerHTML = `
-                                        <td class="py-2 px-4">${item.name}</td>
-                                        <td class="py-2 px-4 text-right">₱${item.price.toFixed(2)}</td>
-                                        <td class="py-2 px-4 text-center">
-                                            <input type="number" name="items[${index}][quantity]" value="${item.quantity}" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                            <input type="hidden" name="items[${index}][menu_item_id]" value="${item.id}">
-                                            ${itemIdField}
-                                        </td>
-                                        <td class="py-2 px-4">
-                                            <input type="text" name="items[${index}][notes]" value="${item.notes}" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                        </td>
-                                        <td class="py-2 px-4 text-right item-subtotal">₱${(item.price * item.quantity).toFixed(2)}</td>
-                                        <td class="py-2 px-4 text-center">
-                                            <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
-                                        </td>
-                                    `;
+                                                            <td class="py-2 px-4">${item.name}</td>
+                                                            <td class="py-2 px-4 text-right">₱${item.price.toFixed(2)}</td>
+                                                            <td class="py-2 px-4 text-center">
+                                                                <input type="number" name="items[${index}][quantity]" value="${item.quantity}" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                                                <input type="hidden" name="items[${index}][menu_item_id]" value="${item.id}">
+                                                                ${itemIdField}
+                                                            </td>
+                                                            <td class="py-2 px-4">
+                                                                <input type="text" name="items[${index}][notes]" value="${item.notes}" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                                            </td>
+                                                            <td class="py-2 px-4 text-right item-subtotal">₱${(item.price * item.quantity).toFixed(2)}</td>
+                                                            <td class="py-2 px-4 text-center">
+                                                                <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
+                                                            </td>
+                                                        `;
 
                 selectedItemsContainer.appendChild(newRow);
 

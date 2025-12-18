@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\SyncsToSupabase;
 use Illuminate\Database\Eloquent\Model;
 
 class VoidRequest extends Model
 {
+    use SyncsToSupabase;
+
     protected $fillable = [
         'order_id',
         'requester_id',

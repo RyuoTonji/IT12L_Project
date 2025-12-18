@@ -1326,10 +1326,10 @@
 
                 // Previous Button
                 html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
-                                class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                ${page === 1 ? 'disabled' : ''}>
-                                ${prevIcon}
-                             </button>`;
+                                    class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                    ${page === 1 ? 'disabled' : ''}>
+                                    ${prevIcon}
+                                 </button>`;
 
                 // Generate Page Numbers
                 let range = [];
@@ -1351,21 +1351,21 @@
                     } else {
                         const isActive = item === page;
                         const classes = isActive
-                            ? 'bg-blue-600 text-white font-bold'
+                            ? 'bg-gray-800 text-white font-bold'
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
-                                        class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                        ${item}
-                                     </button>`;
+                                            class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                            ${item}
+                                         </button>`;
                     }
                 });
 
                 // Next Button
                 html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
-                                class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                ${page === pCount ? 'disabled' : ''}>
-                                ${nextIcon}
-                             </button>`;
+                                    class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                    ${page === pCount ? 'disabled' : ''}>
+                                    ${nextIcon}
+                                 </button>`;
 
                 pDiv.innerHTML = html;
             };

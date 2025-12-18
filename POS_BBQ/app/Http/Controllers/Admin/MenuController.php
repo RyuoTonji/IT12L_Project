@@ -46,7 +46,8 @@ class MenuController extends Controller
         ]);
 
         $data = $request->except('image');
-        $data['is_available'] = $request->boolean('is_available');
+        $data['availability'] = $request->boolean('is_available');
+        unset($data['is_available']);
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -69,10 +70,10 @@ class MenuController extends Controller
 
         $menuItem = MenuItem::create($data);
 
-        // Attach to both branches by default with availability matching the menu item's is_available status
+        // Attach to both branches by default with availability matching the menu item's global availability
         $menuItem->branches()->attach([
-            1 => ['is_available' => $data['is_available']],
-            2 => ['is_available' => $data['is_available']],
+            1 => ['is_available' => $data['availability']],
+            2 => ['is_available' => $data['availability']],
         ]);
 
         return redirect()->route('menu.index')->with('success', 'Menu item created successfully');
@@ -80,40 +81,27 @@ class MenuController extends Controller
 
     public function show(MenuItem $menu)
     {
-        // Get sales data for the last 30 days
-        $endDate = \Carbon\Carbon::now();
-        $startDate = \Carbon\Carbon::now()->subDays(29);
-
-        $salesData = \Illuminate\Support\Facades\DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->select(
-                \Illuminate\Support\Facades\DB::raw('DATE(orders.created_at) as date'),
-                \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity * order_items.unit_price) as total_sales'),
-                \Illuminate\Support\Facades\DB::raw('SUM(order_items.quantity) as total_quantity')
-            )
-            ->where('order_items.menu_item_id', $menu->id)
-            ->where('orders.payment_status', 'paid')
-            ->whereBetween('orders.created_at', [$startDate, $endDate])
+        // Calculate sales performance for the last 30 days
+        $salesData = \App\Models\OrderItem::selectRaw('DATE(created_at) as date, SUM(unit_price * quantity) as total_sales, SUM(quantity) as total_quantity')
+            ->where('menu_item_id', $menu->id)
+            ->where('created_at', '>=', now()->subDays(30))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        // Fill in missing dates with zero values
+        // Format data for the view/chart
         $formattedSales = [];
-        $currentDate = clone $startDate;
-        $salesKeyed = $salesData->keyBy('date');
+        $startDate = now()->subDays(29); // Start from 30 days ago
 
-        while ($currentDate <= $endDate) {
-            $dateString = $currentDate->format('Y-m-d');
-            $record = $salesKeyed->get($dateString);
+        for ($i = 0; $i < 30; $i++) {
+            $date = $startDate->copy()->addDays($i)->format('Y-m-d');
+            $dayData = $salesData->firstWhere('date', $date);
 
             $formattedSales[] = [
-                'date' => $currentDate->format('M d'),
-                'total_sales' => $record ? $record->total_sales : 0,
-                'total_quantity' => $record ? $record->total_quantity : 0,
+                'date' => $date,
+                'total_sales' => $dayData ? $dayData->total_sales : 0,
+                'total_quantity' => $dayData ? $dayData->total_quantity : 0,
             ];
-
-            $currentDate->addDay();
         }
 
         return view('admin.menu.show', compact('menu', 'formattedSales'));
@@ -124,7 +112,7 @@ class MenuController extends Controller
         $categories = Category::all();
         return view('admin.menu.edit', compact('menu', 'categories'));
     }
-
+    // ...
     public function update(Request $request, MenuItem $menu)
     {
         $request->validate([
@@ -137,7 +125,11 @@ class MenuController extends Controller
         ]);
 
         $data = $request->except('image');
-        $data['is_available'] = $request->has('is_available');
+        // Checkbox usually sends 'on' or nothing, but validate rule says boolean, assuming frontend sends 1/0 or true/false
+        // $request->has() checks if key exists. Standard HTML checkbox: missing if unchecked.
+        // Let's stick to boolean conversion helper for safety if strictly validated, or use logic:
+        $data['availability'] = $request->has('is_available');
+        unset($data['is_available']);
 
         if ($request->hasFile('image')) {
             // Delete old image if it exists
@@ -171,28 +163,16 @@ class MenuController extends Controller
 
         $menu->update($data);
 
-        // Sync branch availability if not explicitly set via the branch availability endpoint
-        // Only update if menu item doesn't have branch associations yet
-        if ($menu->branches()->count() == 0) {
-            $menu->branches()->attach([
-                1 => ['is_available' => $data['is_available']],
-                2 => ['is_available' => $data['is_available']],
-            ]);
-        }
+        // Sync branch availability based on global availability
+        // If global is false, all branches become false. If true, we set all to true (simplest logic for sync)
+        $menu->branches()->sync([
+             1 => ['is_available' => $data['availability']],
+             2 => ['is_available' => $data['availability']],
+        ]);
 
         return redirect()->route('menu.index')->with('success', 'Menu item updated successfully');
     }
-
-    public function destroy(MenuItem $menu)
-    {
-        $menu->delete();
-
-        return redirect()->route('menu.index')->with('success', 'Menu item archived successfully');
-    }
-
-    /**
-     * Update menu item availability status
-     */
+    // ...
     public function updateAvailability(Request $request, MenuItem $menu)
     {
         $request->validate([
@@ -203,7 +183,7 @@ class MenuController extends Controller
 
         // Update the menu item's global availability
         $menu->update([
-            'is_available' => $isAvailable,
+            'availability' => $isAvailable,
         ]);
 
         // Sync branch availability - update all branches to match global availability

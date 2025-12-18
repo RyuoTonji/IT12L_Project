@@ -52,7 +52,7 @@
                             </select>
                         </div>
 
-                        <div class="mb-4" id="customer_section" style="{{ $selectedTable ? 'display: none;' : '' }}">
+                        <div class="mb-4" id="customer_section">
                             <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-1">Customer
                                 Name</label>
                             <input type="text" name="customer_name" id="customer_name"
@@ -117,16 +117,22 @@
                                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                 @foreach($category->menuItems as $item)
                                                     <div class="menu-item bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
-                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}"
-                                                        data-category="{{ $category->id }}"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}"
+                                                        data-price="{{ $item->price }}" data-category="{{ $category->id }}"
                                                         data-max-quantity="{{ $item->max_quantity }}">
                                                         <div class="font-medium">{{ $item->name }}</div>
-                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}</div>
+                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}
+                                                        </div>
                                                         <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
-                                                        <div class="text-xs text-gray-500 mt-1">Available: {{ $item->max_quantity > 900000 ? 'Unlimited' : $item->max_quantity }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available:
+                                                            {{ $item->max_quantity }}
+                                                        </div>
                                                         @if($item->max_quantity < 1)
-                                                            <div class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
-                                                                <span class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD OUT</span>
+                                                            <div
+                                                                class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span
+                                                                    class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD
+                                                                    OUT</span>
                                                             </div>
                                                         @endif
                                                     </div>
@@ -150,16 +156,22 @@
                                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                 @foreach($category->menuItems as $item)
                                                     <div class="menu-item-single bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
-                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}"
-                                                        data-category="{{ $category->id }}"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}"
+                                                        data-price="{{ $item->price }}" data-category="{{ $category->id }}"
                                                         data-max-quantity="{{ $item->max_quantity }}">
                                                         <div class="font-medium">{{ $item->name }}</div>
-                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}</div>
+                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}
+                                                        </div>
                                                         <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
-                                                        <div class="text-xs text-gray-500 mt-1">Available: {{ $item->max_quantity > 900000 ? 'Unlimited' : $item->max_quantity }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available:
+                                                            {{ $item->max_quantity }}
+                                                        </div>
                                                         @if($item->max_quantity < 1)
-                                                            <div class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
-                                                                <span class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD OUT</span>
+                                                            <div
+                                                                class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span
+                                                                    class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD
+                                                                    OUT</span>
                                                             </div>
                                                         @endif
                                                     </div>
@@ -211,7 +223,8 @@
 
                 <div class="flex justify-end">
                     <button type="button" onclick="confirmCreateOrder()"
-                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center" id="submit_order">
+                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center"
+                        id="submit_order">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -248,10 +261,10 @@
             orderType.addEventListener('change', function () {
                 if (this.value === 'dine-in') {
                     tableSection.style.display = 'block';
-                    customerSection.style.display = 'none';
+                    // customerSection.style.display = 'none'; // Keep customer visible
                 } else {
                     tableSection.style.display = 'none';
-                    customerSection.style.display = 'block';
+                    // customerSection.style.display = 'block'; // Always visible
                     tableId.value = '';
                 }
             });
@@ -323,25 +336,25 @@
                         newRow.dataset.maxQuantity = maxQuantity;
 
                         newRow.innerHTML = `
-                                <td class="py-2 px-4">${itemName}</td>
-                                <td class="py-2 px-4 text-right">₱${itemPrice.toFixed(2)}</td>
-                                <td class="py-2 px-4 text-center">
-                                    <input type="number" name="items[${itemId}][quantity]" value="1" min="1" max="${this.dataset.maxQuantity}" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                    <input type="hidden" name="items[${itemId}][menu_item_id]" value="${itemId}">
-                                </td>
-                                <td class="py-2 px-4">
-                                    <input type="text" name="items[${itemId}][notes]" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                </td>
-                                <td class="py-2 px-4 text-right item-subtotal">₱${itemPrice.toFixed(2)}</td>
-                                <td class="py-2 px-4 text-center">
-                                    <button type="button" class="text-red-600 hover:text-red-900 remove-item flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Remove
-                                    </button>
-                                </td>
-                            `;
+                                            <td class="py-2 px-4">${itemName}</td>
+                                            <td class="py-2 px-4 text-right">₱${itemPrice.toFixed(2)}</td>
+                                            <td class="py-2 px-4 text-center">
+                                                <input type="number" name="items[${itemId}][quantity]" value="1" min="1" max="${this.dataset.maxQuantity}" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                                <input type="hidden" name="items[${itemId}][menu_item_id]" value="${itemId}">
+                                            </td>
+                                            <td class="py-2 px-4">
+                                                <input type="text" name="items[${itemId}][notes]" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                            </td>
+                                            <td class="py-2 px-4 text-right item-subtotal">₱${itemPrice.toFixed(2)}</td>
+                                            <td class="py-2 px-4 text-center">
+                                                <button type="button" class="text-red-600 hover:text-red-900 remove-item flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    Remove
+                                                </button>
+                                            </td>
+                                        `;
 
                         selectedItemsContainer.appendChild(newRow);
 
@@ -463,7 +476,7 @@
             const selectedItemsContainer = document.getElementById('selected_items_container');
             const orderType = document.getElementById('order_type');
             const tableId = document.getElementById('table_id');
-            
+
             const items = selectedItemsContainer.querySelectorAll('tr[data-id]');
             if (items.length === 0) {
                 AlertModal.show('Please add at least one item to the order', 'warning');
@@ -477,7 +490,7 @@
 
             AlertModal.showConfirm(
                 'Are you sure you want to create this order?',
-                function() {
+                function () {
                     // Convert the form data to the expected format
                     items.forEach((item, index) => {
                         const itemId = item.dataset.id;

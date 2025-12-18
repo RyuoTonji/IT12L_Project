@@ -33,7 +33,7 @@
                         </svg>
                         Export PDF
                     </button>
-                    <a href="{{ route('inventory.create') }}"
+                    <a href="{{ route('admin.inventory.create') }}"
                         class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -46,7 +46,7 @@
 
             <!-- Filter Form (Date Only) -->
             <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                <form id="filterForm" action="{{ route('inventory.index') }}" method="GET"
+                <form id="filterForm" action="{{ route('admin.inventory.index') }}" method="GET"
                     class="flex flex-wrap gap-4 items-end">
                     <div>
                         <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date Added</label>
@@ -56,7 +56,7 @@
                     </div>
                     <div class="flex items-center pb-1">
                         @if(request()->filled('date'))
-                            <a href="{{ route('inventory.index') }}"
+                            <a href="{{ route('admin.inventory.index') }}"
                                 class="text-gray-600 hover:text-gray-900 flex items-center inline-flex ml-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
@@ -117,7 +117,7 @@
                                 <tbody class="divide-y divide-gray-200">
                                     @foreach($items as $item)
                                         <tr class="hover:bg-blue-50 transition-colors cursor-pointer"
-                                            onclick="window.location='{{ route('inventory.show', $item) }}'">
+                                            onclick="window.location='{{ route('admin.inventory.show', $item) }}'">
                                             <td class="py-4 px-6 text-sm font-medium text-gray-900">{{ $item->name }}</td>
                                             <td class="py-4 px-6 text-sm text-gray-500">{{ $item->supplier ?: '-' }}</td>
                                             <td class="py-4 px-6 text-sm text-right text-gray-900">{{ $item->quantity }}</td>
@@ -142,7 +142,7 @@
                                             </td>
                                             <td class="py-4 px-6 text-center text-sm" onclick="event.stopPropagation();">
                                                 <div class="flex justify-center space-x-2">
-                                                    <a href="{{ route('inventory.show', $item) }}"
+                                                    <a href="{{ route('admin.inventory.show', $item) }}"
                                                         class="text-blue-600 hover:text-blue-900 inline-flex items-center transition-colors">
                                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -162,7 +162,7 @@
                                                         Archive
                                                     </button>
                                                     <form id="deleteInventoryForm{{ $item->id }}"
-                                                        action="{{ route('inventory.destroy', $item) }}" method="POST" class="hidden">
+                                                        action="{{ route('admin.inventory.destroy', $item) }}" method="POST" class="hidden">
                                                         @csrf @method('DELETE')
                                                     </form>
                                                 </div>
@@ -184,7 +184,7 @@
                         <h3 class="mt-2 text-sm font-medium text-gray-900">No Inventory Items</h3>
                         <p class="mt-1 text-sm text-gray-500">Get started by creating a new inventory item.</p>
                         <div class="mt-6">
-                            <a href="{{ route('inventory.create') }}"
+                            <a href="{{ route('admin.inventory.create') }}"
                                 class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                                 <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                     fill="currentColor">
@@ -221,7 +221,7 @@
                         <tbody class="divide-y divide-gray-200">
                             @forelse($inventoryItems as $item)
                                 <tr class="hover:bg-blue-50 transition-colors cursor-pointer"
-                                    onclick="window.location='{{ route('inventory.show', $item) }}'">
+                                    onclick="window.location='{{ route('admin.inventory.show', $item) }}'">
                                     <td class="py-4 px-6 text-sm font-medium text-gray-900">{{ $item->name }}</td>
                                     <td class="py-4 px-6 text-sm text-gray-500">{{ $item->supplier ?: '-' }}</td>
                                     <td class="py-4 px-6 text-sm text-right text-gray-900">{{ $item->quantity }}</td>
@@ -246,7 +246,7 @@
                                     </td>
                                     <td class="py-4 px-6 text-center text-sm" onclick="event.stopPropagation();">
                                         <div class="flex justify-center space-x-2">
-                                            <a href="{{ route('inventory.show', $item) }}"
+                                            <a href="{{ route('admin.inventory.show', $item) }}"
                                                 class="text-blue-600 hover:text-blue-900 inline-flex items-center transition-colors">
                                                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -318,7 +318,7 @@
             @else
                 paginateTable('table-filtered-result', 10);
             @endif
-                    });
+                        });
 
         function paginateTable(tableId, rowsPerPage) {
             const table = document.getElementById(tableId);
@@ -377,10 +377,10 @@
 
                 // Previous Button
                 html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
-                                        class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                        ${page === 1 ? 'disabled' : ''}>
-                                        ${prevIcon}
-                                     </button>`;
+                                            class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                            ${page === 1 ? 'disabled' : ''}>
+                                            ${prevIcon}
+                                         </button>`;
 
                 // Generate Page Numbers
                 let range = [];
@@ -402,21 +402,21 @@
                     } else {
                         const isActive = item === page;
                         const classes = isActive
-                            ? 'bg-blue-600 text-white font-bold'
+                            ? 'bg-gray-800 text-white font-bold'
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
-                                                class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                                ${item}
-                                             </button>`;
+                                                    class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                    ${item}
+                                                 </button>`;
                     }
                 });
 
                 // Next Button
                 html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
-                                        class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                        ${page === pCount ? 'disabled' : ''}>
-                                        ${nextIcon}
-                                     </button>`;
+                                            class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                            ${page === pCount ? 'disabled' : ''}>
+                                            ${nextIcon}
+                                         </button>`;
 
                 pDiv.innerHTML = html;
             };

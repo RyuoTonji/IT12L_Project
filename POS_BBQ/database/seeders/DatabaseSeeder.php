@@ -17,12 +17,12 @@ class DatabaseSeeder extends Seeder
             BranchSeeder::class,
             UserSeeder::class,
             CategorySeeder::class,
-            MenuItemSeeder::class,
+            MenuItemSeeder::class, // Now creates inventory items and links them
             TableSeeder::class,
-            InventorySeeder::class,
+            InventorySeeder::class, // Simplified, mostly empty
             OrderSeeder::class,
             VoidRefundSeeder::class,
-            InventoryAdjustmentSeeder::class,
+            // InventoryAdjustmentSeeder::class, // Removed - can be run separately if needed
         ]);
     }
 }

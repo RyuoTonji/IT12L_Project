@@ -8,6 +8,8 @@
 
     <title>Manager Dashboard</title>
 
+    <link rel="icon" href="{{ asset('logo_black.png') }}" type="image/png">
+
     <!-- Fonts -->
     <link href="{{ asset('fonts/fonts.css') }}" rel="stylesheet">
 
@@ -114,9 +116,9 @@
                                 </x-dropdown-link>
 
                                 <!-- Authentication -->
-                                <form method="POST" action="{{ route('logout') }}">
+                                <form method="POST" action="{{ route('logout') }}" id="logout-form-manager">
                                     @csrf
-                                    <button type="submit"
+                                    <button type="button" id="logout-btn-manager"
                                         class="block w-full text-left px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
@@ -133,6 +135,8 @@
             </div>
         </nav>
 
+        @include('components.offline-status-alert')
+
         <!-- Page Content -->
         <main>
             <div class="py-12">
@@ -147,6 +151,49 @@
 
         <!-- Flash Messages -->
         @include('components.flash-messages')
+
+        <!-- Shift Report Reminder Modal -->
+        <div id="report-reminder-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">⚠️ Shift Report Required</h3>
+                    <p class="mb-6 text-gray-700">You must submit your shift report before logging out. This ensures
+                        proper end-of-day accountability.</p>
+                    <a href="{{ route('shift-reports.create') }}"
+                        class="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition">
+                        Submit Report Now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const logoutBtn = document.getElementById('logout-btn-manager');
+                const logoutForm = document.getElementById('logout-form-manager');
+                const modal = document.getElementById('report-reminder-modal');
+
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+
+                        fetch('{{ route('shift-report.check') }}')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.has_report) {
+                                    logoutForm.submit();
+                                } else {
+                                    modal.classList.remove('hidden');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error checking shift report:', error);
+                                modal.classList.remove('hidden');
+                            });
+                    });
+                }
+            });
+        </script>
     </div>
 </body>
 

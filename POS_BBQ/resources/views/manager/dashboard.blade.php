@@ -7,15 +7,15 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-blue-100 p-4 rounded-lg">
                     <h4 class="font-bold text-blue-800">Recent Activities</h4>
-                    <p class="text-2xl">{{ $recentActivities->count() }}</p>
+                    <p class="text-2xl font-bold text-blue-800 text-right mt-2">{{ $recentActivities->count() }}</p>
                 </div>
                 <div class="bg-green-100 p-4 rounded-lg">
                     <h4 class="font-bold text-green-800">Day Sales</h4>
-                    <p class="text-2xl">₱{{ number_format($todaySales, 2) }}</p>
+                    <p class="text-2xl font-bold text-green-800 text-right mt-2">₱{{ number_format($todaySales, 2) }}</p>
                 </div>
                 <div class="bg-yellow-100 p-4 rounded-lg">
                     <h4 class="font-bold text-yellow-800">Today's Orders</h4>
-                    <p class="text-2xl">{{ $todayOrders }}</p>
+                    <p class="text-2xl font-bold text-yellow-800 text-right mt-2">{{ $todayOrders }}</p>
                 </div>
             </div>
         </div>
@@ -24,12 +24,9 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium">Recent Activity Logs</h3>
-                <a href="{{ route('manager.reports') }}" class="text-blue-600 hover:text-blue-900 flex items-center inline-flex">
-                    View All
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
+                <h2 class="text-xl font-semibold text-gray-800">Recent Activity Logs</h2>
+                <a href="{{ route('reports.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    View All →
                 </a>
             </div>
             <table class="min-w-full divide-y divide-gray-200">

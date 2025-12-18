@@ -99,12 +99,32 @@ class InventoryController extends Controller
             'category' => 'nullable|string|max:255',
             'quantity' => 'required|numeric|min:0',
             'unit' => 'required|string|max:50',
-            'unit' => 'required|string|max:50',
         ]);
 
-        Inventory::create($request->all());
+        DB::transaction(function () use ($request) {
+            $inventory = Inventory::create([
+                'name' => $request->name,
+                'supplier' => $request->supplier,
+                'category' => $request->category,
+                'quantity' => $request->quantity,
+                'unit' => $request->unit,
+                'stock_in' => $request->quantity, // Initialize stock_in
+                'stock_out' => 0,
+            ]);
 
-        return redirect()->route('inventory.index')->with('success', 'Inventory item created successfully');
+            // Create Adjustment Record
+            InventoryAdjustment::create([
+                'inventory_id' => $inventory->id,
+                'adjustment_type' => 'stock_in',
+                'quantity' => $request->quantity,
+                'quantity_before' => 0,
+                'quantity_after' => $request->quantity,
+                'reason' => 'Initial Stock (Admin Created)',
+                'recorded_by' => Auth::id(),
+            ]);
+        });
+
+        return redirect()->route('admin.inventory.index')->with('success', 'Inventory item created successfully');
     }
 
     public function show(Inventory $inventory)
@@ -125,17 +145,51 @@ class InventoryController extends Controller
             'category' => 'nullable|string|max:255',
             'quantity' => 'required|numeric|min:0',
             'unit' => 'required|string|max:50',
-
         ]);
 
-        $inventory->update($request->all());
+        DB::transaction(function () use ($request, $inventory) {
+            $oldQuantity = $inventory->quantity;
+            $newQuantity = $request->quantity;
+            
+            // Update details
+            $inventory->update([
+                'name' => $request->name,
+                'supplier' => $request->supplier,
+                'category' => $request->category,
+                'unit' => $request->unit,
+                // We update quantity via update call, but need to track if it changed for adjustment
+                'quantity' => $newQuantity
+            ]);
 
-        return redirect()->route('inventory.index')->with('success', 'Inventory item updated successfully');
+            // If quantity changed, log it
+            if ($oldQuantity != $newQuantity) {
+                $diff = $newQuantity - $oldQuantity;
+                $type = $diff > 0 ? 'stock_in' : 'stock_out'; // Or 'adjustment'
+                
+                // If it's positive, we might count it as stock_in. If negative, maybe not 'stock_out' (sales), but manual adjustment.
+                // However, for simplicity and reporting, positive manual changes usually mean adding stock.
+                if ($diff > 0) {
+                    $inventory->increment('stock_in', $diff);
+                }
+                
+                InventoryAdjustment::create([
+                    'inventory_id' => $inventory->id,
+                    'adjustment_type' => $diff > 0 ? 'stock_in' : 'adjustment', // 'stock_out' usually reserved for sales? Let's use 'adjustment' for negative manual fix if needed or just keep generic
+                    'quantity' => abs($diff),
+                    'quantity_before' => $oldQuantity,
+                    'quantity_after' => $newQuantity,
+                    'reason' => 'Manual Update (Admin)',
+                    'recorded_by' => Auth::id(),
+                ]);
+            }
+        });
+
+        return redirect()->route('admin.inventory.index')->with('success', 'Inventory item updated successfully');
     }
 
     public function destroy(Inventory $inventory)
     {
         $inventory->delete();
-        return redirect()->route('inventory.index')->with('success', 'Inventory item deleted successfully');
+        return redirect()->route('admin.inventory.index')->with('success', 'Inventory item deleted successfully'); // Corrected route name
     }
 }

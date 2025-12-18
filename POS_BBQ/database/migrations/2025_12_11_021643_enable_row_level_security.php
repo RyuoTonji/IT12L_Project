@@ -9,7 +9,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        /*
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // List of tables to enable RLS on (excluding Laravel system tables)
         $tables = [
             'users',
@@ -27,7 +30,6 @@ return new class extends Migration {
             'activities',
             'void_requests',
             'shift_reports',
-            'griller_attendance',
             'deleted_data',
         ];
 
@@ -514,35 +516,6 @@ return new class extends Migration {
         ");
 
         // =====================================================
-        // GRILLER_ATTENDANCE TABLE POLICIES
-        // =====================================================
-        DB::statement("
-            CREATE POLICY griller_attendance_select_policy ON griller_attendance
-            FOR SELECT
-            USING (
-                user_id = current_setting('app.user_id')::bigint
-                OR EXISTS (
-                    SELECT 1 FROM users 
-                    WHERE id = current_setting('app.user_id')::bigint 
-                    AND role IN ('admin', 'manager')
-                )
-            );
-        ");
-
-        DB::statement("
-            CREATE POLICY griller_attendance_modify_policy ON griller_attendance
-            FOR ALL
-            USING (
-                user_id = current_setting('app.user_id')::bigint
-                OR EXISTS (
-                    SELECT 1 FROM users 
-                    WHERE id = current_setting('app.user_id')::bigint 
-                    AND role IN ('admin', 'manager')
-                )
-            );
-        ");
-
-        // =====================================================
         // DELETED_DATA TABLE POLICIES
         // =====================================================
         DB::statement("
@@ -556,7 +529,7 @@ return new class extends Migration {
                 )
             );
         ");
-        */
+
     }
 
     /**
@@ -564,7 +537,10 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        /*
+        if (DB::connection()->getDriverName() !== 'pgsql') {
+            return;
+        }
+
         // List of tables to disable RLS
         $tables = [
             'users',
@@ -582,7 +558,6 @@ return new class extends Migration {
             'activities',
             'void_requests',
             'shift_reports',
-            'griller_attendance',
             'deleted_data',
         ];
 
@@ -602,6 +577,6 @@ return new class extends Migration {
             // Disable RLS
             DB::statement("ALTER TABLE {$table} DISABLE ROW LEVEL SECURITY;");
         }
-        */
+
     }
 };

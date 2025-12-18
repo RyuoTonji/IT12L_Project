@@ -3,7 +3,7 @@
 @section('content')
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" x-data="{ activeTab: 0 }">
         <div class="p-6 text-gray-900">
-            <div class="flex justify-between items-center mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 md:gap-0">
                 <h3 class="text-2xl font-bold text-gray-800 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
@@ -12,23 +12,35 @@
                     </svg>
                     Inventory Management
                 </h3>
-                <a href="{{ route('inventory.report') }}"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 mr-2 flex items-center inline-flex transition-colors duration-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Daily Report
-                </a>
-                <button onclick="document.getElementById('addStockModal').classList.remove('hidden')"
-                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add New Ingredient
-                </button>
+
+                <div class="flex gap-2 flex-wrap justify-center md:justify-end w-full md:w-auto">
+                    <a href="{{ route('inventory.stock-in-history') }}"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Stock-In History
+                    </a>
+                    <a href="{{ route('inventory.daily-report') }}"
+                        class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Daily Report
+                    </a>
+                    <button onclick="document.getElementById('addStockModal').classList.remove('hidden')"
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Stock In
+                    </button>
+                </div>
             </div>
 
             <!-- Tabs Navigation -->
@@ -115,14 +127,28 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')"
-                                                class="text-indigo-600 hover:text-indigo-900 mr-3">Update Stock</button>
+                                                class="text-indigo-600 hover:text-indigo-900 mr-3 inline-flex items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                </svg>
+                                                Update Stock
+                                            </button>
                                             <form action="{{ route('inventory.destroy', $inventory->id) }}" method="POST"
                                                 class="inline-block" onsubmit="return false;">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="button"
                                                     onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())"
-                                                    class="text-gray-600 hover:text-gray-900">Archive</button>
+                                                    class="text-gray-600 hover:text-gray-900 inline-flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                    </svg>
+                                                    Archive
+                                                </button>
                                             </form>
                                         </td>
                                     </tr>
@@ -145,7 +171,7 @@
     <div id="addStockModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold">Add New Ingredient</h3>
+                <h3 class="text-lg font-bold">Stock In</h3>
                 <button onclick="document.getElementById('addStockModal').classList.add('hidden')"
                     class="text-gray-400 hover:text-gray-600">
                     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,22 +179,40 @@
                     </svg>
                 </button>
             </div>
-            <form action="{{ route('inventory.add') }}" method="POST">
+            <form action="{{ route('inventory.stock-in') }}" method="POST" id="stockInForm">
                 @csrf
                 <div class="mb-4">
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Ingredient Name</label>
-                    <input type="text" name="name" id="name" required
+                    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select name="category_id" id="category_id" required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        onchange="loadMenuItems()">
+                        <option value="">Select Category</option>
+                        @php
+                            $categories = \App\Models\Category::orderBy('sort_order')->get();
+                        @endphp
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="menu_item_id" class="block text-sm font-medium text-gray-700 mb-1">Menu Item</label>
+                    <select name="menu_item_id" id="menu_item_id" required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        disabled>
+                        <option value="">Select category first</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="stock_quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity to Add</label>
+                    <input type="number" name="quantity" id="stock_quantity" step="0.01" min="0.01" required
                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                 </div>
                 <div class="mb-4">
-                    <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">Initial Quantity</label>
-                    <input type="number" name="quantity" id="quantity" step="0.01" required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                </div>
-                <div class="mb-4">
-                    <label for="unit" class="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                    <input type="text" name="unit" id="unit" placeholder="kg, pcs, liters, etc." required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Reason / Notes</label>
+                    <textarea name="reason" id="reason" rows="2"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        placeholder="e.g. Daily delivery, New stock"></textarea>
                 </div>
 
                 <div class="flex justify-end gap-3">
@@ -187,10 +231,37 @@
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
-                        Add Ingredient
+                        Add Stock
                     </button>
                 </div>
             </form>
+
+            <script>
+                function loadMenuItems() {
+                    const categoryId = document.getElementById('category_id').value;
+                    const menuItemSelect = document.getElementById('menu_item_id');
+
+                    if (!categoryId) {
+                        menuItemSelect.disabled = true;
+                        menuItemSelect.innerHTML = '<option value="">Select category first</option>';
+                        return;
+                    }
+
+                    // Fetch menu items for this category
+                    fetch(`/api/menu-items/${categoryId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            menuItemSelect.disabled = false;
+                            menuItemSelect.innerHTML = '<option value="">Select menu item</option>';
+                            data.forEach(item => {
+                                const option = document.createElement('option');
+                                option.value = item.id;
+                                option.textContent = item.name;
+                                menuItemSelect.appendChild(option);
+                            });
+                        });
+                }
+            </script>
         </div>
     </div>
 
@@ -249,7 +320,7 @@
             @foreach($inventoriesByCategory as $categoryName => $items)
                 paginateTable('table-cat-{{ $loop->index }}', 10);
             @endforeach
-                    });
+                                        });
 
         function paginateTable(tableId, rowsPerPage) {
             const table = document.getElementById(tableId);
@@ -292,10 +363,10 @@
 
                 // Previous Button
                 html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
-                                                class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                ${page === 1 ? 'disabled' : ''}>
-                                                ${prevIcon}
-                                             </button>`;
+                                                                    class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                    ${page === 1 ? 'disabled' : ''}>
+                                                                    ${prevIcon}
+                                                                 </button>`;
 
                 // Generate Page Numbers
                 let range = [];
@@ -317,21 +388,21 @@
                     } else {
                         const isActive = item === page;
                         const classes = isActive
-                            ? 'bg-blue-600 text-white font-bold'
+                            ? 'bg-gray-800 text-white font-bold'
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
-                                                        class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                                        ${item}
-                                                     </button>`;
+                                                                            class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                                            ${item}
+                                                                         </button>`;
                     }
                 });
 
                 // Next Button
                 html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
-                                                class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                ${page === pCount ? 'disabled' : ''}>
-                                                ${nextIcon}
-                                             </button>`;
+                                                                    class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                    ${page === pCount ? 'disabled' : ''}>
+                                                                    ${nextIcon}
+                                                                 </button>`;
 
                 // Add flex styling
                 html = '<div class="flex justify-end items-center space-x-2 w-full">' + html + '</div>';

@@ -6,12 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\LogsDeletes;
+use App\Traits\SyncsToSupabase;
 
 class MenuItem extends Model
 {
-    use HasFactory, SoftDeletes, LogsDeletes;
+    use HasFactory, SoftDeletes, LogsDeletes, SyncsToSupabase;
 
-    protected $fillable = ['category_id', 'name', 'description', 'price', 'image', 'is_available'];
+    protected $fillable = ['category_id', 'name', 'description', 'price', 'image', 'availability'];
 
     public function category()
     {
@@ -79,7 +80,7 @@ class MenuItem extends Model
         $ingredients = $this->inventoryItems;
 
         if ($ingredients->isEmpty()) {
-            return 999999; // Unlimited if no ingredients are tracked
+            return 0; // Strictly return 0 if no ingredients are linked/tracked
         }
 
         $maxable = [];

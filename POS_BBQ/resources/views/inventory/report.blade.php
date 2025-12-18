@@ -36,9 +36,28 @@
                 </div>
             </div>
 
-            <!-- Date Filter -->
+            <!-- Branch Tabs -->
+            <div class="mb-6">
+                <div class="inline-flex rounded-lg border border-gray-200 bg-white p-1">
+                    @foreach ([
+                        'all' => 'All Branches',
+                        '1' => 'Branch 1',
+                        '2' => 'Branch 2'
+                    ] as $branchValue => $label)
+                        <a href="{{ route('inventory.report', ['date' => $date, 'branch' => $branchValue]) }}"
+                            class="{{ $branch == $branchValue 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-white text-gray-700 hover:bg-gray-50' }}
+                                px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
             <div class="mb-6 bg-gray-50 p-4 rounded-lg">
                 <form action="{{ route('inventory.report') }}" method="GET" class="flex items-end gap-4">
+                    <input type="hidden" name="branch" value="{{ $branch }}">
                     <div>
                         <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Report Date</label>
                         <input type="date" name="date" id="date" value="{{ $date }}"
@@ -46,6 +65,46 @@
                             onchange="this.form.submit()">
                     </div>
                 </form>
+            </div>
+
+            <!-- Daily Inventory Flow Table -->
+            <div class="mb-8">
+                <h4 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Daily Inventory Flow
+                </h4>
+                <div class="bg-white border rounded-lg overflow-hidden shadow-sm overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ingredient</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Start Limit</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider text-green-600">Stock In (Added)</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider text-orange-600">Stock Out (Sold)</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider text-red-600">Spoilage</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider text-blue-600">End Limit</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @forelse($reportData as $data)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $data->name }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-600">{{ number_format($data->start_count, 2) }} {{ $data->unit }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-green-600 font-medium">+{{ number_format($data->stock_in, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-orange-600 font-medium">-{{ number_format($data->stock_out, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-red-600">-{{ number_format($data->spoilage, 2) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-blue-600">{{ number_format($data->end_count, 2) }} {{ $data->unit }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No inventory items found.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">

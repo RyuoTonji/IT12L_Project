@@ -63,7 +63,7 @@ class OrderController extends Controller
 
         $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true)
+                $query->where('availability', true)
                     ->orderBy('name');
             }
         ])->get();
@@ -209,14 +209,26 @@ class OrderController extends Controller
 
         $order->load(['orderItems.menuItem', 'table']);
 
+        // Fetch available tables AND the current table if it exists
+        $tables = Table::where(function ($query) use ($order) {
+            $query->where('status', 'available');
+            if ($order->table_id) {
+                $query->orWhere('id', $order->table_id);
+            }
+        })
+            ->when($user->branch_id, function ($query) use ($user) {
+                return $query->where('branch_id', $user->branch_id);
+            })
+            ->get();
+
         $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true)
+                $query->where('availability', true)
                     ->orderBy('name');
             }
         ])->get();
 
-        return view('cashier.orders.edit', compact('order', 'categories'));
+        return view('cashier.orders.edit', compact('order', 'categories', 'tables'));
     }
 
     public function update(Request $request, Order $order)
@@ -234,6 +246,9 @@ class OrderController extends Controller
 
         $request->validate([
             'status' => 'required|in:' . $allowedStatuses,
+            'order_type' => 'required|in:dine-in,takeout',
+            'table_id' => 'nullable|exists:tables,id|required_if:order_type,dine-in',
+            'customer_name' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|exists:order_items,id',
             'items.*.menu_item_id' => 'required|exists:menu_items,id',
@@ -245,6 +260,49 @@ class OrderController extends Controller
         DB::beginTransaction();
 
         try {
+            // Handle Table/Order Type Changes
+            $oldOrderType = $order->order_type;
+            $newOrderType = $request->order_type;
+            $oldTableId = $order->table_id;
+            $newTableId = $request->table_id;
+
+            // If changing from dine-in to takeout, or changing tables, free the old table
+            if (
+                ($oldOrderType === 'dine-in' && $newOrderType === 'takeout') ||
+                ($oldOrderType === 'dine-in' && $newOrderType === 'dine-in' && $oldTableId != $newTableId)
+            ) {
+
+                if ($oldTableId) {
+                    $oldTable = Table::find($oldTableId);
+                    if ($oldTable) {
+                        $oldTable->status = 'available';
+                        $oldTable->save();
+                    }
+                }
+                // If switching to takeout, clear table_id
+                if ($newOrderType === 'takeout') {
+                    $order->table_id = null;
+                }
+            }
+
+            // If changing from takeout to dine-in, or changing tables, occupy the new table
+            if (
+                ($oldOrderType === 'takeout' && $newOrderType === 'dine-in') ||
+                ($oldOrderType === 'dine-in' && $newOrderType === 'dine-in' && $oldTableId != $newTableId)
+            ) {
+
+                $newTable = Table::find($newTableId);
+                if ($newTable) {
+                    $newTable->status = 'occupied';
+                    $newTable->save();
+                    $order->table_id = $newTableId;
+                }
+            }
+
+            // Update basic order details
+            $order->order_type = $newOrderType;
+            $order->customer_name = $request->customer_name;
+
             // Update order status
             $oldStatus = $order->status;
             $newStatus = $request->status;
@@ -277,13 +335,28 @@ class OrderController extends Controller
 
             foreach ($request->items as $item) {
                 $menuItem = MenuItem::find($item['menu_item_id']);
+                $orderItem = null;
 
+                // 1. Check if ID provided and exists
                 if (isset($item['id']) && $existingItems->has($item['id'])) {
-                    // Update existing item
                     $orderItem = $existingItems->get($item['id']);
+                }
+                // 2. Fallback: Check if item already exists in this order (by menu_item_id and notes)
+                // This prevents duplicates if user re-submits form with items that lost their IDs (e.g. back button)
+                else {
+                    $orderItem = $existingItems->filter(function ($existing) use ($item) {
+                        return $existing->menu_item_id == $item['menu_item_id'] &&
+                            (string) ($existing->notes ?? '') === (string) ($item['notes'] ?? '');
+                    })->first();
+                }
+
+                if ($orderItem) {
+                    // Update existing item
 
                     // Restore old inventory
-                    $this->manageInventory(Order::find($orderItem->order_id)->orderItems->where('id', $orderItem->id)->first()->menuItem, $orderItem->quantity, 'restore');
+                    // We need to fetch the original menu item associated with the order item to restore correct stock
+                    // Note: If menu_item_id changed (unlikely here as we matched by it), we restore old, deduct new.
+                    $this->manageInventory($orderItem->menuItem, $orderItem->quantity, 'restore');
 
                     $orderItem->menu_item_id = $menuItem->id;
                     $orderItem->quantity = $item['quantity'];
@@ -352,7 +425,7 @@ class OrderController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
     public function updateStatus(Request $request, Order $order)
     {
@@ -397,25 +470,33 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Order status updated successfully',
-                'order' => [
-                    'id' => $order->id,
-                    'status' => $order->status,
-                    'updated_at' => $order->updated_at
-                ]
-            ]);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order status updated successfully',
+                    'order' => [
+                        'id' => $order->id,
+                        'status' => $order->status,
+                        'updated_at' => $order->updated_at
+                    ]
+                ]);
+            }
+
+            return back()->with('success', 'Order status updated successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
             Log::error('Error updating order status: ' . $e->getMessage());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Error updating order status: ' . $e->getMessage()
-            ], 500);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error updating order status: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Error updating order status: ' . $e->getMessage());
         }
     }
 

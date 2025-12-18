@@ -150,7 +150,7 @@
                     <div class="bg-white rounded-xl shadow-xl border border-gray-100 p-6 sticky top-6">
                         <div class="flex items-center justify-between mb-6">
                             <h3 class="text-lg font-bold text-gray-900">Sales Performance</h3>
-                            <span class="px-2 py-1 text-xs font-semibold text-green-700 bg-green-100 rounded-full">30
+                            <span class="text-xs font-semibold text-green-600">30
                                 Days</span>
                         </div>
 

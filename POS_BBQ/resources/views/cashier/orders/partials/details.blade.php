@@ -49,7 +49,7 @@
                             <p class="text-xs text-gray-500 italic ml-4">Note: {{ $item->notes }}</p>
                         @endif
                     </div>
-                    <span class="font-medium">₱{{ number_format($item->price * $item->quantity, 2) }}</span>
+                    <span class="font-medium">₱{{ number_format($item->unit_price * $item->quantity, 2) }}</span>
                 </div>
             @endforeach
         </div>
@@ -75,7 +75,7 @@
                 <div>
                     <span class="text-gray-600">Status:</span>
                     <span class="inline-flex items-center text-xs leading-5 font-semibold
-                                            {{ $order->payment_status == 'paid' ? 'text-green-600' :
+                                                {{ $order->payment_status == 'paid' ? 'text-green-600' :
             ($order->payment_status == 'refunded' ? 'text-red-600' : 'text-yellow-600') }}">
                         @if($order->payment_status == 'paid')
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"

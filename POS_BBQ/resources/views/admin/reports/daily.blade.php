@@ -43,57 +43,67 @@
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div class="bg-green-100 p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-medium text-green-800">Total Sales</h2>
-                    <p class="text-2xl font-bold">₱{{ number_format($totalSales, 2) }}</p>
+                    <h2 class="text-lg font-bold text-green-800">Total Sales</h2>
+                    <p class="text-2xl font-bold text-green-800 text-right mt-2">₱{{ number_format($totalSales, 2) }}</p>
                 </div>
                 <div class="bg-red-100 p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-medium text-red-800">Total Refunds (Est.)</h2>
-                    <p class="text-2xl font-bold">₱{{ number_format(abs($totalRefunds), 2) }}</p>
+                    <h2 class="text-lg font-bold text-red-800">Total Refunds (Est.)</h2>
+                    <p class="text-2xl font-bold text-red-800 text-right mt-2">₱{{ number_format(abs($totalRefunds), 2) }}</p>
                 </div>
                 <div class="bg-blue-100 p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-medium text-blue-800">Shift Reports</h2>
-                    <p class="text-2xl font-bold">{{ $shiftReports->count() }}</p>
+                    <h2 class="text-lg font-bold text-blue-800">Shift Reports</h2>
+                    <p class="text-2xl font-bold text-blue-800 text-right mt-2">{{ $shiftReports->count() }}</p>
                 </div>
             </div>
 
             <!-- Shift Reports Section -->
             <div class="mb-8">
                 <h2 class="text-xl font-medium mb-4 border-b pb-2">Staff Shift Reports</h2>
-                @forelse($shiftReports as $report)
-                    <div class="bg-gray-50 p-4 rounded-lg mb-4 border">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="font-bold text-lg">{{ $report->user->name }}</span>
-                                <span class="text-sm text-gray-500 ml-2">({{ ucfirst($report->user->role) }})</span>
-                            </div>
-                            <span
-                                class="inline-flex text-xs leading-5 font-semibold items-center {{ $report->status == 'reviewed' ? 'text-green-600' : 'text-yellow-600' }}">
-                                {{ ucfirst($report->status) }}
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-4 mb-2 text-sm">
-                            <div>Orders: {{ $report->total_orders }}</div>
-                            <div>Sales: ₱{{ number_format($report->total_sales, 2) }}</div>
-                            <div>Refunds: ₱{{ number_format($report->total_refunds, 2) }}</div>
-                        </div>
-                        <div class="bg-white p-3 rounded border mb-2">
-                            <p class="text-gray-700 whitespace-pre-wrap">{{ $report->content }}</p>
-                        </div>
-                        @if($report->admin_reply)
-                            <div class="bg-blue-50 p-3 rounded border text-sm">
-                                <span class="font-bold text-blue-800">Admin Reply:</span>
-                                <p class="text-gray-700">{{ $report->admin_reply }}</p>
-                            </div>
-                        @else
-                            <div class="mt-2">
-                                <a href="{{ route('admin.shift-reports.show', $report) }}"
-                                    class="text-blue-600 hover:text-blue-800 text-sm">View & Reply</a>
-                            </div>
-                        @endif
-                    </div>
-                @empty
+                @if($shiftReports->isEmpty())
                     <p class="text-gray-500 italic">No shift reports submitted for this date.</p>
-                @endforelse
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 bg-white border rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Sales</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Refunds</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                @foreach($shiftReports as $report)
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $report->user->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ucfirst($report->user->role) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">{{ $report->total_orders }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">₱{{ number_format($report->total_sales, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">₱{{ number_format($report->total_refunds, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <span class="text-xs font-semibold {{ $report->status == 'reviewed' ? 'text-green-600' : 'text-yellow-600' }}">
+                                                {{ ucfirst($report->status) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                            <a href="{{ route('admin.shift-reports.show', $report) }}" 
+                                               class="text-blue-600 hover:text-blue-900 font-medium flex items-center justify-end">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                View & Reply
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
 
             <!-- Void Requests Section -->

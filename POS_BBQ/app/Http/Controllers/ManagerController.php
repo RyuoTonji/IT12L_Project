@@ -155,4 +155,12 @@ class ManagerController extends Controller
 
         return view('manager.reports.inventory', compact('stockIns', 'preparedDishes', 'date'));
     }
+
+    public function getOrderDetails($id)
+    {
+        $order = Order::with(['user', 'branch', 'table', 'orderItems.menuItem', 'payments', 'voidRequests.approver', 'voidRequests.requester'])
+            ->findOrFail($id);
+
+        return view('admin.orders.partials.details', compact('order'));
+    }
 }

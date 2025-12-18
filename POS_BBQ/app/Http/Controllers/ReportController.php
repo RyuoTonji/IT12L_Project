@@ -12,6 +12,19 @@ class ReportController extends Controller
     {
         $query = Activity::with('user');
 
+        // Tab Filtering (Role-based)
+        $activeTab = $request->get('role', 'cashier');
+        $validTabs = ['cashier', 'inventory', 'manager'];
+
+        if (!in_array($activeTab, $validTabs)) {
+            $activeTab = 'cashier';
+        }
+
+        // Apply role filter based on tab
+        $query->whereHas('user', function ($q) use ($activeTab) {
+            $q->where('role', $activeTab);
+        });
+
         if ($request->has('action') && $request->action != '') {
             $query->where('action', $request->action);
         }
@@ -24,9 +37,18 @@ class ReportController extends Controller
             $query->whereDate('created_at', $request->date);
         }
 
-        $activities = $query->latest()->paginate(20);
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('action', 'like', '%' . $search . '%')
+                    ->orWhere('details', 'like', '%' . $search . '%');
+            });
+        }
 
-        return view('reports.index', compact('activities'));
+        $activities = $query->latest()->paginate(20)->appends($request->all());
+        $users = \App\Models\User::orderBy('name')->get();
+
+        return view('reports.index', compact('activities', 'users', 'activeTab'));
     }
 
     public function store(Request $request)

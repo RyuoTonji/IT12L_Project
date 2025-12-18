@@ -114,12 +114,14 @@ class DashboardController extends Controller
         $branch2OrdersAllTime = Order::where('branch_id', 2)->count();
 
         $branch1LostAllTime = InventoryAdjustment::whereHas('inventory', function ($q) {
-            $q->where('branch_id', 1); })
+            $q->where('branch_id', 1);
+        })
             ->whereIn('adjustment_type', ['spoilage', 'damaged'])
             ->sum('quantity');
 
         $branch2LostAllTime = InventoryAdjustment::whereHas('inventory', function ($q) {
-            $q->where('branch_id', 2); })
+            $q->where('branch_id', 2);
+        })
             ->whereIn('adjustment_type', ['spoilage', 'damaged'])
             ->sum('quantity');
 
@@ -352,7 +354,7 @@ class DashboardController extends Controller
 
     public function getOrderDetails($id)
     {
-        $order = Order::with(['user', 'branch', 'table', 'orderItems.menuItem', 'payments'])
+        $order = Order::with(['user', 'branch', 'table', 'orderItems.menuItem', 'payments', 'voidRequests.approver', 'voidRequests.requester'])
             ->findOrFail($id);
 
         return view('admin.orders.partials.details', compact('order'));

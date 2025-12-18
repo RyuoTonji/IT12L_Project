@@ -15,16 +15,18 @@
                 <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
                     <form action="{{ route('admin.reports.activities') }}" method="GET"
                         class="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+                        <input type="hidden" name="role" value="{{ $activeTab }}">
 
                         <!-- Search Input -->
                         <div class="relative rounded-md shadow-sm w-full md:w-48">
-                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
+                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
                                 class="w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm pl-8">
-                             <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                            <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                 <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                                 </svg>
-                             </div>
+                            </div>
                         </div>
 
                         <!-- Date Filter -->
@@ -36,7 +38,8 @@
 
                         <!-- User Filter -->
                         <div class="w-full md:w-auto">
-                            <select name="user_id" onchange="this.form.submit()" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                            <select name="user_id" onchange="this.form.submit()"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
                                 <option value="">All Users</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
@@ -58,6 +61,19 @@
                 </div>
             </div>
 
+            <!-- Tabs Navigation -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    @foreach(['cashier' => 'Cashier', 'inventory' => 'Inventory', 'manager' => 'Manager'] as $key => $label)
+                        <a href="{{ route('admin.reports.activities', ['role' => $key]) }}"
+                            class="{{ $activeTab === $key ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} 
+                                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                            {{ $label }}
+                        </a>
+                    @endforeach
+                </nav>
+            </div>
+
             @if($activities->isEmpty())
                 <p class="text-gray-500 text-center py-8">No recent activities found.</p>
             @else
@@ -65,19 +81,26 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Action</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Details</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             @foreach($activities as $activity)
-                                <tr class="hover:bg-gray-50 cursor-pointer transition-colors" 
+                                <tr class="hover:bg-gray-50 cursor-pointer transition-colors"
                                     onclick="openActivityModal('{{ $activity->created_at->format('Y-m-d H:i') }}', '{{ $activity->user->name ?? 'System' }}', '{{ addslashes($activity->action) }}', '{{ addslashes($activity->details) }}', '{{ $activity->status }}')">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $activity->created_at->format('Y-m-d H:i') }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $activity->user->name ?? 'System' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {{ $activity->created_at->format('Y-m-d H:i') }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {{ $activity->user->name ?? 'System' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $activity->action }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-500">
                                         <div class="max-w-xs truncate">{{ $activity->details }}</div>
@@ -85,14 +108,14 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         @php
                                             $statusClasses = match ($activity->status) {
-                                                'success' => 'text-green-600 bg-green-100',
-                                                'warning' => 'text-yellow-600 bg-yellow-100',
-                                                'error', 'danger' => 'text-red-600 bg-red-100',
-                                                'info' => 'text-blue-600 bg-blue-100',
-                                                default => 'text-gray-600 bg-gray-100',
+                                                'success' => 'text-green-600',
+                                                'warning' => 'text-yellow-600',
+                                                'error', 'danger' => 'text-red-600',
+                                                'info' => 'text-blue-600',
+                                                default => 'text-gray-600',
                                             };
                                         @endphp
-                                        <span class="inline-flex px-2 py-1 rounded-full text-xs font-semibold leading-5 {{ $statusClasses }}">
+                                        <span class="inline-flex text-xs font-semibold leading-5 {{ $statusClasses }}">
                                             {{ ucfirst($activity->status ?? 'N/A') }}
                                         </span>
                                     </td>
@@ -116,7 +139,8 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Activity Details</h3>
                     <button onclick="closeActivityModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                            </path>
                         </svg>
                     </button>
                 </div>
@@ -143,7 +167,8 @@
                     </div>
                 </div>
                 <div class="mt-6 text-right">
-                    <button onclick="closeActivityModal()" class="px-4 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300">
+                    <button onclick="closeActivityModal()"
+                        class="px-4 py-2 bg-gray-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300">
                         Close
                     </button>
                 </div>
@@ -166,13 +191,13 @@
         }
 
         // Close modal when clicking outside
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             const modal = document.getElementById('activityModal');
             if (event.target == modal) {
                 closeActivityModal();
             }
         }
     </script>
-        </div>
+    </div>
     </div>
 @endsection

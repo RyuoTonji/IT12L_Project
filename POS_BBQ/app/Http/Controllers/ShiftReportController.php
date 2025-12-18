@@ -28,7 +28,9 @@ class ShiftReportController extends Controller
 
         if ($reportType === 'sales') {
             // Calculate today's stats for manager/cashier
-            $orders = Order::where('user_id', $user->id)
+            $orders = Order::with('orderItems.menuItem')
+                ->withTrashed()
+                ->where('branch_id', $user->branch_id)
                 ->whereDate('created_at', $today)
                 ->get();
 
@@ -38,11 +40,30 @@ class ShiftReportController extends Controller
                 ->where('payment_status', 'refunded')
                 ->sum('total_amount');
 
-            return view('reports.create', compact('totalOrders', 'totalSales', 'totalRefunds', 'today', 'reportType', 'reportHistory'));
+            return view('reports.create', compact('totalOrders', 'totalSales', 'totalRefunds', 'today', 'reportType', 'reportHistory', 'orders'));
         } else {
             // For inventory role
             return view('reports.create', compact('today', 'reportType', 'reportHistory'));
         }
+    }
+
+    /**
+     * Check if user has submitted today's shift report (AJAX)
+     */
+    public function check()
+    {
+        $user = Auth::user();
+
+        // Admin role doesn't need reports
+        if ($user->role === 'admin') {
+            return response()->json(['has_report' => true]);
+        }
+
+        $hasReport = ShiftReport::where('user_id', $user->id)
+            ->whereDate('shift_date', today())
+            ->exists();
+
+        return response()->json(['has_report' => $hasReport]);
     }
 
     /**
@@ -62,7 +83,8 @@ class ShiftReportController extends Controller
             $shiftDate = Carbon::parse($request->shift_date);
 
             // Recalculate stats for the specified date
-            $orders = Order::where('user_id', $user->id)
+            $orders = Order::withTrashed()
+                ->where('branch_id', $user->branch_id)
                 ->whereDate('created_at', $shiftDate)
                 ->get();
 
@@ -121,6 +143,19 @@ class ShiftReportController extends Controller
     {
         $query = ShiftReport::with('user');
 
+        // Tab Filtering (Role-based)
+        $activeTab = $request->get('tab', 'cashier');
+        $validTabs = ['cashier', 'inventory', 'manager'];
+
+        if (!in_array($activeTab, $validTabs)) {
+            $activeTab = 'cashier';
+        }
+
+        // Apply role filter based on tab
+        $query->whereHas('user', function ($q) use ($activeTab) {
+            $q->where('role', $activeTab);
+        });
+
         // Search functionality
         if ($request->has('search') && $request->search != '') {
             $searchTerm = $request->search;
@@ -131,7 +166,9 @@ class ShiftReportController extends Controller
             });
         }
 
-        // Filter by Staff
+        // Filter by Staff (Scoped to the current role tab potentially, but existing logic assumes all users)
+        // Ideally we only show staff matching the role, but for now we keep generic filter if needed, 
+        // or rely on the tab filter to narrow down the results primarily.
         if ($request->has('user_id') && $request->user_id != '') {
             $query->where('user_id', $request->user_id);
         }
@@ -149,10 +186,10 @@ class ShiftReportController extends Controller
         $reports = $query->latest()->paginate(20)
             ->appends($request->all()); // Preserve filters in pagination
 
-        // Fetch all users for the filter dropdown
+        // Fetch users for the filter dropdown - strictly speaking good to filter by role too but generic is fine
         $users = \App\Models\User::orderBy('name')->get();
 
-        return view('admin.shift_reports.index', compact('reports', 'users'));
+        return view('admin.shift_reports.index', compact('reports', 'users', 'activeTab'));
     }
 
     /**
@@ -179,5 +216,97 @@ class ShiftReportController extends Controller
         ]);
 
         return back()->with('success', 'Reply sent successfully.');
+    }
+
+    /**
+     * Export all shift reports as PDF (with current filters).
+     */
+    public function exportAll(Request $request)
+    {
+        $query = ShiftReport::with('user');
+
+        //Apply the same filters as index method
+        $activeTab = $request->get('tab', 'cashier');
+        $validTabs = ['cashier', 'inventory', 'manager'];
+
+        if (!in_array($activeTab, $validTabs)) {
+            $activeTab = 'cashier';
+        }
+
+        $query->whereHas('user', function ($q) use ($activeTab) {
+            $q->where('role', $activeTab);
+        });
+
+        if ($request->has('search') && $request->search != '') {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                $q->whereHas('user', function ($uq) use ($searchTerm) {
+                    $uq->where('name', 'like', '%' . $searchTerm . '%');
+                })->orWhere('content', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        if ($request->has('user_id') && $request->user_id != '') {
+            $query->where('user_id', $request->user_id);
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->has('date') && $request->date != '') {
+            $query->whereDate('shift_date', $request->date);
+        }
+
+        $reports = $query->latest()->get();
+
+        // Get metadata
+        $exporter = auth()->user();
+        $branch = $exporter->branch;
+        $exportDate = now()->format('F d, Y');
+        $exportTime = now()->format('h:i A');
+        $filterSummary = $this->buildFilterSummary($request, $activeTab);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.shift_reports_all_pdf', compact(
+            'reports',
+            'exporter',
+            'branch',
+            'exportDate',
+            'exportTime',
+            'activeTab',
+            'filterSummary'
+        ));
+
+        return $pdf->download('shift_reports_all_' . now()->format('Y-m-d_His') . '.pdf');
+    }
+
+    /**
+     * Build filter summary string for export
+     */
+    private function buildFilterSummary(Request $request, $activeTab)
+    {
+        $filters = [];
+        $filters[] = "Role: " . ucfirst($activeTab);
+
+        if ($request->has('date') && $request->date != '') {
+            $filters[] = "Date: " . \Carbon\Carbon::parse($request->date)->format('M d, Y');
+        }
+
+        if ($request->has('user_id') && $request->user_id != '') {
+            $user = \App\Models\User::find($request->user_id);
+            if ($user) {
+                $filters[] = "Staff: " . $user->name;
+            }
+        }
+
+        if ($request->has('status') && $request->status != '') {
+            $filters[] = "Status: " . ucfirst($request->status);
+        }
+
+        if ($request->has('search') && $request->search != '') {
+            $filters[] = "Search: " . $request->search;
+        }
+
+        return implode(' | ', $filters);
     }
 }

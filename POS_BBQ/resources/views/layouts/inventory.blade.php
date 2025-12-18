@@ -8,6 +8,8 @@
 
     <title>Inventory Management</title>
 
+    <link rel="icon" href="{{ asset('logo_black.png') }}" type="image/png">
+
     <!-- Fonts -->
     <link href="{{ asset('fonts/fonts.css') }}" rel="stylesheet">
 
@@ -18,10 +20,25 @@
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100">
         <!-- Navigation -->
-        <nav class="bg-white border-b border-gray-100">
+        <nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex">
+                        <!-- Hamburger -->
+                        <div class="-mr-2 flex items-center sm:hidden mr-4">
+                            <button @click="open = ! open"
+                                class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
+                                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                    <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
+                                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6h16M4 12h16M4 18h16" />
+                                    <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden"
+                                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
                         <!-- Logo -->
                         <div class="shrink-0 flex items-center">
                             <a href="{{ route('inventory.dashboard') }}">
@@ -77,19 +94,12 @@
                                     {{ __('Profile') }}
                                 </x-dropdown-link>
 
-                                <x-dropdown-link :href="route('shift-reports.create')" class="flex items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    {{ __('Make Report') }}
-                                </x-dropdown-link>
+
 
                                 <!-- Authentication -->
-                                <form method="POST" action="{{ route('logout') }}">
+                                <form method="POST" action="{{ route('logout') }}" id="logout-form-inventory">
                                     @csrf
-                                    <button type="submit"
+                                    <button type="button" id="logout-btn-inventory"
                                         class="block w-full text-left px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
@@ -104,7 +114,52 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Responsive Navigation Menu -->
+            <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
+                <div class="pt-2 pb-3 space-y-1">
+                    <x-responsive-nav-link :href="route('inventory.dashboard')"
+                        :active="request()->routeIs('inventory.dashboard')">
+                        {{ __('Inventory') }}
+                    </x-responsive-nav-link>
+
+                    <x-responsive-nav-link :href="route('inventory.stock-in-history')"
+                        :active="request()->routeIs('inventory.stock-in-history')">
+                        {{ __('Stock-In History') }}
+                    </x-responsive-nav-link>
+
+                    <x-responsive-nav-link :href="route('inventory.daily-report')"
+                        :active="request()->routeIs('inventory.daily-report')">
+                        {{ __('Daily Report') }}
+                    </x-responsive-nav-link>
+                </div>
+
+                <!-- Responsive Settings Options -->
+                <div class="pt-4 pb-1 border-t border-gray-200">
+                    <div class="px-4">
+                        <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                        <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                    </div>
+
+                    <div class="mt-3 space-y-1">
+                        <x-responsive-nav-link :href="route('profile.edit')">
+                            {{ __('Profile') }}
+                        </x-responsive-nav-link>
+
+                        <!-- Authentication -->
+                        <form method="POST" action="{{ route('logout') }}" id="mobile-logout-form-inventory">
+                            @csrf
+                            <button type="button" onclick="document.getElementById('logout-btn-inventory').click()"
+                                class="block w-full pl-3 pr-4 py-2 border-l-4 border-transparent text-left text-base font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:text-gray-800 focus:bg-gray-50 focus:border-gray-300 transition duration-150 ease-in-out">
+                                {{ __('Log Out') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </nav>
+
+        @include('components.offline-status-alert')
 
         <!-- Page Content -->
         <main>
@@ -120,6 +175,54 @@
 
         <!-- Flash Messages -->
         @include('components.flash-messages')
+
+        <!-- Shift Report Reminder Modal -->
+        <div id="report-reminder-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">⚠️ Daily Report Required</h3>
+                    <p class="mb-6 text-gray-700">You must submit a daily report before logging out. This ensures
+                        proper end-of-day accountability.</p>
+                    <a href="{{ route('inventory.daily-report') }}"
+                        class="block w-full text-center bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 transition">
+                        Submit Report Now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Logout interception for shift report check
+            document.addEventListener('DOMContentLoaded', function () {
+                const logoutBtn = document.getElementById('logout-btn-inventory');
+                const logoutForm = document.getElementById('logout-form-inventory');
+                const modal = document.getElementById('report-reminder-modal');
+
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+
+                        // Check if shift report exists
+                        fetch('{{ route('shift-report.check') }}')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.has_report) {
+                                    // Allow logout
+                                    logoutForm.submit();
+                                } else {
+                                    // Show modal
+                                    modal.classList.remove('hidden');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error checking shift report:', error);
+                                // If error, show modal to be safe
+                                modal.classList.remove('hidden');
+                            });
+                    });
+                }
+            });
+        </script>
     </div>
 </body>
 

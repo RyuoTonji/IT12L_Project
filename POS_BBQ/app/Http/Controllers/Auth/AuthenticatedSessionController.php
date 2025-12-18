@@ -42,6 +42,19 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $user = Auth::user();
+
+        // Check if user role requires shift report
+        if (in_array($user->role, ['cashier', 'inventory', 'manager'])) {
+            $hasReport = \App\Models\ShiftReport::where('user_id', $user->id)
+                ->whereDate('shift_date', today())
+                ->exists();
+
+            if (!$hasReport) {
+                return back()->with('error', 'You must submit your shift report before logging out.');
+            }
+        }
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();

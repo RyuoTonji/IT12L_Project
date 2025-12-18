@@ -63,7 +63,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('inventory/report', [InventoryController::class, 'report'])->name('admin.inventory.report');
     Route::post('inventory/stock-in', [InventoryController::class, 'stockIn'])->name('admin.inventory.stock-in');
-    Route::resource('inventory', InventoryController::class);
+    Route::resource('inventory', InventoryController::class)->names('admin.inventory');
     Route::resource('staff', StaffController::class);
 
     Route::post('/staff/{staff}/update-status', [StaffController::class, 'updateStatus'])->name('staff.update-status');
@@ -105,7 +105,23 @@ Route::prefix('inventory')->middleware(['auth', 'role:inventory'])->group(functi
     Route::delete('/{inventory}', [\App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
     Route::get('/report', [\App\Http\Controllers\InventoryController::class, 'report'])->name('inventory.report');
     Route::post('/stock-in', [\App\Http\Controllers\InventoryController::class, 'stockIn'])->name('inventory.stock-in');
+
+    // Stock-In History
+    Route::get('/stock-in-history', [\App\Http\Controllers\InventoryController::class, 'stockInHistory'])->name('inventory.stock-in-history');
+
+    // Daily Inventory Reports
+    Route::get('/daily-report', [\App\Http\Controllers\InventoryController::class, 'createDailyReport'])->name('inventory.daily-report');
+    Route::post('/daily-report', [\App\Http\Controllers\InventoryController::class, 'storeDailyReport'])->name('inventory.daily-report.store');
 });
+
+// API Route for menu items by category (used by Stock In modal)
+Route::get('/api/menu-items/{category}', function ($categoryId) {
+    return \App\Models\MenuItem::where('category_id', $categoryId)
+        ->where('availability', true)
+        ->select('id', 'name')
+        ->orderBy('name')
+        ->get();
+})->middleware('auth');
 
 Route::prefix('manager')->middleware(['auth', 'role:manager'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\ManagerController::class, 'index'])->name('manager.dashboard');
@@ -118,13 +134,16 @@ Route::prefix('manager')->middleware(['auth', 'role:manager'])->group(function (
     Route::post('/void-requests/{voidRequest}/approve', [\App\Http\Controllers\Manager\VoidRequestController::class, 'approve'])->name('manager.void-requests.approve');
     Route::post('/void-requests/{voidRequest}/reject', [\App\Http\Controllers\Manager\VoidRequestController::class, 'reject'])->name('manager.void-requests.reject');
     Route::get('/void-requests/export-pdf', [\App\Http\Controllers\Manager\VoidRequestController::class, 'exportPdf'])->name('manager.void-requests.export-pdf');
+
+    // Order details route for modal
+    Route::get('/orders/{order}/details', [\App\Http\Controllers\ManagerController::class, 'getOrderDetails'])->name('manager.orders.details');
 });
 
 // General Report Routes (accessible by authorized roles)
 Route::middleware(['auth'])->group(function () {
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 
-
+    Route::get('/shift-report/check', [\App\Http\Controllers\ShiftReportController::class, 'check'])->name('shift-report.check');
     Route::get('/shift-reports/create', [\App\Http\Controllers\ShiftReportController::class, 'create'])->name('shift-reports.create');
     Route::post('/shift-reports', [\App\Http\Controllers\ShiftReportController::class, 'store'])->name('shift-reports.store');
 });
@@ -132,8 +151,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/shift-reports', [\App\Http\Controllers\ShiftReportController::class, 'index'])->name('admin.shift-reports.index');
-    Route::get('/shift-reports/{shiftReport}', [\App\Http\Controllers\ShiftReportController::class, 'show'])->name('admin.shift-reports.show');
-    Route::post('/shift-reports/{shiftReport}/reply', [\App\Http\Controllers\ShiftReportController::class, 'reply'])->name('admin.shift-reports.reply');
+    Route::get('/shift-reports/export-all', [\App\Http\Controllers\ShiftReportController::class, 'exportAll'])->name('admin.shift-reports.export-all');
 });
 
 
@@ -144,6 +162,10 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     Route::get('/export/staff', [\App\Http\Controllers\ExportController::class, 'exportStaff'])->name('export.staff');
     Route::get('/export/daily', [\App\Http\Controllers\ExportController::class, 'exportDaily'])->name('export.daily');
     Route::get('/export/report/{report}', [\App\Http\Controllers\ExportController::class, 'exportShiftReport'])->name('export.report');
+    
+    // Shared Shift Report Actions
+    Route::get('/shift-reports/{shiftReport}', [\App\Http\Controllers\ShiftReportController::class, 'show'])->name('admin.shift-reports.show');
+    Route::post('/shift-reports/{shiftReport}/reply', [\App\Http\Controllers\ShiftReportController::class, 'reply'])->name('admin.shift-reports.reply');
 });
 
 require __DIR__ . '/auth.php';
