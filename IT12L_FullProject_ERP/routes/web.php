@@ -169,7 +169,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
     });
 
-    // ✅ ADD THIS ROUTE - Cleanup cart migration flags after successful migration
+    // Cleanup cart migration flags after successful migration
 Route::post('/cart/cleanup-migration-flags', function() {
     session()->forget(['_cart_migration_needed', '_cart_old_session_id', '_cart_new_session_id']);
     return response()->json(['success' => true]);

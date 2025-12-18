@@ -20,7 +20,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         
         // ============================================================================
-        // ✅ NO CART MERGE LISTENER NEEDED
+        //  NO CART MERGE LISTENER NEEDED
         // ============================================================================
         // Cart is now session-based - same cart persists through login automatically
         // No need for Login event listener or MergeGuestCart
