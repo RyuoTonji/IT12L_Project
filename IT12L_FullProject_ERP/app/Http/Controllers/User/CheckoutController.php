@@ -13,7 +13,6 @@ class CheckoutController extends Controller
 {
     /**
      * ✅ Session-based cart (same for guest and authenticated)
-     *  FIXED: Session-based cart (same for guest and authenticated)
      */
     private function getCart()
     {
@@ -262,7 +261,7 @@ class CheckoutController extends Controller
 
             Log::info('Order items created', ['order_id' => $orderId, 'items_count' => count($orderItems)]);
 
-            //  CLEAR CART AFTER SUCCESSFUL ORDER
+            // ✅ CLEAR CART AFTER SUCCESSFUL ORDER
             $this->clearCartAfterCheckout($orderId);
 
             DB::commit();
@@ -280,7 +279,6 @@ class CheckoutController extends Controller
             }
             
             // ✅ Regular redirect for non-AJAX
-            //  Redirect with clear_cart flag for frontend
             return redirect()->route('checkout.confirm', ['order_id' => $orderId])
                 ->with('success', 'Pickup order placed successfully!')
                 ->with('clear_cart', true);
@@ -307,7 +305,7 @@ class CheckoutController extends Controller
     }
     
     /**
-     *  CLEAR CART AFTER SUCCESSFUL CHECKOUT
+     * ✅ CLEAR CART AFTER SUCCESSFUL CHECKOUT
      */
     private function clearCartAfterCheckout($orderId)
     {
