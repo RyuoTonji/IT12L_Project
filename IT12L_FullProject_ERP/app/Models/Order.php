@@ -56,9 +56,9 @@ class Order extends Model
         return $query->where('status', 'confirmed');
     }
 
-    public function scopeDelivered($query)
+    public function scopePickedUp($query)
     {
-        return $query->where('status', 'delivered');
+        return $query->where('status', 'pickedup');
     }
 
     public function scopeCancelled($query)

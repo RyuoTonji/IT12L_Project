@@ -76,6 +76,32 @@
 
         <!-- Right Column - Details & Actions -->
         <div class="col-lg-4">
+                        <!-- Update Status -->
+            <div class="card detail-card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0 text-light"><i class="fas fa-edit"></i> Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form action="<?php echo e(route('admin.orders.updateStatus', $order->id)); ?>" method="POST">
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('PATCH'); ?>
+                        <div class="mb-3">
+                            <label for="status" class="form-label fw-bold">Order Status</label>
+                            <select name="status" id="status" class="form-select status-select" required>
+                                <option value="pending" <?php echo e($order->status == 'pending' ? 'selected' : ''); ?>>Pending</option>
+                                <option value="confirmed" <?php echo e($order->status == 'confirmed' ? 'selected' : ''); ?>>Confirmed</option>
+                                <option value="preparing" <?php echo e($order->status == 'preparing' ? 'selected' : ''); ?>>Preparing</option>
+                                <option value="ready" <?php echo e($order->status == 'ready' ? 'selected' : ''); ?>>Ready for Pickup</option>
+                                <option value="picked up" <?php echo e($order->status == 'picked up' ? 'selected' : ''); ?>>Picked Up</option>
+                                <option value="cancelled" <?php echo e($order->status == 'cancelled' ? 'selected' : ''); ?>>Cancelled</option>
+                            </select>                   
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save"></i> Update Status
+                        </button>   
+                    </form>
+                </div>
+            </div>
             <!-- Order Details -->
             <div class="card detail-card mb-4">
                 <div class="card-header">
@@ -93,13 +119,15 @@
                                 $statusClass = [
                                     'pending' => 'pending',
                                     'confirmed' => 'confirmed',
-                                    'delivered' => 'completed',
+                                    'preparing' => 'preparing',
+                                    'ready' => 'ready',
+                                    'picked up' => 'completed',
                                     'cancelled' => 'cancelled'
                                 ];
                                 $badgeClass = $statusClass[$order->status] ?? 'pending';
                             ?>
                             <span class="status-badge <?php echo e($badgeClass); ?>">
-                                <?php echo e(ucfirst($order->status)); ?>
+                                <?php echo e($order->status === 'ready' ? 'Ready for Pickup' : ucfirst($order->status)); ?>
 
                             </span>
                         </span>
@@ -162,33 +190,7 @@
                 </div>
             </div>
 
-            <!-- Update Status -->
-            <div class="card detail-card">
-                <div class="card-header bg-warning">
-                    <h5 class="mb-0 text-light"><i class="fas fa-edit"></i> Update Status</h5>
-                </div>
-                <div class="card-body">
-                    <form action="<?php echo e(route('admin.orders.updateStatus', $order->id)); ?>" method="POST">
-                        <?php echo csrf_field(); ?>
-                        <?php echo method_field('PATCH'); ?>
-                        <div class="mb-3">
-                            <label for="status" class="form-label fw-bold">Order Status</label>
-                            <select name="status" id="status" class="form-select status-select" required>
-                                <option value="pending" <?php echo e($order->status == 'pending' ? 'selected' : ''); ?>>Pending</option>
-                                <option value="confirmed" <?php echo e($order->status == 'confirmed' ? 'selected' : ''); ?>>Confirmed</option>
-                                <option value="delivered" <?php echo e($order->status == 'delivered' ? 'selected' : ''); ?>>Delivered</option>
-                                <option value="cancelled" <?php echo e($order->status == 'cancelled' ? 'selected' : ''); ?>>Cancelled</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-save"></i> Update Status
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <?php $__env->startPush('styles'); ?>
 <style>
@@ -309,7 +311,6 @@
 
     /* Quantity Badge */
     .quantity-badge {
-
         color: #000000ff;
         padding: 0.25rem 0.75rem;
         border-radius: 12px;
@@ -369,12 +370,19 @@
         color: #0aa2c0;
     }
 
+    .status-badge.preparing {
+        color: #6610f2;
+    }
+
+    .status-badge.ready {
+        color: #fd7e14;
+    }
+
     .status-badge.completed { 
         color: #198754;
     }
 
     .status-badge.cancelled {
-   
         color: #bb2d3b;
     }
 
@@ -418,8 +426,7 @@
     }
 
     @media (max-width: 576px) {
-        .category-badge,
-        .branch-badge {
+        .status-badge {
             font-size: 0.75rem;
             padding: 0.3rem 0.6rem;
         }
@@ -427,4 +434,4 @@
 </style>
 <?php $__env->stopPush(); ?>
 <?php $__env->stopSection(); ?>
-<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\User\Videos\Project_IT12\sabio\IT12L_Project\IT12L_FullProject_ERP\resources\views/admin/orders/show.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\resources\views/admin/orders/show.blade.php ENDPATH**/ ?>

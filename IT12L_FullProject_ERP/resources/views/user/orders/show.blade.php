@@ -14,28 +14,27 @@
     </nav>
 
     <!-- Header: Order ID + Status Badge -->
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>
-        <i class="fas fa-receipt"></i> Order #{{ $order->id }}
-    </h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-receipt"></i> Order #{{ $order->id }}
+        </h2>
 
-    @php
-        $statusTextClasses = [
-            'pending'    => 'text-warning',
-            'confirmed'  => 'text-info',
-            'delivered'  => 'text-success',
-            'cancelled'  => 'text-danger',
-            'processing' => 'text-primary',
-            'shipped'    => 'text-cyan',
-            // add more as needed
-        ];
-        $textClass = $statusTextClasses[$order->status] ?? 'text-muted';
-    @endphp
+        @php
+            $statusTextClasses = [
+                'pending'    => 'text-warning',
+                'confirmed'  => 'text-info',
+                'preparing'  => 'text-primary',
+                'ready'      => 'text-orange',
+                'picked up'  => 'text-success',
+                'cancelled'  => 'text-danger',
+            ];
+            $textClass = $statusTextClasses[$order->status] ?? 'text-muted';
+        @endphp
 
-    <span class="badge rounded-pill {{ $textClass }} fs-5 fw-semibold">
-        {{ ucfirst(str_replace('_', ' ', $order->status)) }}
-    </span>
-</div>
+        <span class="badge rounded-pill {{ $textClass }} fs-5 fw-semibold">
+            {{ $order->status === 'ready' ? 'Ready for Pickup' : ucfirst(str_replace('_', ' ', $order->status)) }}
+        </span>
+    </div>
 
     <div class="row">
         <!-- Left Column: Items & Timeline -->
@@ -91,7 +90,7 @@
                 <div class="card-body">
                     <div class="timeline">
                         <!-- Order Placed -->
-                        <div class="timeline-item {{ in_array($order->status, ['pending', 'confirmed', 'delivered']) ? 'active' : '' }}">
+                        <div class="timeline-item {{ in_array($order->status, ['pending', 'confirmed', 'preparing', 'ready', 'picked up']) ? 'active' : '' }}">
                             <div class="timeline-icon bg-warning text-white">
                                 <i class="fas fa-clock"></i>
                             </div>
@@ -104,27 +103,53 @@
                         </div>
 
                         <!-- Confirmed -->
-                        <div class="timeline-item {{ in_array($order->status, ['confirmed', 'delivered']) ? 'active' : '' }}">
+                        <div class="timeline-item {{ in_array($order->status, ['confirmed', 'preparing', 'ready', 'picked up']) ? 'active' : '' }}">
                             <div class="timeline-icon bg-info text-white">
                                 <i class="fas fa-check-circle"></i>
                             </div>
                             <div class="timeline-content">
                                 <h6>Order Confirmed</h6>
                                 <p class="text-muted small mb-0">
-                                    {{ in_array($order->status, ['confirmed', 'delivered']) ? 'Your order has been confirmed' : 'Waiting for confirmation' }}
+                                    {{ in_array($order->status, ['confirmed', 'preparing', 'ready', 'picked up']) ? 'Your order has been confirmed' : 'Waiting for confirmation' }}
                                 </p>
                             </div>
                         </div>
 
-                        <!-- Delivered -->
-                        <div class="timeline-item {{ $order->status === 'delivered' ? 'active' : '' }}">
+                        <!-- Preparing -->
+                        <div class="timeline-item {{ in_array($order->status, ['preparing', 'ready', 'picked up']) ? 'active' : '' }}">
+                            <div class="timeline-icon bg-primary text-white">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Preparing</h6>
+                                <p class="text-muted small mb-0">
+                                    {{ in_array($order->status, ['preparing', 'ready', 'picked up']) ? 'Your order is being prepared' : 'Not started yet' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Ready for Pickup -->
+                        <div class="timeline-item {{ in_array($order->status, ['ready', 'picked up']) ? 'active' : '' }}">
+                            <div class="timeline-icon timeline-icon-orange text-white">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h6>Ready for Pickup</h6>
+                                <p class="text-muted small mb-0">
+                                    {{ in_array($order->status, ['ready', 'picked up']) ? 'Your order is ready to be picked up!' : 'Pending preparation' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Picked Up -->
+                        <div class="timeline-item {{ $order->status === 'picked up' ? 'active' : '' }}">
                             <div class="timeline-icon bg-success text-white">
                                 <i class="fas fa-check-double"></i>
                             </div>
                             <div class="timeline-content">
-                                <h6>Delivered</h6>
+                                <h6>Picked Up</h6>
                                 <p class="text-muted small mb-0">
-                                    {{ $order->status === 'delivered' ? 'Order has been delivered' : 'Pending delivery' }}
+                                    {{ $order->status === 'picked up' ? 'Order has been picked up' : 'Pending pickup' }}
                                 </p>
                             </div>
                         </div>
@@ -151,12 +176,11 @@
             <!-- Delivery Info -->
             <div class="card mb-4">
                 <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-shipping-fast"></i> Delivery Information</h5>
+                    <h5 class="mb-0"><i class="fas fa-shipping-fast"></i> Customer Information</h5>
                 </div>
                 <div class="card-body">
                     <p class="mb-2"><strong>Customer Name:</strong><br>{{ $order->customer_name }}</p>
                     <p class="mb-2"><strong>Phone Number:</strong><br>{{ $order->customer_phone }}</p>
-                    <p class="mb-0"><strong>Delivery Address:</strong><br>{{ nl2br(e($order->address)) }}</p>
                 </div>
             </div>
 
@@ -190,6 +214,15 @@
 
 @push('styles')
 <style>
+    /* Custom orange color for "ready" status */
+    .text-orange {
+        color: #fd7e14 !important;
+    }
+
+    .timeline-icon-orange {
+        background-color: #fd7e14 !important;
+    }
+
     .timeline {
         position: relative;
         padding-left: 50px;

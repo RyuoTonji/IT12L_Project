@@ -77,4 +77,4 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php unset($__componentOriginalfe2bc8d0a6d110d41fdc8740012cee8d); ?>
 <?php endif; ?>
 </div>
-<?php /**PATH C:\Users\User\Videos\Project_IT12\sabio\IT12L_Project\IT12L_FullProject_ERP\vendor\laravel\framework\src\Illuminate\Foundation\Providers/../resources/exceptions/renderer/components/vendor-frame.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\vendor\laravel\framework\src\Illuminate\Foundation\Providers/../resources/exceptions/renderer/components/vendor-frame.blade.php ENDPATH**/ ?>

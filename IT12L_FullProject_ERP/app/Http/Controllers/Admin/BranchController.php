@@ -69,7 +69,7 @@ class BranchController extends Controller
         $todaySales = DB::table('orders')
             ->where('branch_id', $id)
             ->whereDate('created_at', today())
-            ->whereIn('status', ['confirmed', 'delivered'])
+            ->whereIn('status', ['confirmed', 'picked up'])
             ->whereNull('deleted_at')
             ->sum('total_amount');
 
@@ -84,7 +84,7 @@ class BranchController extends Controller
         $activeOrders = DB::table('orders')
             ->join('users', 'orders.user_id', '=', 'users.id')
             ->where('orders.branch_id', $id)
-            ->whereNotIn('orders.status', ['delivered', 'cancelled'])
+            ->whereNotIn('orders.status', ['picked up', 'cancelled'])
             ->whereNull('orders.deleted_at')
             ->select(
                 'orders.*',

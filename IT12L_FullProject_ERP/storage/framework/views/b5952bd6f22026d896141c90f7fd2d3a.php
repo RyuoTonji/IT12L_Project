@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('content')
+<?php $__env->startSection('content'); ?>
 <div class="container my-4">
     <div class="row">
         <div class="col-md-8 offset-md-2">
@@ -9,45 +7,76 @@
                     <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Dish</h4>
                 </div>
                 <div class="card-body">
-                    @if(session('error'))
+                    <?php if(session('error')): ?>
                         <div class="alert alert-danger alert-dismissible fade show">
-                            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
+                            <i class="fas fa-exclamation-circle me-2"></i><?php echo e(session('error')); ?>
+
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
-                    @endif
+                    <?php endif; ?>
 
-                    <form action="{{ route('admin.products.update', $product->id) }}" method="POST" enctype="multipart/form-data" id="productForm">
-                        @csrf
-                        @method('PUT')
+                    <form action="<?php echo e(route('admin.products.update', $product->id)); ?>" method="POST" enctype="multipart/form-data" id="productForm">
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('PUT'); ?>
 
                         <div class="mb-3">
                             <label for="branch_id" class="form-label">Branch *</label>
-                            <select name="branch_id" id="branch_id" class="form-select @error('branch_id') is-invalid @enderror" required>
+                            <select name="branch_id" id="branch_id" class="form-select <?php $__errorArgs = ['branch_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" required>
                                 <option value="">Select Branch</option>
-                                @foreach($branches as $branch)
-                                    <option value="{{ $branch->id }}" {{ old('branch_id', $product->branch_id) == $branch->id ? 'selected' : '' }}>
-                                        {{ $branch->name }}
+                                <?php $__currentLoopData = $branches; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $branch): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($branch->id); ?>" <?php echo e(old('branch_id', $product->branch_id) == $branch->id ? 'selected' : ''); ?>>
+                                        <?php echo e($branch->name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
-                            @error('branch_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['branch_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="mb-3">
                             <label for="category_id" class="form-label">Category *</label>
-                            <select name="category_id" id="category_id" class="form-select @error('category_id') is-invalid @enderror" required>
+                            <select name="category_id" id="category_id" class="form-select <?php $__errorArgs = ['category_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" required>
                                 <option value="">Select Category</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
-                                        {{ $category->name }}
+                                <?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <option value="<?php echo e($category->id); ?>" <?php echo e(old('category_id', $product->category_id) == $category->id ? 'selected' : ''); ?>>
+                                        <?php echo e($category->name); ?>
+
                                     </option>
-                                @endforeach
+                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                             </select>
-                            @error('category_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['category_id'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="mb-3">
@@ -55,24 +84,52 @@
                             <input type="text" 
                                    name="name" 
                                    id="name" 
-                                   class="form-control @error('name') is-invalid @enderror" 
-                                   value="{{ old('name', $product->name) }}" 
+                                   class="form-control <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                                   value="<?php echo e(old('name', $product->name)); ?>" 
                                    required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['name'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea name="description" 
                                       id="description" 
-                                      class="form-control @error('description') is-invalid @enderror" 
+                                      class="form-control <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                       rows="3" 
-                                      placeholder="Enter dish description, ingredients, or special notes">{{ old('description', $product->description) }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                                      placeholder="Enter dish description, ingredients, or special notes"><?php echo e(old('description', $product->description)); ?></textarea>
+                            <?php $__errorArgs = ['description'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <div class="mb-3">
@@ -80,56 +137,85 @@
                             <input type="number" 
                                    name="price" 
                                    id="price" 
-                                   class="form-control @error('price') is-invalid @enderror" 
-                                   value="{{ old('price', $product->price) }}" 
+                                   class="form-control <?php $__errorArgs = ['price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
+                                   value="<?php echo e(old('price', $product->price)); ?>" 
                                    step="0.01" 
                                    min="0" 
                                    required>
-                            @error('price')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['price'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                         </div>
 
                         <!-- ENHANCED IMAGE UPLOAD SECTION WITH EXISTING IMAGE -->
                         <div class="mb-3">
                             <label for="image" class="form-label">
-                                {{ $product->image ? 'Change Image' : 'Dish Image' }}
+                                <?php echo e($product->image ? 'Change Image' : 'Dish Image'); ?>
+
                             </label>
                             <input type="file" 
                                    name="image" 
                                    id="image" 
-                                   class="form-control d-none @error('image') is-invalid @enderror" 
+                                   class="form-control d-none <?php $__errorArgs = ['image'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" 
                                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp">
                             
                             <!-- Image Preview Container -->
                             <div class="image-upload-wrapper" id="imageUploadWrapper">
-                                <div class="image-preview-box {{ $product->image ? 'has-image' : '' }}" id="imagePreviewBox">
-                                    <div class="upload-placeholder" style="{{ $product->image ? 'display: none;' : '' }}">
+                                <div class="image-preview-box <?php echo e($product->image ? 'has-image' : ''); ?>" id="imagePreviewBox">
+                                    <div class="upload-placeholder" style="<?php echo e($product->image ? 'display: none;' : ''); ?>">
                                         <i class="fas fa-cloud-upload-alt"></i>
                                         <p class="mb-1">Click to upload image</p>
                                         <small class="text-muted d-block">or drag and drop</small>
                                     </div>
                                     <img id="imagePreview" 
-                                         src="{{ $product->image ? asset('storage/' . $product->image) : '' }}" 
+                                         src="<?php echo e($product->image ? asset('storage/' . $product->image) : ''); ?>" 
                                          alt="Preview" 
-                                         class="preview-image {{ $product->image ? '' : 'd-none' }}">
+                                         class="preview-image <?php echo e($product->image ? '' : 'd-none'); ?>">
                                     <button type="button" 
-                                            class="btn btn-sm btn-danger remove-image-btn {{ $product->image ? '' : 'd-none' }}" 
+                                            class="btn btn-sm btn-danger remove-image-btn <?php echo e($product->image ? '' : 'd-none'); ?>" 
                                             id="removeImageBtn">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
-                                @if($product->image)
+                                <?php if($product->image): ?>
                                     <input type="hidden" name="remove_image" id="removeImageFlag" value="0">
                                     <small class="text-muted d-block mt-1">
                                         <i class="fas fa-info-circle"></i> Current image will be replaced if you upload a new one
                                     </small>
-                                @endif
+                                <?php endif; ?>
                             </div>
 
-                            @error('image')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
+                            <?php $__errorArgs = ['image'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback d-block"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
                             
                             <small class="text-muted">
                                 <i class="fas fa-info-circle"></i> 
@@ -147,7 +233,7 @@
                                        id="is_available" 
                                        class="form-check-input" 
                                        value="1" 
-                                       {{ old('is_available', $product->is_available) ? 'checked' : '' }}>
+                                       <?php echo e(old('is_available', $product->is_available) ? 'checked' : ''); ?>>
                                 <label for="is_available" class="form-check-label">
                                     Available for purchase
                                 </label>
@@ -155,7 +241,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
+                            <a href="<?php echo e(route('admin.products.index')); ?>" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back
                             </a>
                             <button type="submit" class="btn btn-success">
@@ -169,7 +255,7 @@
     </div>
 </div>
 
-@push('styles')
+<?php $__env->startPush('styles'); ?>
 <style>
     /* Enhanced Image Upload Styles */
     .image-upload-wrapper {
@@ -258,9 +344,9 @@
         margin-top: 0.5rem;
     }
 </style>
-@endpush
+<?php $__env->stopPush(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const imageInput = document.getElementById('image');
@@ -269,7 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const removeImageBtn = document.getElementById('removeImageBtn');
     const imageError = document.getElementById('imageError');
     const uploadPlaceholder = imagePreviewBox.querySelector('.upload-placeholder');
-    const hasExistingImage = {{ $product->image ? 'true' : 'false' }};
+    const hasExistingImage = <?php echo e($product->image ? 'true' : 'false'); ?>;
     
     // Click to trigger file input
     imagePreviewBox.addEventListener('click', function(e) {
@@ -394,5 +480,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-@endpush
-@endsection
+<?php $__env->stopPush(); ?>
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\resources\views/admin/products/edit.blade.php ENDPATH**/ ?>

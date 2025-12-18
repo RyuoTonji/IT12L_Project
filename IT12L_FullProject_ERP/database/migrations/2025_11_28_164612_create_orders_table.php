@@ -14,8 +14,7 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
                 $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
                 $table->decimal('total_amount', 10, 2);
-                $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'])->default('pending');
-                $table->text('address')->nullable();
+                $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'picked up', 'cancelled'])->default('pending');
                 $table->string('customer_name', 100);
                 $table->string('customer_phone', 20);
                 $table->text('notes')->nullable();

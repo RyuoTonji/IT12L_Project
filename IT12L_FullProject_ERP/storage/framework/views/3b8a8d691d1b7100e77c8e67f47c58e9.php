@@ -1,7 +1,7 @@
 <?php $__env->startSection('content'); ?>
 <div class="container my-5">
     <h2 class="mb-4">
-        <i class="fas fa-shopping-cart"></i> Shopping Cart
+        <i class="fas fa-shopping-cart"></i> Food Cart
     </h2>
 
     <!-- Loading State (show by default if migration is needed) -->

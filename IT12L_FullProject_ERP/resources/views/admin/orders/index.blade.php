@@ -12,20 +12,6 @@
         </div>
     </div>
 
-    <!-- @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show">
-            <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
-            <i class="fas fa-exclamation-circle me-2"></i>{{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif -->
-
     <!-- Filters Card -->
     <div class="filters-card mb-4">
         <h5><i class="fas fa-filter"></i> Filter Orders</h5>
@@ -37,7 +23,9 @@
                         <option value="">All Status</option>
                         <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
                         <option value="confirmed" {{ request('status') == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                        <option value="delivered" {{ request('status') == 'delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="preparing" {{ request('status') == 'preparing' ? 'selected' : '' }}>Preparing</option>
+                        <option value="ready" {{ request('status') == 'ready' ? 'selected' : '' }}>Ready for Pickup</option>
+                        <option value="picked up" {{ request('status') == 'picked up' ? 'selected' : '' }}>Picked Up</option>
                         <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
                     </select>
                 </div>
@@ -114,13 +102,15 @@
                                     $statusClass = [
                                         'pending' => 'pending',
                                         'confirmed' => 'confirmed',
-                                        'delivered' => 'completed',
+                                        'preparing' => 'preparing',
+                                        'ready' => 'ready',
+                                        'picked up' => 'completed',
                                         'cancelled' => 'cancelled'
                                     ];
                                     $badgeClass = $statusClass[$order->status] ?? 'pending';
                                 @endphp
                                 <span class="status-badge {{ $badgeClass }}">
-                                    {{ ucfirst($order->status) }}
+                                    {{ $order->status === 'ready' ? 'Ready for Pickup' : ucfirst($order->status) }}
                                 </span>
                             </td>
                             <td>
@@ -331,73 +321,78 @@
     }
 
     .status-badge.pending {
-        
         color: #e0a800;
     }
 
     .status-badge.confirmed {
-        
         color: #0dcaf0;
     }
 
+    .status-badge.preparing {
+        color: #6610f2;
+    }
+
+    .status-badge.ready {
+        color: #fd7e14;
+    }
+
     .status-badge.completed {
-        
         color: #198754;
     }
 
     .status-badge.cancelled {
-        
         color: #bb2d3b;
     }
 
-    /* Action Buttons - UNIFORM SIZE MATCHING PRODUCTS PAGE */
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: stretch;
-}
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: stretch;
+    }
 
-.action-buttons form {
-    display: flex;
-    margin: 0;
-}
+    .action-buttons form {
+        display: flex;
+        margin: 0;
+    }
 
-.action-buttons .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.375rem;
-    white-space: nowrap;
-    padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
-}
+    .action-buttons .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.375rem;
+        white-space: nowrap;
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
 
-.action-buttons .btn-primary {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    border: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
+    .action-buttons .btn-primary {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        border: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
 
-.action-buttons .btn-primary:hover {
-    background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
-}
+    .action-buttons .btn-primary:hover {
+        background: linear-gradient(135deg, #0a58ca 0%, #084298 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
+    }
 
-.action-buttons .btn-danger {
-    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-    border: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
+    .action-buttons .btn-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        border: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
 
-.action-buttons .btn-danger:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
-}
+    .action-buttons .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(108, 117, 125, 0.3);
+    }
+
     /* Empty State */
     .empty-state {
         text-align: center;
@@ -436,9 +431,9 @@
 
     /* Responsive */
     @media (max-width: 992px) {
-    .action-buttons {
-        flex-direction: column;
-    }
+        .action-buttons {
+            flex-direction: column;
+        }
 
         .filter-group .form-group {
             width: 100%;
@@ -453,19 +448,15 @@
             gap: 1rem;
         }
 
-        .action-buttons {
-            flex-direction: column;
+        .action-buttons .btn {
+            width: 100%;
         }
-
-         .action-buttons .btn {
-        width: 100%;
     }
 
-        @media (max-width: 576px) {
-        .category-name strong {
+    @media (max-width: 576px) {
+        .status-badge {
             font-size: 0.75rem;
             padding: 0.3rem 0.6rem;
-        }
         }
     }
 </style>

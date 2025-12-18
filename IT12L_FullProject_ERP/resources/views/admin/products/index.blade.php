@@ -129,8 +129,9 @@
                             <td>
                                 @if($product->image)
                                     <img src="{{ asset('storage/' . $product->image) }}" 
-                                         alt="{{ $product->name }}" 
-                                         class="product-image">
+                                        alt="{{ $product->name }}" 
+                                        class="img-thumbnail" 
+                                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;">
                                 @else
                                     <div class="product-image-placeholder">
                                         <i class="fas fa-utensils"></i>

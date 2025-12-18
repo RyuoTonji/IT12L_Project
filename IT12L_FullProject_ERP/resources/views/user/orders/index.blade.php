@@ -31,13 +31,15 @@
                                             $statusClasses = [
                                                 'pending' => 'warning',
                                                 'confirmed' => 'info',
-                                                'delivered' => 'success',
+                                                'preparing' => 'primary',
+                                                'ready' => 'orange',
+                                                'picked up' => 'success',
                                                 'cancelled' => 'danger'
                                             ];
                                             $textClass = $statusClasses[$order->status] ?? 'secondary';
                                         @endphp
                                         <span class="text-{{ $textClass }} fw-semibold">
-                                            {{ ucfirst($order->status) }}
+                                            {{ $order->status === 'ready' ? 'Ready for Pickup' : ucfirst($order->status) }}
                                         </span>
                                     </h5>
                                     
@@ -58,21 +60,21 @@
                                     </p>
                                 </div>
 
-                            <div class="col-md-3 d-flex flex-column justify-content-center align-items-stretch gap-2">
-                                <a href="{{ route('orders.show', $order->id) }}" 
-                                class="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 text-nowrap">
-                                    <i class="fas fa-eye"></i>
-                                    <span>View Details</span>
-                                </a>
+                                <div class="col-md-3 d-flex flex-column justify-content-center align-items-stretch gap-2">
+                                    <a href="{{ route('orders.show', $order->id) }}" 
+                                    class="btn btn-primary d-flex align-items-center justify-content-center gap-2 px-3 py-2 text-nowrap">
+                                        <i class="fas fa-eye"></i>
+                                        <span>View Details</span>
+                                    </a>
 
-                                @if($order->status === 'pending')
-                                    <button class="btn btn-danger cancel-order d-flex align-items-center justify-content-center gap-2 px-3 py-2 text-nowrap"
-                                            data-order-id="{{ $order->id }}">
-                                        <i class="fas fa-times"></i>
-                                        <span>Cancel Order</span>
-                                    </button>
-                                @endif
-                            </div>
+                                    @if($order->status === 'pending')
+                                        <button class="btn btn-danger cancel-order d-flex align-items-center justify-content-center gap-2 px-3 py-2 text-nowrap"
+                                                data-order-id="{{ $order->id }}">
+                                            <i class="fas fa-times"></i>
+                                            <span>Cancel Order</span>
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -96,6 +98,11 @@
     
     .order-card .btn {
         white-space: nowrap;
+    }
+
+    /* Custom orange color for "ready" status */
+    .text-orange {
+        color: #fd7e14 !important;
     }
 </style>
 @endpush

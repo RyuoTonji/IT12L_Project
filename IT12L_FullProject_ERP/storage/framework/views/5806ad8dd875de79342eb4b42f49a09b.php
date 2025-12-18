@@ -167,4 +167,4 @@ unset($__defined_vars, $__key, $__value); ?>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 </div>
-<?php /**PATH C:\Users\User\Videos\Project_IT12\sabio\IT12L_Project\IT12L_FullProject_ERP\vendor\laravel\framework\src\Illuminate\Foundation\Providers/../resources/exceptions/renderer/components/vendor-frames.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\kates\Documents\IT12final\IT12L_FullProject_ERP\vendor\laravel\framework\src\Illuminate\Foundation\Providers/../resources/exceptions/renderer/components/vendor-frames.blade.php ENDPATH**/ ?>

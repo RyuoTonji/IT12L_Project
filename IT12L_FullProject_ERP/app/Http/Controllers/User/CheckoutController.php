@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class CheckoutController extends Controller
 {
     /**
-     * ✅ FIXED: Session-based cart (same for guest and authenticated)
+     * ✅ Session-based cart (same for guest and authenticated)
      */
     private function getCart()
     {
@@ -22,7 +22,6 @@ class CheckoutController extends Controller
 
     public function index(Request $request)
     {
-        // Debug logging
         Log::info('Checkout Index accessed', [
             'method' => $request->method(),
             'cart_items_input' => $request->input('cart_items'),
@@ -31,7 +30,6 @@ class CheckoutController extends Controller
             'session_id' => session()->getId()
         ]);
         
-        // Get the authenticated user
         $user = Auth::user();
         
         // Get cart items from request (sent via POST from the cart page)
@@ -71,7 +69,6 @@ class CheckoutController extends Controller
             ->get()
             ->keyBy('id');
         
-        // If no products found, redirect
         if ($products->isEmpty()) {
             Log::error('No products found in database', ['product_ids' => $productIds]);
             return redirect()->route('cart.index')->with('error', 'Invalid cart items!');
@@ -117,28 +114,37 @@ class CheckoutController extends Controller
     {
         Log::info('Checkout process started', [
             'user_id' => auth()->id(),
-            'session_id' => session()->getId()
+            'session_id' => session()->getId(),
+            'is_ajax' => $request->ajax()
         ]);
 
+        // ✅ REMOVED: address validation (pickup only)
         $request->validate([
-            'address' => 'required|string|max:500',
             'customer_name' => 'required|string|max:100',
             'customer_phone' => 'required|string|max:20',
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        // Get cart from session (stored during index method)
+        // Get cart from session
         $cart = session('checkout_cart', []);
         
         if (empty($cart)) {
             Log::warning('Process checkout with empty cart');
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your cart is empty!'
+                ], 400);
+            }
+            
             return redirect()->route('cart.index')->with('error', 'Your cart is empty!');
         }
 
         // Extract product IDs
         $productIds = array_column($cart, 'id');
         
-        // Fetch products with all details we need
+        // Fetch products
         $products = DB::table('products')
             ->whereIn('id', $productIds)
             ->get()
@@ -146,6 +152,14 @@ class CheckoutController extends Controller
 
         if ($products->isEmpty()) {
             Log::error('No products found during checkout process', ['product_ids' => $productIds]);
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid cart items!'
+                ], 400);
+            }
+            
             return redirect()->route('cart.index')->with('error', 'Invalid cart items!');
         }
 
@@ -168,6 +182,14 @@ class CheckoutController extends Controller
             // Check if product is available
             if (!$product->is_available) {
                 Log::warning('Unavailable product in cart', ['product_id' => $productId]);
+                
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Product '{$product->name}' is no longer available!"
+                    ], 400);
+                }
+                
                 return redirect()->route('cart.index')
                     ->with('error', "Product '{$product->name}' is no longer available!");
             }
@@ -192,19 +214,27 @@ class CheckoutController extends Controller
 
         if (empty($orderItems)) {
             Log::error('No valid order items after processing cart');
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid items in cart!'
+                ], 400);
+            }
+            
             return redirect()->route('cart.index')->with('error', 'No valid items in cart!');
         }
 
         try {
             DB::beginTransaction();
 
-            // Create order
+            // Create order (NO ADDRESS FIELD)
             $orderId = DB::table('orders')->insertGetId([
                 'user_id' => auth()->id(),
                 'branch_id' => $branchId,
                 'total_amount' => $total,
                 'status' => 'pending',
-                'address' => $request->address,
+                // ✅ REMOVED: address field
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
                 'notes' => $request->notes,
@@ -238,10 +268,20 @@ class CheckoutController extends Controller
 
             Log::info('Order completed successfully', ['order_id' => $orderId]);
             
-            // ✅ Redirect with clear_cart flag for frontend
+            // ✅ AJAX Response
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pickup order placed successfully!',
+                    'order_id' => $orderId,
+                    'redirect_url' => route('checkout.confirm', ['order_id' => $orderId])
+                ]);
+            }
+            
+            // ✅ Regular redirect for non-AJAX
             return redirect()->route('checkout.confirm', ['order_id' => $orderId])
-                ->with('success', 'Order placed successfully!')
-                ->with('clear_cart', true); // ← CRITICAL: Signals frontend to clear localStorage
+                ->with('success', 'Pickup order placed successfully!')
+                ->with('clear_cart', true);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -250,6 +290,14 @@ class CheckoutController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to place order. Please try again.',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
             
             return redirect()->route('cart.index')
                 ->with('error', 'Failed to place order. Please try again.');

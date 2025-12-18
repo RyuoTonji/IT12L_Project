@@ -175,7 +175,7 @@
                                                 $statusClass = [
                                                     'pending' => 'pending',
                                                     'confirmed' => 'confirmed',
-                                                    'delivered' => 'completed',
+                                                    'picked up' => 'completed',
                                                     'cancelled' => 'cancelled'
                                                 ];
                                                 $badgeClass = $statusClass[$order->status] ?? 'pending';

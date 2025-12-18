@@ -10,18 +10,31 @@
                         <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
                     </div>
                     
-                    <h2 class="mb-3">Order Placed Successfully!</h2>
+                    <h2 class="mb-3">Pickup Order Placed Successfully!</h2>
                     
                     <p class="text-muted mb-4">
-                        Thank you for your order. Your order has been received and is being processed.
+                        Thank you for your order. Your order is being prepared and will be ready for pickup soon.
                     </p>
                     
                     <div class="alert alert-info">
                         <strong>Order #{{ $order->id }}</strong>
                         <br>
-                        <small>Branch: {{ $order->branch_name }}</small>
+                        <small><i class="fas fa-store"></i> Pickup Branch: {{ $order->branch_name }}</small>
                         <br>
-                        <small>Total: ₱{{ number_format($order->total_amount, 2) }}</small>
+                        <small><i class="fas fa-map-marker-alt"></i> {{ $order->branch_address }}</small>
+                        <br>
+                        <small><i class="fas fa-receipt"></i> Total: ₱{{ number_format($order->total_amount, 2) }}</small>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Important Pickup Instructions:</strong>
+                        <ul class="text-start mt-2 mb-0">
+                            <li>Order will be ready in 30-45 minutes</li>
+                            <li>Please show order ID when picking up</li>
+                            <li>Payment will be collected at pickup (Cash/Gcash)</li>
+                            <li>Call the branch if you need assistance: {{ $order->branch_phone ?? 'See branch details' }}</li>
+                        </ul>
                     </div>
                     
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
@@ -47,9 +60,9 @@
 /**
  * ============================================================================
  * ORDER CONFIRMATION - CART CLEARING SCRIPT
- * Version: 1.0 (Compatible with cart.js v7.0 SESSION-BASED)
+ * Version: 2.0 (Pickup Only - Compatible with cart.js v7.0 SESSION-BASED)
  * 
- * Purpose: Clear cart after successful order placement
+ * Purpose: Clear cart after successful pickup order placement
  * Trigger: When session('clear_cart') is true
  * ============================================================================
  */
@@ -57,12 +70,12 @@
 (function() {
     'use strict';
     
-    console.log('📄 Order confirmation page script loaded');
+    console.log('📄 Pickup order confirmation page script loaded');
     
     // Initialize when DOM is ready
     document.addEventListener('DOMContentLoaded', function() {
         @if(session('clear_cart'))
-            console.log('🎉 Order confirmed successfully');
+            console.log('🎉 Pickup order confirmed successfully');
             console.log('🛒 Clearing cart after checkout...');
             
             // Wait for cart.js to fully initialize
@@ -76,7 +89,6 @@
     
     /**
      * Main cart clearing function
-     * Uses cart.js functions when available, with manual fallback
      */
     function performCartClearing() {
         console.log('=== Starting Cart Clearing Process ===');
@@ -104,7 +116,6 @@
             
         } catch (error) {
             console.error('❌ Error during cart clearing:', error);
-            // Attempt manual clearing as final fallback
             try {
                 manualClearCart();
             } catch (fallbackError) {
@@ -116,7 +127,6 @@
     
     /**
      * Manual cart clearing (fallback method)
-     * Replicates cart.js session-based cart key logic
      */
     function manualClearCart() {
         console.log('--- Manual Cart Clearing Started ---');
@@ -125,7 +135,6 @@
             let sessionId = getSessionId();
             
             if (sessionId) {
-                // Clear session-based cart (matches cart.js logic)
                 const cartKey = `cart_session_${sessionId}`;
                 console.log('Clearing cart with key:', cartKey);
                 localStorage.removeItem(cartKey);
@@ -134,7 +143,7 @@
                 console.warn('⚠️ Could not determine session ID');
             }
             
-            // Clean up legacy cart formats (from older versions)
+            // Clean up legacy cart formats
             cleanupLegacyCarts();
             
             // Update UI
@@ -154,17 +163,16 @@
     
     /**
      * Get session ID using multiple fallback methods
-     * Matches the logic in cart.js getCartStorageKey()
      */
     function getSessionId() {
-        // Method 1: Check meta tag (set by Laravel)
+        // Method 1: Check meta tag
         const sessionMeta = document.querySelector('meta[name="session-id"]');
         if (sessionMeta && sessionMeta.content) {
             console.log('✓ Session ID from meta tag');
             return sessionMeta.content;
         }
         
-        // Method 2: Check cookies for Laravel session
+        // Method 2: Check cookies
         const cookies = document.cookie.split(';');
         for (let cookie of cookies) {
             const [name, value] = cookie.trim().split('=');
@@ -176,7 +184,7 @@
             }
         }
         
-        // Method 3: Check localStorage for session ID
+        // Method 3: Check localStorage
         const storedSessionId = localStorage.getItem('_cart_session_id');
         if (storedSessionId) {
             console.log('✓ Session ID from localStorage');
@@ -191,7 +199,6 @@
      * Clean up legacy cart storage formats
      */
     function cleanupLegacyCarts() {
-        // Old cart key formats
         const legacyKeys = ['cart', 'cart_guest', 'Cart', 'shopping_cart'];
         let cleanedCount = 0;
         
@@ -203,7 +210,6 @@
             }
         });
         
-        // Old user-based cart format (cart_user_123)
         Object.keys(localStorage).forEach(key => {
             if (key.startsWith('cart_user_')) {
                 localStorage.removeItem(key);
@@ -222,14 +228,12 @@
      */
     function manualUpdateCartCount() {
         try {
-            // Try cart.js function first
             if (typeof window.updateCartCount === 'function') {
                 window.updateCartCount();
                 console.log('✓ Cart count updated via cart.js');
                 return;
             }
             
-            // Manual update of all possible cart badge selectors
             const selectors = [
                 '.cart-count',
                 '#cart-count',
@@ -253,8 +257,6 @@
             
             if (updatedCount > 0) {
                 console.log(`✅ Updated ${updatedCount} cart count badges to 0`);
-            } else {
-                console.log('ℹ️ No cart count badges found to update');
             }
             
         } catch (error) {
@@ -262,7 +264,7 @@
         }
     }
     
-    console.log('🛒 Order confirmation cart clearing script initialized');
+    console.log('🛒 Pickup order confirmation cart clearing script initialized');
     
 })();
 </script>

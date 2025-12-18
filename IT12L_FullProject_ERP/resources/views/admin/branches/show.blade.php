@@ -171,7 +171,7 @@
                                                     $statusMap = [
                                                         'pending' => 'pending',
                                                         'confirmed' => 'confirmed',
-                                                        'delivered' => 'completed',
+                                                        'picked up' => 'completed',
                                                         'cancelled' => 'cancelled'
                                                     ];
                                                     $statusClass = $statusMap[$order->status] ?? 'pending';

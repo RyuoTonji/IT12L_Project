@@ -160,6 +160,7 @@ class LoginController extends Controller
         Log::info('🟢 STEP 9: User authenticated - final verification', [
             'user_id' => $user->id,
             'email' => $user->email,
+            'is_admin' => $user->is_admin,
             'session_id' => session()->getId(),
             'migration_data' => [
                 'old_session' => session('_cart_old_session_id'),
@@ -168,6 +169,15 @@ class LoginController extends Controller
             ],
             'all_session_keys' => array_keys(session()->all())
         ]);
+
+        // ✅ NEW: Redirect admins to dashboard
+        if ($user->is_admin) {
+            Log::info('Admin user detected - redirecting to dashboard', [
+                'user_id' => $user->id,
+                'email' => $user->email
+            ]);
+            return redirect()->route('admin.dashboard');
+        }
 
         return redirect()->intended($this->redirectPath());
     }
@@ -181,6 +191,11 @@ class LoginController extends Controller
 
     public function redirectPath()
     {
+        // ✅ NEW: Check if user is admin (in case authenticated() didn't catch it)
+        if (Auth::check() && Auth::user()->is_admin) {
+            return '/admin/dashboard';
+        }
+
         if (request()->has('redirect')) {
             $redirect = request()->input('redirect');
             

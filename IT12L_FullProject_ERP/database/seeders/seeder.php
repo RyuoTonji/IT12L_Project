@@ -77,15 +77,15 @@ try {
         [2, 3, 'Pares Overload', 110.00, 'products/overload.png', 1],
         
         // Beverages (category_id: 4)
-        [1, 6, 'Iced Tea', 35.00, 'products/icedtea.png', 1],
-        [1, 6, 'Coke', 40.00, 'products/coke.png', 1],
-        [1, 6, 'Sprite', 40.00, 'products/sprite.png', 1],
-        [1, 6, 'Bottled Water', 25.00, 'products/water.png', 1],
-        
-        [2, 6, 'Iced Tea', 35.00, 'products/icedtea.png', 1],
-        [2, 6, 'Coke', 40.00, 'products/coke.png', 1],
-        [2, 6, 'Sprite', 40.00, 'products/sprite.png', 1],
-        [2, 6, 'Bottled Water', 25.00, 'products/water.png', 1],
+        [1, 4, 'Iced Tea', 35.00, 'products/icedtea.png', 1],
+        [1, 4, 'Coke', 40.00, 'products/coke.png', 1],
+        [1, 4, 'Sprite', 40.00, 'products/sprite.png', 1],
+        [1, 4, 'Bottled Water', 25.00, 'products/water.png', 1],
+
+        [2, 4, 'Iced Tea', 35.00, 'products/icedtea.png', 1],
+        [2, 4, 'Coke', 40.00, 'products/coke.png', 1],
+        [2, 4, 'Sprite', 40.00, 'products/sprite.png', 1],
+        [2, 4, 'Bottled Water', 25.00, 'products/water.png', 1],
         
         // Sides (category_id: 5)
         [1, 5, 'French Fries', 50.00, 'products/fries.png', 1],
@@ -97,13 +97,13 @@ try {
         [2, 5, 'Coleslaw', 40.00, 'products/coleslaw.png', 1],
                
         // Desserts (category_id: 6)
-        [1, 7, 'Halo-Halo', 80.00, 'products/halohalo.png', 1],
-        [1, 7, 'Ice Cream Sundae', 70.00, 'products/sundae.png', 1],
-        [1, 7, 'Leche Flan', 60.00, 'products/leche.png', 1],
-        
-        [2, 7, 'Halo-Halo', 80.00, 'products/halohalo.png', 1],
-        [2, 7, 'Ice Cream Sundae', 70.00, 'products/sundae.png', 1],
-        [2, 7, 'Leche Flan', 60.00, 'products/leche.png', 1]
+        [1, 6, 'Halo-Halo', 80.00, 'products/halohalo.png', 1],
+        [1, 6, 'Ice Cream Sundae', 70.00, 'products/sundae.png', 1],
+        [1, 6, 'Leche Flan', 60.00, 'products/leche.png', 1],
+
+        [2, 6, 'Halo-Halo', 80.00, 'products/halohalo.png', 1],
+        [2, 6, 'Ice Cream Sundae', 70.00, 'products/sundae.png', 1],
+        [2, 6, 'Leche Flan', 60.00, 'products/leche.png', 1]
     ];
 
     $stmt = $db->prepare("INSERT INTO products (branch_id, category_id, name, price, image, is_available) 
@@ -125,9 +125,9 @@ try {
             'phone' => '09171234567'
         ],
         [
-            'name' => 'John Doe',
-            'email' => 'john@example.com',
-            'password' => password_hash('password123', PASSWORD_BCRYPT),
+            'name' => 'lola lol',
+            'email' => 'lola@example.com',
+            'password' => password_hash('lola12345', PASSWORD_BCRYPT),
             'phone' => '09187654321'
         ],
         [
@@ -144,75 +144,7 @@ try {
     }
     echo "✓ Users seeded successfully\n\n";
 
-    // ========================================================================
-    // 5. SEED SAMPLE ORDERS
-    // ========================================================================
-    echo "Seeding sample orders...\n";
-    
-    // Order 1 - John's order
-    $stmt = $db->prepare("INSERT INTO orders (user_id, branch_id, total_amount, status, address, customer_name, customer_phone) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([
-        2, // John's user_id
-        1, // SM North branch
-        299.00,
-        'delivered',
-        '123 Main St, Quezon City',
-        'John Doe',
-        '09187654321'
-    ]);
-    $orderId1 = $db->lastInsertId();
-
-    // Order 1 items
-    $stmt = $db->prepare("INSERT INTO order_items (order_id, product_name, quantity, price) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$orderId1, 'Chicken BBQ with Rice', 1, 99.00]);
-    $stmt->execute([$orderId1, 'Fried Chicken (2pcs)', 1, 120.00]);
-    $stmt->execute([$orderId1, 'Iced Tea', 2, 35.00]);
-    $stmt->execute([$orderId1, 'Halo-Halo', 1, 80.00]);
-
-    // Order 2 - Jane's order
-    $stmt = $db->prepare("INSERT INTO orders (user_id, branch_id, total_amount, status, address, customer_name, customer_phone) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([
-        3, // Jane's user_id
-        2, // Robinsons branch
-        425.00,
-        'confirmed',
-        '456 Oak Ave, Pasig City',
-        'Jane Smith',
-        '09199876543'
-    ]);
-    $orderId2 = $db->lastInsertId();
-
-    // Order 2 items
-    $stmt = $db->prepare("INSERT INTO order_items (order_id, product_name, quantity, price) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$orderId2, 'Bacon Burger', 2, 110.00]);
-    $stmt->execute([$orderId2, 'French Fries', 2, 50.00]);
-    $stmt->execute([$orderId2, 'Carbonara', 1, 130.00]);
-    $stmt->execute([$orderId2, 'Sprite', 1, 40.00]);
-
-    // Order 3 - John's pending order
-    $stmt = $db->prepare("INSERT INTO orders (user_id, branch_id, total_amount, status, address, customer_name, customer_phone) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([
-        2, // John's user_id
-        1, // SM North branch
-        170.00,
-        'pending',
-        '123 Main St, Quezon City',
-        'John Doe',
-        '09187654321'
-    ]);
-    $orderId3 = $db->lastInsertId();
-
-    // Order 3 items
-    $stmt = $db->prepare("INSERT INTO order_items (order_id, product_name, quantity, price) VALUES (?, ?, ?, ?)");
-    $stmt->execute([$orderId3, 'Sisig with Rice', 1, 110.00]);
-    $stmt->execute([$orderId3, 'Coleslaw', 1, 40.00]);
-    $stmt->execute([$orderId3, 'Bottled Water', 1, 25.00]);
-
-    echo "✓ Orders seeded successfully\n\n";
-
+ 
     // ========================================================================
     // SUMMARY
     // ========================================================================
@@ -224,20 +156,19 @@ try {
     echo "-------------------\n";
     echo "Admin User:\n";
     echo "  Email: admin@foodorder.com\n";
-    echo "  Password: admin123\n\n";
+    echo "  Password: admin12345\n\n";
     
     echo "Regular Users:\n";
-    echo "  Email: john@example.com\n";
-    echo "  Password: password123\n\n";
+    echo "  Email: lola@example.com\n";
+    echo "  Password: lola12345\n\n";
     
     echo "  Email: jane@example.com\n";
     echo "  Password: password123\n\n";
     
     echo "Branches: 2 branches created\n";
-    echo "Categories: 7 categories created\n";
+    echo "Categories: 6 categories created\n";
     echo "Products: " . count($products) . " products created\n";
     echo "Users: 3 users created\n";
-    echo "Orders: 3 sample orders created\n\n";
 
 } catch (PDOException $e) {
     echo "ERROR: " . $e->getMessage() . "\n";

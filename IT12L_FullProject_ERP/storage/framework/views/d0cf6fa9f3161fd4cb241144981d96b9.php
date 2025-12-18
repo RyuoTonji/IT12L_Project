@@ -131,8 +131,9 @@
                             <td>
                                 <?php if($product->image): ?>
                                     <img src="<?php echo e(asset('storage/' . $product->image)); ?>" 
-                                         alt="<?php echo e($product->name); ?>" 
-                                         class="product-image">
+                                        alt="<?php echo e($product->name); ?>" 
+                                        class="img-thumbnail" 
+                                        style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;">
                                 <?php else: ?>
                                     <div class="product-image-placeholder">
                                         <i class="fas fa-utensils"></i>
