@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class CartController extends Controller
 {
     /**
-     *  SIMPLIFIED: localStorage-based cart (no database needed for cart storage)
+     * ✅ SIMPLIFIED: localStorage-based cart (no database needed for cart storage)
      * Database Cart model is kept only for backward compatibility
      */
     private function getCart()
@@ -94,7 +94,7 @@ class CartController extends Controller
     }
 
     /**
-     *  SIMPLIFIED: These methods are kept for API compatibility
+     * ✅ SIMPLIFIED: These methods are kept for API compatibility
      * But the actual cart logic is handled by localStorage (cart.js)
      */
     
@@ -248,12 +248,12 @@ class CartController extends Controller
     }
 
     /**
-     *  REMOVED: syncAfterLogin() - Not needed with localStorage approach
+     * ✅ REMOVED: syncAfterLogin() - Not needed with localStorage approach
      * The migration happens entirely in the frontend (cart.js + app.blade.php)
      */
 
     /**
-     *  OPTIONAL: Sync localStorage cart to database (if you want database backup)
+     * ✅ OPTIONAL: Sync localStorage cart to database (if you want database backup)
      * This is useful if you want to store cart in DB for analytics or recovery
      */
     public function sync(Request $request)

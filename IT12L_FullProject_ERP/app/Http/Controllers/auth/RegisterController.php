@@ -27,13 +27,13 @@ class RegisterController extends Controller
     }
 
     /**
-     * Proper session data preservation through regeneration (matching LoginController)
+     * ✅ FIXED: Proper session data preservation through regeneration (matching LoginController)
      */
     public function register(Request $request)
     {
         $this->validateRegistration($request);
 
-        //  STEP 1: Capture OLD session ID BEFORE registration/login
+        // ✅ STEP 1: Capture OLD session ID BEFORE registration/login
         $oldSessionId = $request->session()->getId();
         
         Log::info('Registration attempt', [
@@ -42,7 +42,7 @@ class RegisterController extends Controller
         ]);
 
         try {
-            //  STEP 2: Create user
+            // ✅ STEP 2: Create user
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
@@ -56,7 +56,7 @@ class RegisterController extends Controller
                 'email' => $user->email
             ]);
 
-            //  STEP 3: Login the user
+            // ✅ STEP 3: Login the user
             Auth::login($user, $request->boolean('remember'));
 
             Log::info('🟢 STEP 3: User logged in after registration', [
@@ -64,7 +64,7 @@ class RegisterController extends Controller
                 'user_id' => $user->id
             ]);
 
-            //  CRITICAL FIX: Store in regular session BEFORE regeneration
+            // ✅ CRITICAL FIX: Store in regular session BEFORE regeneration
             // Don't use flash() - it can be lost during regenerate()
             $request->session()->put('_temp_old_session_id', $oldSessionId);
             
@@ -98,11 +98,11 @@ class RegisterController extends Controller
     }
 
     /**
-     *  FIXED: Proper session data preservation through regeneration (matching LoginController)
+     * ✅ FIXED: Proper session data preservation through regeneration (matching LoginController)
      */
     protected function sendRegistrationResponse(Request $request, $user)
     {
-        //  STEP 5: Get old session ID from temp storage BEFORE regeneration
+        // ✅ STEP 5: Get old session ID from temp storage BEFORE regeneration
         $oldSessionId = $request->session()->get('_temp_old_session_id');
         
         if (!$oldSessionId) {
@@ -118,10 +118,10 @@ class RegisterController extends Controller
             ]);
         }
         
-        //  STEP 6: Regenerate session (for security)
+        // ✅ STEP 6: Regenerate session (for security)
         $request->session()->regenerate();
 
-        //  STEP 7: Get NEW session ID after regeneration
+        // ✅ STEP 7: Get NEW session ID after regeneration
         $newSessionId = $request->session()->getId();
         
         Log::info('🟢 STEP 6-7: After session regeneration', [
@@ -129,13 +129,13 @@ class RegisterController extends Controller
             'old_session_preserved' => $oldSessionId !== null
         ]);
         
-        //  STEP 8: Now store migration data in the NEW session
+        // ✅ STEP 8: Now store migration data in the NEW session
         if ($oldSessionId && $oldSessionId !== $newSessionId) {
             $request->session()->put('_cart_old_session_id', $oldSessionId);
             $request->session()->put('_cart_new_session_id', $newSessionId);
             $request->session()->put('_cart_migration_needed', true);
             
-            // CRITICAL: Save the session immediately to ensure data persists
+            // ✅ CRITICAL: Save the session immediately to ensure data persists
             $request->session()->save();
             
             Log::info('🟡 STEP 8: Migration data stored in new session', [
@@ -151,10 +151,10 @@ class RegisterController extends Controller
             ]);
         }
         
-        // STEP 9: Clean up temp storage
+        // ✅ STEP 9: Clean up temp storage
         $request->session()->forget('_temp_old_session_id');
 
-        // STEP 10: Final verification
+        // ✅ STEP 10: Final verification
         Log::info('🟢 STEP 10: User registered - final verification', [
             'user_id' => $user->id,
             'email' => $user->email,
