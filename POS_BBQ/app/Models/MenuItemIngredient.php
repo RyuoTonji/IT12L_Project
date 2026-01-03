@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SyncsToSupabase;
 
 class MenuItemIngredient extends Model
 {
-    use HasFactory;
+    use HasFactory, SyncsToSupabase;
 
     protected $fillable = [
         'menu_item_id',

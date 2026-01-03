@@ -7,9 +7,16 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-blue-100 p-4 rounded-lg">
                     <h4 class="font-bold text-blue-800">Recent Activities</h4>
-                    <p class="text-2xl">{{ $recentActivities->count() }}</p>
+                    <p class="text-2xl font-bold text-blue-800 text-right mt-2">{{ $recentActivities->count() }}</p>
                 </div>
-                <!-- Add more stats here -->
+                <div class="bg-green-100 p-4 rounded-lg">
+                    <h4 class="font-bold text-green-800">Day Sales</h4>
+                    <p class="text-2xl font-bold text-green-800 text-right mt-2">₱{{ number_format($todaySales, 2) }}</p>
+                </div>
+                <div class="bg-yellow-100 p-4 rounded-lg">
+                    <h4 class="font-bold text-yellow-800">Today's Orders</h4>
+                    <p class="text-2xl font-bold text-yellow-800 text-right mt-2">{{ $todayOrders }}</p>
+                </div>
             </div>
         </div>
     </div>
@@ -17,8 +24,10 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium">Recent Activity Logs</h3>
-                <a href="{{ route('manager.reports') }}" class="text-blue-600 hover:text-blue-900">View All</a>
+                <h2 class="text-xl font-semibold text-gray-800">Recent Activity Logs</h2>
+                <a href="{{ route('reports.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                    View All →
+                </a>
             </div>
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">

@@ -43,20 +43,20 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @foreach($reports as $report)
+                            @foreach($activities as $activity)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $report->created_at->format('Y-m-d H:i') }}</td>
+                                        {{ $activity->created_at->format('Y-m-d H:i') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {{ $report->user->name ?? 'System' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $report->action }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-500">{{ $report->details }}</td>
+                                        {{ $activity->user->name ?? 'System' }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $activity->action }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-500">{{ $activity->details }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                     <div class="mt-4">
-                        {{ $reports->links() }}
+                        {{ $activities->links() }}
                     </div>
                 </div>
             </div>

@@ -4,29 +4,66 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Menu Items Report</h1>
-                <a href="{{ route('admin.reports') }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Reports</a>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Menu Items Report
+                </h1>
+                <div>
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2zm2-10l4 4m-4 0l4-4m-4 4V7" />
+                        </svg>
+                        Export PDF
+                    </button>
+                    <a href="{{ route('admin.reports') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
+                </div>
             </div>
 
-            <!-- Date Range Filter -->
+            <!-- Date Range & Category Filter -->
             <div class="bg-gray-50 p-4 rounded-lg border mb-6">
                 <form action="{{ route('admin.reports.items') }}" method="GET" class="flex flex-wrap items-end gap-4">
                     <div>
                         <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                         <input type="date" name="start_date" id="start_date" value="{{ $startDate }}"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            onchange="this.form.submit()">
                     </div>
 
                     <div>
                         <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                         <input type="date" name="end_date" id="end_date" value="{{ $endDate }}"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            onchange="this.form.submit()">
                     </div>
 
                     <div>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply
-                            Filter</button>
+                        <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Filter
+                            Category</label>
+                        <select name="category_id" id="category_id"
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-full md:w-48"
+                            onchange="this.form.submit()">
+                            <option value="all">All Categories</option>
+                            @foreach($allCategories as $category)
+                                <option value="{{ $category->id }}" {{ isset($categoryId) && $categoryId == $category->id ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </form>
             </div>
@@ -70,16 +107,21 @@
                         </div>
                     </div>
                     <div>
-                        <div class="h-64">
-                            <canvas id="categoryChart"></canvas>
-                        </div>
+                        <div id="categoryChart" class="w-full flex justify-center items-center"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Top Selling Items -->
             <div class="bg-white p-4 rounded-lg shadow border">
-                <h2 class="text-lg font-medium mb-4">Top Selling Items</h2>
+                <h2 class="text-lg font-medium mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-indigo-600" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    Top Selling Items
+                </h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full bg-white">
                         <thead>
@@ -96,94 +138,118 @@
                                 <th
                                     class="py-2 px-4 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Total Sales</th>
-                                <th
-                                    class="py-2 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @forelse($topItems as $item)
-                                <tr>
+                                <tr onclick="window.location.href='{{ route('menu.show', ['menu' => $item->id, 'source' => 'report']) }}'"
+                                    class="cursor-pointer hover:bg-gray-50">
                                     <td class="py-2 px-4">{{ $item->name }}</td>
                                     <td class="py-2 px-4">{{ $item->category_name }}</td>
                                     <td class="py-2 px-4 text-right">{{ $item->total_quantity }}</td>
                                     <td class="py-2 px-4 text-right">₱{{ number_format($item->total_sales, 2) }}</td>
-                                    <td class="py-2 px-4 text-center">
-                                        <a href="{{ route('menu.show', $item->id) }}"
-                                            class="text-blue-600 hover:text-blue-900">View Item</a>
-                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="py-4 px-4 text-center text-gray-500">No item data found</td>
+                                    <td colspan="4" class="py-4 px-4 text-center text-gray-500">No item data found</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+                <div class="mt-4">
+                    {{ $topItems->links('vendor.pagination.custom') }}
+                </div>
             </div>
         </div>
     </div>
 
+    {{-- ApexCharts CDN --}}
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Category Chart
+            // ApexCharts Implementation
+            const categoryData = {
+                series: [
+                    @foreach($categories as $category)
+                        {{ $category->total_sales }},
+                    @endforeach
+                                    ],
+                labels: [
+                    @foreach($categories as $category)
+                        '{{ $category->name }}',
+                    @endforeach
+                                    ]
+            };
 
-            Chart.defaults.font.size = 16;
-
-            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-            const categoryChart = new Chart(categoryCtx, {
-                type: 'pie',
-                data: {
-                    labels: [
-                        @foreach($categories as $category)
-                            '{{ $category->name }}',
-                        @endforeach
-                        ],
-                    datasets: [{
-                        data: [
-                            @foreach($categories as $category)
-                                {{ $category->total_sales }},
-                            @endforeach
-                            ],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)',
-                            'rgba(16, 185, 129, 0.7)',
-                            'rgba(139, 92, 246, 0.7)',
-                            'rgba(244, 114, 182, 0.7)',
-                            'rgba(251, 191, 36, 0.7)',
-                        ],
-                        borderColor: [
-                            'rgba(59, 130, 246, 1)',
-                            'rgba(16, 185, 129, 1)',
-                            'rgba(139, 92, 246, 1)',
-                            'rgba(244, 114, 182, 1)',
-                            'rgba(251, 191, 36, 1)',
-                        ],
-                        borderWidth: 1
-                    }]
+            const options = {
+                series: categoryData.series,
+                chart: {
+                    width: '100%',
+                    height: 350,
+                    type: 'pie',
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    const label = context.label || '';
-                                    const value = context.raw;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: $${value.toFixed(2)} (${percentage}%)`;
-                                }
-                            }
+                labels: categoryData.labels,
+                colors: [
+                    '#3B82F6', // Blue
+                    '#10B981', // Emerald
+                    '#8B5CF6', // Violet
+                    '#F472B6', // Pink
+                    '#FBBF24', // Amber
+                    '#6366F1', // Indigo
+                    '#EC4899', // Pink-600
+                ],
+                legend: {
+                    position: 'bottom'
+                },
+                title: {
+                    text: 'Sales Distribution by Category',
+                    align: 'center',
+                    style: {
+                        fontSize: '16px',
+                        fontWeight: '600',
+                        color: '#374151'
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (value) {
+                            return '₱' + value.toLocaleString(undefined, {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            });
                         }
                     }
-                }
-            });
+                },
+                responsive: [{
+                    breakpoint: 480,
+                    options: {
+                        chart: {
+                            width: 300
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }]
+            };
+
+            const chart = new ApexCharts(document.querySelector("#categoryChart"), options);
+            chart.render();
         });
+
+        function showExportConfirmation() {
+            const startDate = '{{ $startDate }}';
+            const endDate = '{{ $endDate }}';
+            AlertModal.showConfirm(
+                'Are you sure you want to export this items report as PDF?',
+                function () {
+                    window.location.href = `/export/items?start_date=${startDate}&end_date=${endDate}`;
+                },
+                null,
+                'Export Confirmation'
+            );
+        }
     </script>
 @endsection

@@ -46,5 +46,61 @@ class UserSeeder extends Seeder
             'status' => 'active',
         ]);
 
+        // Branch 1 Users
+        User::create([
+            'name' => 'Branch 1 Manager',
+            'email' => 'manager1@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'manager',
+            'branch_id' => 1,
+            'status' => 'active',
+        ]);
+
+
+        User::create([
+            'name' => 'Branch 1 Cashier',
+            'email' => 'cashier1@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'cashier',
+            'branch_id' => 1,
+            'status' => 'active',
+        ]);
+
+        User::create([
+            'name' => 'Branch 1 Inventory',
+            'email' => 'inventory1@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'inventory',
+            'branch_id' => 1,
+            'status' => 'active',
+        ]);
+
+        // Branch 2 Users
+        User::create([
+            'name' => 'Branch 2 Manager',
+            'email' => 'manager2@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'manager',
+            'branch_id' => 2,
+            'status' => 'active',
+        ]);
+
+        User::create([
+            'name' => 'Branch 2 Cashier',
+            'email' => 'cashier2@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'cashier',
+            'branch_id' => 2,
+            'status' => 'active',
+        ]);
+
+        User::create([
+            'name' => 'Branch 2 Inventory',
+            'email' => 'inventory2@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'inventory',
+            'branch_id' => 2,
+            'status' => 'active',
+        ]);
     }
 }

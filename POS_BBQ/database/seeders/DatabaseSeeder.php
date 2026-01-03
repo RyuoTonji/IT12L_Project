@@ -13,18 +13,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-
         $this->call([
+            BranchSeeder::class,
             UserSeeder::class,
             CategorySeeder::class,
-            MenuItemSeeder::class,
+            MenuItemSeeder::class, // Now creates inventory items and links them
             TableSeeder::class,
+            InventorySeeder::class, // Simplified, mostly empty
+            OrderSeeder::class,
+            VoidRefundSeeder::class,
+            // InventoryAdjustmentSeeder::class, // Removed - can be run separately if needed
         ]);
     }
 }

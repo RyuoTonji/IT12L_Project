@@ -8,6 +8,8 @@
 
     <title>BBQLagao&BeefPares POS</title>
 
+    <link rel="icon" href="{{ asset('logo_black.png') }}" type="image/png">
+
     <!-- Fonts -->
     {{--
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,6 +23,8 @@
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100">
         @include('layouts.navigation')
+
+        @include('components.offline-status-alert')
 
         <!-- Page Heading -->
         {{-- @isset means if the header is set, then show the header --}}

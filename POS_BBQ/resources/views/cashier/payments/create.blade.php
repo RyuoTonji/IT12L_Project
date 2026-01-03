@@ -5,8 +5,27 @@
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Process Payment for Order #{{ $order->id }}</h1>
-                <a href="{{ route('orders.show', $order) }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Order</a>
+                @if(request()->get('source') === 'list')
+                    <a href="{{ route('orders.index') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Orders
+                    </a>
+                @else
+                    <a href="{{ route('orders.show', $order) }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Order
+                    </a>
+                @endif
             </div>
 
             @if(session('error'))
@@ -91,7 +110,7 @@
                 <div>
                     <h2 class="text-lg font-medium mb-4">Payment Details</h2>
 
-                    <form action="{{ route('payments.store') }}" method="POST"
+                    <form action="{{ route('payments.store') }}" method="POST" id="paymentForm"
                         class="bg-white p-4 rounded-lg shadow border">
                         @csrf
                         <input type="hidden" name="order_id" value="{{ $order->id }}">
@@ -118,34 +137,28 @@
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                                 required>
                                 <option value="cash">Cash</option>
-                                <option value="card">Card</option>
-                                <option value="mobile">Mobile Payment</option>
+                                <option value="e-payment">E-Payment (GCash, PayPal, PayMongo)</option>
                             </select>
                         </div>
 
-                        <div id="card_details" class="mb-4 hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Card Details</label>
-                            <div class="grid grid-cols-2 gap-4">
+                        <div id="epayment_details" class="mb-4 hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">E-Payment Details</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="card_number" class="block text-xs text-gray-500 mb-1">Card Number</label>
-                                    <input type="text" name="payment_details[card_number]" id="card_number"
-                                        placeholder="**** **** **** ****"
+                                    <label for="provider" class="block text-xs text-gray-500 mb-1">Provider</label>
+                                    <select name="payment_details[provider]" id="provider"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        <option value="">Select Provider</option>
+                                        <option value="gcash">GCash</option>
+                                        <option value="paypal">PayPal</option>
+                                        <option value="paymongo">PayMongo</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label for="card_holder" class="block text-xs text-gray-500 mb-1">Card Holder</label>
-                                    <input type="text" name="payment_details[card_holder]" id="card_holder"
+                                    <label for="reference_number" class="block text-xs text-gray-500 mb-1">Reference Number / Transaction ID</label>
+                                    <input type="text" name="payment_details[reference_number]" id="reference_number"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                 </div>
-                            </div>
-                        </div>
-
-                        <div id="mobile_details" class="mb-4 hidden">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Payment Details</label>
-                            <div>
-                                <label for="transaction_id" class="block text-xs text-gray-500 mb-1">Transaction ID</label>
-                                <input type="text" name="payment_details[transaction_id]" id="transaction_id"
-                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                             </div>
                         </div>
 
@@ -155,10 +168,21 @@
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"></textarea>
                         </div>
 
-                        <div class="flex justify-end">
-                            <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
-                                class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700">Process
-                                Payment</button>
+                        <div class="flex justify-end space-x-2">
+                            <button type="button"
+                                onclick="showConfirm('Cancel payment processing?', function() { window.location.href='{{ request()->get('source') === 'list' ? route('orders.index') : route('orders.show', $order) }}' })"
+                                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                Process Payment
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -168,22 +192,24 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const paymentForm = document.getElementById('paymentForm');
             const paymentMethod = document.getElementById('payment_method');
-            const cardDetails = document.getElementById('card_details');
-            const mobileDetails = document.getElementById('mobile_details');
+            const epaymentDetails = document.getElementById('epayment_details');
 
             paymentMethod.addEventListener('change', function () {
-                if (this.value === 'card') {
-                    cardDetails.classList.remove('hidden');
-                    mobileDetails.classList.add('hidden');
-                } else if (this.value === 'mobile') {
-                    cardDetails.classList.add('hidden');
-                    mobileDetails.classList.remove('hidden');
-                } else {
-                    cardDetails.classList.add('hidden');
-                    mobileDetails.classList.add('hidden');
+                epaymentDetails.classList.add('hidden');
+
+                if (this.value === 'e-payment') {
+                    epaymentDetails.classList.remove('hidden');
                 }
             });
+
+            //            paymentForm.addEventListener('submit', function (e) {
+            //                e.preventDefault();
+            //                showConfirm('Are you sure you want to process this payment?', function () {
+            //                    paymentForm.submit();
+            //                });
+            //            });
         });
     </script>
 @endsection

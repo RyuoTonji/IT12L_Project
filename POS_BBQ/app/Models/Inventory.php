@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\SyncsToSupabase;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,7 +10,7 @@ use App\Traits\LogsDeletes;
 
 class Inventory extends Model
 {
-    use HasFactory, SoftDeletes, LogsDeletes;
+    use HasFactory, SoftDeletes, LogsDeletes, SyncsToSupabase;
 
     protected $fillable = [
         'name',
@@ -22,7 +23,16 @@ class Inventory extends Model
         'stock_out',
         'unit',
         'reorder_level',
+        'branch_id',
     ];
+
+    /**
+     * Get the branch that owns the inventory.
+     */
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     /**
      * Get the menu items that use this inventory item.

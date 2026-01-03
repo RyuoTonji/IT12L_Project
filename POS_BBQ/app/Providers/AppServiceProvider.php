@@ -19,6 +19,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Use Tailwind for pagination
+        \Illuminate\Pagination\Paginator::useTailwind();
+        \Illuminate\Pagination\Paginator::defaultView('vendor.pagination.custom');
+        \Illuminate\Pagination\Paginator::defaultSimpleView('vendor.pagination.custom');
+
+        // Share pending void requests count with admin and manager layouts
+        view()->composer(
+            ['layouts.admin', 'layouts.manager'],
+            \App\View\Composers\VoidRequestComposer::class
+        );
     }
 }

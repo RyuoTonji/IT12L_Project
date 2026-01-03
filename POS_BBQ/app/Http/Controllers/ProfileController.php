@@ -19,7 +19,7 @@ class ProfileController extends Controller
         return view('profile.edit', [
             'user' => $request->user(),
         ]);
-    } 
+    }
 
     /**
      * Update the user's profile information.
@@ -56,5 +56,44 @@ class ProfileController extends Controller
         $request->session()->regenerateToken();
 
         return Redirect::to('/');
+    }
+
+    /**
+     * Export the user's profile data as PDF.
+     */
+    public function exportData(Request $request)
+    {
+        $user = $request->user();
+
+        // Get user's orders if they created any
+        $orders = \App\Models\Order::where('user_id', $user->id)
+            ->with('orderItems.menuItem')
+            ->latest()
+            ->get();
+
+        // Get user's activity logs
+        $activities = \App\Models\Activity::where('user_id', $user->id)
+            ->latest()
+            ->limit(100)
+            ->get();
+
+        // Get user's shift reports if any
+        $shiftReports = \App\Models\ShiftReport::where('user_id', $user->id)
+            ->latest()
+            ->get();
+
+        $exportDate = now()->format('F d, Y');
+        $exportTime = now()->format('h:i A');
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.profile_data_pdf', compact(
+            'user',
+            'orders',
+            'activities',
+            'shiftReports',
+            'exportDate',
+            'exportTime'
+        ));
+
+        return $pdf->download('my_profile_data_' . now()->format('Y-m-d') . '.pdf');
     }
 }

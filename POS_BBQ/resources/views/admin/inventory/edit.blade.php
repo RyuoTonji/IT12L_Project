@@ -5,8 +5,15 @@
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Edit Inventory Item</h1>
-                <a href="{{ route('inventory.index') }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Inventory</a>
+                <a href="{{ route('admin.inventory.index') }}"
+                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Inventory
+                </a>
             </div>
 
             @if($errors->any())
@@ -19,7 +26,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('inventory.update', $inventory) }}" method="POST">
+            <form action="{{ route('admin.inventory.update', $inventory) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -67,19 +74,18 @@
                     </div>
                 </div>
 
-                <div class="mb-4">
-                    <label for="reorder_level" class="block text-sm font-medium text-gray-700 mb-1">Reorder Level</label>
-                    <input type="number" name="reorder_level" id="reorder_level"
-                        value="{{ old('reorder_level', $inventory->reorder_level) }}" step="0.01" min="0"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                        required>
-                    <p class="text-sm text-gray-500 mt-1">The minimum quantity at which you should reorder this item</p>
-                </div>
+
 
                 <div class="flex justify-end">
                     <button type="button"
                         onclick="showConfirm('Are you sure you want to update this inventory item?', function() { this.form.submit(); }.bind(this))"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Update Inventory Item</button>
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Update Inventory Item
+                    </button>
                 </div>
             </form>
         </div>

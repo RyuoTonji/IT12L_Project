@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Traits\SyncsToSupabase;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ShiftReport extends Model
 {
-    use HasFactory;
+    use HasFactory, SyncsToSupabase;
 
     protected $fillable = [
         'user_id',
@@ -25,6 +26,7 @@ class ShiftReport extends Model
         'content',
         'admin_reply',
         'status',
+        'branch_id',
     ];
 
     protected $casts = [
@@ -41,5 +43,66 @@ class ShiftReport extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
+    public function getParsedInventoryReportAttribute()
+    {
+        if (!in_array($this->report_type, ['inventory', 'inventory_start', 'inventory_end'])) {
+            return null;
+        }
+
+        $content = $this->content;
+        $lines = explode("\n", $content);
+        $messageLines = [];
+        $tableLines = [];
+        $isTableSection = false;
+        $tableType = null; // 'start' or 'end'
+
+        foreach ($lines as $line) {
+            $trimmedLine = trim($line);
+
+            if (str_contains($line, 'DETAILED INVENTORY REPORT')) {
+                $isTableSection = true;
+                continue;
+            }
+
+            if (!$isTableSection) {
+                if (!empty($trimmedLine)) {
+                    $messageLines[] = $line; // Keep original formatting/spacing for message if needed
+                }
+            } else {
+                // Table parsing logic
+                if (str_contains($line, '------'))
+                    continue; // Skip separator lines
+                if (empty($trimmedLine))
+                    continue;
+
+                // Identify header to determine type
+                if (str_contains($line, 'Item Name') && str_contains($line, 'Start Qty')) {
+                    $tableType = 'start';
+                    continue;
+                }
+                if (str_contains($line, 'Item Name') && str_contains($line, 'Added')) {
+                    $tableType = 'end';
+                    continue;
+                }
+
+                // Parse row data
+                $parts = array_map('trim', explode('|', $line));
+                if (count($parts) >= 2) {
+                    $tableLines[] = $parts;
+                }
+            }
+        }
+
+        return [
+            'message' => implode("\n", $messageLines),
+            'tableType' => $tableType,
+            'rows' => $tableLines
+        ];
     }
 }

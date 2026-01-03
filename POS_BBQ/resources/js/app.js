@@ -1,11 +1,11 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
-// import chart.js
-import Chart from 'chart.js/auto';
+// Import ApexCharts
+import ApexCharts from 'apexcharts';
 
 window.Alpine = Alpine;
-// set chart.js as global
-window.Chart = Chart;
+// Make ApexCharts globally available
+window.ApexCharts = ApexCharts;
 
 Alpine.start();

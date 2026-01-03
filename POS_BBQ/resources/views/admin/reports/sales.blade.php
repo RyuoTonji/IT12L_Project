@@ -4,33 +4,65 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Sales Report</h1>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Sales Report
+                </h1>
                 <div>
-                    <a href="{{ route('export.sales') }}"
-                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2">Export PDF</a>
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2zm2-10l4 4m-4 0l4-4m-4 4V7" />
+                        </svg>
+                        Export PDF
+                    </button>
                     <a href="{{ route('admin.reports') }}"
-                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Reports</a>
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
                 </div>
             </div>
 
             <!-- Date Range Filter -->
             <div class="bg-gray-50 p-4 rounded-lg border mb-6">
-                <form action="{{ route('admin.reports.sales') }}" method="GET" class="flex flex-wrap items-end gap-4">
+                <form id="dateFilterForm" action="{{ route('admin.reports.sales') }}" method="GET"
+                    class="flex flex-wrap items-end gap-4">
                     <div>
                         <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                         <input type="date" name="start_date" id="start_date" value="{{ $startDate }}"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            onchange="document.getElementById('dateFilterForm').submit()">
                     </div>
 
                     <div>
                         <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                         <input type="date" name="end_date" id="end_date" value="{{ $endDate }}"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            onchange="document.getElementById('dateFilterForm').submit()">
                     </div>
 
                     <div>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Apply
-                            Filter</button>
+                        <label for="user_id" class="block text-sm font-medium text-gray-700 mb-1">Filter Staff</label>
+                        <select name="user_id" id="user_id" onchange="document.getElementById('dateFilterForm').submit()"
+                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 w-full md:w-48">
+                            <option value="">All Staff</option>
+                            @foreach($users as $user)
+                                <option value="{{ $user->id }}" {{ isset($userId) && $userId == $user->id ? 'selected' : '' }}>
+                                    {{ $user->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </form>
             </div>
@@ -38,24 +70,52 @@
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded-lg shadow border">
-                    <h2 class="text-lg font-medium text-gray-700 mb-2">Total Sales</h2>
+                    <h2 class="text-lg font-medium text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Total Sales
+                    </h2>
                     <p class="text-2xl font-bold text-blue-600">₱{{ number_format($totalSales, 2) }}</p>
                 </div>
 
                 <div class="bg-white p-4 rounded-lg shadow border">
-                    <h2 class="text-lg font-medium text-gray-700 mb-2">Total Orders</h2>
+                    <h2 class="text-lg font-medium text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Total Orders
+                    </h2>
                     <p class="text-2xl font-bold text-green-600">{{ $totalOrders }}</p>
                 </div>
 
                 <div class="bg-white p-4 rounded-lg shadow border">
-                    <h2 class="text-lg font-medium text-gray-700 mb-2">Average Order Value</h2>
+                    <h2 class="text-lg font-medium text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg>
+                        Average Order Value
+                    </h2>
                     <p class="text-2xl font-bold text-purple-600">
                         ₱{{ $totalOrders > 0 ? number_format($totalSales / $totalOrders, 2) : '0.00' }}
                     </p>
                 </div>
 
                 <div class="bg-white p-4 rounded-lg shadow border">
-                    <h2 class="text-lg font-medium text-gray-700 mb-2">Date Range</h2>
+                    <h2 class="text-lg font-medium text-gray-700 mb-2 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-600" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Date Range
+                    </h2>
                     <p class="text-md font-medium">
                         {{ \Carbon\Carbon::parse($startDate)->format('M d, Y') }} -
                         {{ \Carbon\Carbon::parse($endDate)->format('M d, Y') }}
@@ -110,6 +170,9 @@
                             @endforelse
                         </tbody>
                     </table>
+                    </div>
+                    <div class="mt-4">
+                        {{ $sales->links('vendor.pagination.custom') }}
                 </div>
             </div>
 
@@ -160,6 +223,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // Sales Chart
@@ -174,14 +238,14 @@
                         @foreach($sales as $day)
                             '{{ \Carbon\Carbon::parse($day->date)->format("M d") }}',
                         @endforeach
-                        ],
+                                                                ],
                     datasets: [{
                         label: 'Daily Sales',
                         data: [
                             @foreach($sales as $day)
                                 {{ $day->total_sales }},
                             @endforeach
-                            ],
+                                                                    ],
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         borderColor: 'rgba(59, 130, 246, 1)',
                         borderWidth: 2,
@@ -192,6 +256,13 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    onClick: (event, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const selectedLabel = salesChart.data.labels[index];
+                            filterGraphByDate(index, selectedLabel);
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -205,6 +276,52 @@
                 }
             });
 
+            // Store original data for resetting
+            const originalLabels = [...salesChart.data.labels];
+            const originalData = [...salesChart.data.datasets[0].data];
+            let currentFilterIndex = null;
+
+            function filterGraphByDate(index, label) {
+                if (currentFilterIndex === index) {
+                    // If clicking the same date, reset
+                    resetGraphFilter();
+                } else {
+                    // Filter to show only selected date
+                    currentFilterIndex = index;
+                    salesChart.data.labels = [label];
+                    salesChart.data.datasets[0].data = [originalData[index]];
+                    salesChart.update();
+                    showResetButton();
+                }
+            }
+
+            function resetGraphFilter() {
+                currentFilterIndex = null;
+                salesChart.data.labels = [...originalLabels];
+                salesChart.data.datasets[0].data = [...originalData];
+                salesChart.update();
+                hideResetButton();
+            }
+
+            function showResetButton() {
+                let resetBtn = document.getElementById('resetGraphBtn');
+                if (!resetBtn) {
+                    resetBtn = document.createElement('button');
+                    resetBtn.id = 'resetGraphBtn';
+                    resetBtn.textContent = 'Reset Filter';
+                    resetBtn.className = 'mt-2 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700';
+                    resetBtn.onclick = resetGraphFilter;
+                    document.getElementById('salesChart').parentElement.appendChild(resetBtn);
+                }
+            }
+
+            function hideResetButton() {
+                const resetBtn = document.getElementById('resetGraphBtn');
+                if (resetBtn) {
+                    resetBtn.remove();
+                }
+            }
+
             // Payment Methods Chart
             const paymentCtx = document.getElementById('paymentChart').getContext('2d');
             const paymentChart = new Chart(paymentCtx, {
@@ -214,13 +331,13 @@
                         @foreach($paymentMethods as $method)
                             '{{ ucfirst($method->payment_method) }}',
                         @endforeach
-                        ],
+                                                                ],
                     datasets: [{
                         data: [
                             @foreach($paymentMethods as $method)
                                 {{ $method->total }},
                             @endforeach
-                            ],
+                                                                    ],
                         backgroundColor: [
                             'rgba(59, 130, 246, 0.7)',
                             'rgba(16, 185, 129, 0.7)',
@@ -256,5 +373,16 @@
                 }
             });
         });
+
+        function showExportConfirmation() {
+            AlertModal.showConfirm(
+                'Are you sure you want to export this sales report as PDF?',
+                function () {
+                    window.location.href = '{{ route('export.sales') }}';
+                },
+                null,
+                'Export Confirmation'
+            );
+        }
     </script>
 @endsection

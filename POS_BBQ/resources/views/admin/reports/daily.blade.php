@@ -4,67 +4,106 @@
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Daily Consolidated Report</h1>
-                <form action="{{ route('admin.reports.daily') }}" method="GET" class="flex items-center">
-                    <input type="date" name="date" value="{{ $date }}" class="border rounded p-2 mr-2">
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Filter</button>
-                </form>
+                <h1 class="text-2xl font-semibold flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-gray-800" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Daily Consolidated Report
+                </h1>
+                <div class="flex items-center space-x-2">
+                    <form action="{{ route('admin.reports.daily') }}" method="GET" class="flex items-center space-x-2">
+                        <label for="date" class="text-sm text-gray-600">Date:</label>
+                        <input type="date" name="date" id="date" value="{{ $date }}"
+                            class="px-3 py-2 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                            onchange="this.form.submit()">
+                    </form>
+                    <button onclick="showExportConfirmation()"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2zm2-10l4 4m-4 0l4-4m-4 4V7" />
+                        </svg>
+                        Export PDF
+                    </button>
+                    <a href="{{ route('admin.reports') }}"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Reports
+                    </a>
+                </div>
             </div>
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div class="bg-green-100 p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-medium text-green-800">Total Sales</h2>
-                    <p class="text-2xl font-bold">₱{{ number_format($totalSales, 2) }}</p>
+                    <h2 class="text-lg font-bold text-green-800">Total Sales</h2>
+                    <p class="text-2xl font-bold text-green-800 text-right mt-2">₱{{ number_format($totalSales, 2) }}</p>
                 </div>
                 <div class="bg-red-100 p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-medium text-red-800">Total Refunds (Est.)</h2>
-                    <p class="text-2xl font-bold">₱{{ number_format(abs($totalRefunds), 2) }}</p>
+                    <h2 class="text-lg font-bold text-red-800">Total Refunds (Est.)</h2>
+                    <p class="text-2xl font-bold text-red-800 text-right mt-2">₱{{ number_format(abs($totalRefunds), 2) }}</p>
                 </div>
                 <div class="bg-blue-100 p-4 rounded-lg shadow">
-                    <h2 class="text-lg font-medium text-blue-800">Shift Reports</h2>
-                    <p class="text-2xl font-bold">{{ $shiftReports->count() }}</p>
+                    <h2 class="text-lg font-bold text-blue-800">Shift Reports</h2>
+                    <p class="text-2xl font-bold text-blue-800 text-right mt-2">{{ $shiftReports->count() }}</p>
                 </div>
             </div>
 
             <!-- Shift Reports Section -->
             <div class="mb-8">
                 <h2 class="text-xl font-medium mb-4 border-b pb-2">Staff Shift Reports</h2>
-                @forelse($shiftReports as $report)
-                    <div class="bg-gray-50 p-4 rounded-lg mb-4 border">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="font-bold text-lg">{{ $report->user->name }}</span>
-                                <span class="text-sm text-gray-500 ml-2">({{ ucfirst($report->user->role) }})</span>
-                            </div>
-                            <span
-                                class="px-2 py-1 text-xs rounded-full {{ $report->status == 'reviewed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                {{ ucfirst($report->status) }}
-                            </span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-4 mb-2 text-sm">
-                            <div>Orders: {{ $report->total_orders }}</div>
-                            <div>Sales: ₱{{ number_format($report->total_sales, 2) }}</div>
-                            <div>Refunds: ₱{{ number_format($report->total_refunds, 2) }}</div>
-                        </div>
-                        <div class="bg-white p-3 rounded border mb-2">
-                            <p class="text-gray-700 whitespace-pre-wrap">{{ $report->content }}</p>
-                        </div>
-                        @if($report->admin_reply)
-                            <div class="bg-blue-50 p-3 rounded border text-sm">
-                                <span class="font-bold text-blue-800">Admin Reply:</span>
-                                <p class="text-gray-700">{{ $report->admin_reply }}</p>
-                            </div>
-                        @else
-                            <div class="mt-2">
-                                <a href="{{ route('admin.shift-reports.show', $report) }}"
-                                    class="text-blue-600 hover:text-blue-800 text-sm">View & Reply</a>
-                            </div>
-                        @endif
-                    </div>
-                @empty
+                @if($shiftReports->isEmpty())
                     <p class="text-gray-500 italic">No shift reports submitted for this date.</p>
-                @endforelse
+                @else
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 bg-white border rounded-lg">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Sales</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Refunds</th>
+                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                @foreach($shiftReports as $report)
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $report->user->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ucfirst($report->user->role) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">{{ $report->total_orders }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">₱{{ number_format($report->total_sales, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">₱{{ number_format($report->total_refunds, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center">
+                                            <span class="text-xs font-semibold {{ $report->status == 'reviewed' ? 'text-green-600' : 'text-yellow-600' }}">
+                                                {{ ucfirst($report->status) }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                            <a href="{{ route('admin.shift-reports.show', $report) }}" 
+                                               class="text-blue-600 hover:text-blue-900 font-medium flex items-center justify-end">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                View & Reply
+                                            </a>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
 
             <!-- Void Requests Section -->
@@ -101,7 +140,7 @@
                                     </td>
                                     <td class="px-4 py-2 text-sm">
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $void->status == 'approved' ? 'bg-green-100 text-green-800' : ($void->status == 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                            class="inline-flex text-xs leading-5 font-semibold items-center {{ $void->status == 'approved' ? 'text-green-600' : ($void->status == 'rejected' ? 'text-red-600' : 'text-yellow-600') }}">
                                             {{ ucfirst($void->status) }}
                                         </span>
                                     </td>
@@ -153,3 +192,17 @@
         </div>
     </div>
 @endsection
+
+<script>
+    function showExportConfirmation() {
+        const date = '{{ $date }}';
+        AlertModal.showConfirm(
+            'Are you sure you want to export this daily report as PDF?',
+            function () {
+                window.location.href = `/export/daily?date=${date}`;
+            },
+            null,
+            'Export Confirmation'
+        );
+    }
+</script>

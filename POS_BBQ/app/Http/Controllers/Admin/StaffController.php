@@ -13,7 +13,17 @@ class StaffController extends Controller
 {
     public function index()
     {
-        $staff = User::all();
+        // Only fetch necessary columns for better performance
+        $staff = User::select([
+            'id',
+            'name',
+            'email',
+            'role',
+            'status',
+            'last_login_at',
+            'created_at'
+        ])->get();
+
         return view('admin.staff.index', compact('staff'));
     }
 
@@ -28,8 +38,8 @@ class StaffController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,cashier'],
-            'status' => ['required', 'in:active,inactive'],
+            'role' => ['required', 'in:admin,cashier,manager,inventory'],
+            'status' => ['required', 'in:active,disabled'],
         ]);
 
         User::create([
@@ -58,8 +68,8 @@ class StaffController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $staff->id],
-            'role' => ['required', 'in:admin,cashier'],
-            'status' => ['required', 'in:active,inactive'],
+            'role' => ['required', 'in:admin,cashier,manager,inventory'],
+            'status' => ['required', 'in:active,disabled'],
         ];
 
         // Only validate password if it's provided
@@ -96,5 +106,24 @@ class StaffController extends Controller
         $staff->delete();
 
         return redirect()->route('staff.index')->with('success', 'Staff member archived successfully');
+    }
+
+    /**
+     * Update staff status (AJAX)
+     */
+    public function updateStatus(Request $request, User $staff)
+    {
+        $request->validate([
+            'status' => 'required|in:active,disabled',
+        ]);
+
+        $staff->update([
+            'status' => $request->status,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated successfully',
+        ]);
     }
 }

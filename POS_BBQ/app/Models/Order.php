@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\SyncsToSupabase;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,11 +10,12 @@ use App\Traits\LogsDeletes;
 
 class Order extends Model
 {
-    use HasFactory, SoftDeletes, LogsDeletes;
+    use HasFactory, SoftDeletes, LogsDeletes, SyncsToSupabase;
 
     protected $fillable = [
         'table_id',
         'user_id',
+        'branch_id',
         'customer_name',
         'order_type',
         'status',
@@ -44,5 +46,10 @@ class Order extends Model
     public function payments()
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 }

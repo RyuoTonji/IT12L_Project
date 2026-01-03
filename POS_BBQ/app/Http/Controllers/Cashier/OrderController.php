@@ -17,21 +17,54 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['table', 'user'])
-            ->latest()
-            ->paginate(10);
+        $user = Auth::user();
+        $search = $request->get('search');
 
-        return view('cashier.orders.index', compact('orders'));
+        $orders = Order::with(['table', 'user'])
+            ->when($user->branch_id, function ($query) use ($user) {
+                // Filter by branch for branch-specific users
+                return $query->where('branch_id', $user->branch_id);
+            })
+            ->when($search, function ($query) use ($search) {
+                // Search by order ID, customer name, or date
+                return $query->where(function ($q) use ($search) {
+                    $q->where('id', 'like', "%{$search}%")
+                        ->orWhere('customer_name', 'like', "%{$search}%")
+                        ->orWhereDate('created_at', $search)
+                        ->orWhere('created_at', 'like', "%{$search}%");
+                })
+                    // Prioritize exact matches
+                    ->orderByRaw("CASE 
+                    WHEN id = ? THEN 1
+                    WHEN customer_name = ? THEN 2
+                    WHEN DATE(created_at) = ? THEN 3
+                    ELSE 4
+                END", [$search, $search, $search]);
+            })
+            ->latest()
+            ->paginate(10)
+            ->appends(['search' => $search]);
+
+        return view('cashier.orders.index', compact('orders', 'search'));
     }
 
     public function create(Request $request)
     {
-        $tables = Table::where('status', 'available')->get();
-        $categories = Category::with([
+        $user = Auth::user();
+
+        // Filter tables by branch
+        $tables = Table::where('status', 'available')
+            ->when($user->branch_id, function ($query) use ($user) {
+                return $query->where('branch_id', $user->branch_id);
+            })
+            ->get();
+
+        $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true);
+                $query->where('availability', true)
+                    ->orderBy('name');
             }
         ])->get();
 
@@ -65,6 +98,7 @@ class OrderController extends Controller
             $order = new Order();
             $order->table_id = $request->table_id;
             $order->user_id = Auth::id();
+            $order->branch_id = Auth::user()->branch_id; // Set branch from user
             $order->customer_name = $request->customer_name;
             $order->order_type = $request->order_type;
             $order->status = 'new';
@@ -85,6 +119,9 @@ class OrderController extends Controller
                 $orderItem->unit_price = $menuItem->price;
                 $orderItem->notes = $item['notes'] ?? null;
                 $orderItem->save();
+
+                // Deduct Inventory
+                $this->manageInventory($menuItem, $item['quantity'], 'deduct');
 
                 $total += $menuItem->price * $item['quantity'];
             }
@@ -120,14 +157,50 @@ class OrderController extends Controller
         }
     }
 
+    private function manageInventory(MenuItem $menuItem, $quantity, $action = 'deduct')
+    {
+        // Reload relationship to ensure fresh data inside transaction
+        $menuItem->load('inventoryItems');
+
+        foreach ($menuItem->inventoryItems as $inventoryItem) {
+            $needed = $inventoryItem->pivot->quantity_needed * $quantity;
+
+            if ($action === 'deduct') {
+                // Refresh inventory item to get latest quantity
+                $inventoryItem->refresh();
+
+                if ($inventoryItem->quantity < $needed) {
+                    throw new \Exception("Insufficient stock for ingredient: {$inventoryItem->name} (Required: {$needed} {$inventoryItem->unit}, Available: {$inventoryItem->quantity} {$inventoryItem->unit}) of Menu Item: {$menuItem->name}");
+                }
+                $inventoryItem->decrement('quantity', $needed);
+                $inventoryItem->increment('stock_out', $needed);
+            } else {
+                $inventoryItem->increment('quantity', $needed);
+                $inventoryItem->decrement('stock_out', $needed);
+            }
+        }
+    }
+
     public function show(Order $order)
     {
+        // Check if user can access this order
+        $user = Auth::user();
+        if ($user->branch_id && $order->branch_id !== $user->branch_id) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
         $order->load(['orderItems.menuItem', 'table', 'user']);
         return view('cashier.orders.show', compact('order'));
     }
 
     public function edit(Order $order)
     {
+        // Check if user can access this order
+        $user = Auth::user();
+        if ($user->branch_id && $order->branch_id !== $user->branch_id) {
+            abort(403, 'Unauthorized access to this order.');
+        }
+
         // Only allow editing of orders that are not completed or cancelled
         if (in_array($order->status, ['completed', 'cancelled'])) {
             return redirect()->route('orders.show', $order)
@@ -136,13 +209,26 @@ class OrderController extends Controller
 
         $order->load(['orderItems.menuItem', 'table']);
 
-        $categories = Category::with([
+        // Fetch available tables AND the current table if it exists
+        $tables = Table::where(function ($query) use ($order) {
+            $query->where('status', 'available');
+            if ($order->table_id) {
+                $query->orWhere('id', $order->table_id);
+            }
+        })
+            ->when($user->branch_id, function ($query) use ($user) {
+                return $query->where('branch_id', $user->branch_id);
+            })
+            ->get();
+
+        $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('is_available', true);
+                $query->where('availability', true)
+                    ->orderBy('name');
             }
         ])->get();
 
-        return view('cashier.orders.edit', compact('order', 'categories'));
+        return view('cashier.orders.edit', compact('order', 'categories', 'tables'));
     }
 
     public function update(Request $request, Order $order)
@@ -160,6 +246,9 @@ class OrderController extends Controller
 
         $request->validate([
             'status' => 'required|in:' . $allowedStatuses,
+            'order_type' => 'required|in:dine-in,takeout',
+            'table_id' => 'nullable|exists:tables,id|required_if:order_type,dine-in',
+            'customer_name' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.id' => 'nullable|exists:order_items,id',
             'items.*.menu_item_id' => 'required|exists:menu_items,id',
@@ -171,6 +260,49 @@ class OrderController extends Controller
         DB::beginTransaction();
 
         try {
+            // Handle Table/Order Type Changes
+            $oldOrderType = $order->order_type;
+            $newOrderType = $request->order_type;
+            $oldTableId = $order->table_id;
+            $newTableId = $request->table_id;
+
+            // If changing from dine-in to takeout, or changing tables, free the old table
+            if (
+                ($oldOrderType === 'dine-in' && $newOrderType === 'takeout') ||
+                ($oldOrderType === 'dine-in' && $newOrderType === 'dine-in' && $oldTableId != $newTableId)
+            ) {
+
+                if ($oldTableId) {
+                    $oldTable = Table::find($oldTableId);
+                    if ($oldTable) {
+                        $oldTable->status = 'available';
+                        $oldTable->save();
+                    }
+                }
+                // If switching to takeout, clear table_id
+                if ($newOrderType === 'takeout') {
+                    $order->table_id = null;
+                }
+            }
+
+            // If changing from takeout to dine-in, or changing tables, occupy the new table
+            if (
+                ($oldOrderType === 'takeout' && $newOrderType === 'dine-in') ||
+                ($oldOrderType === 'dine-in' && $newOrderType === 'dine-in' && $oldTableId != $newTableId)
+            ) {
+
+                $newTable = Table::find($newTableId);
+                if ($newTable) {
+                    $newTable->status = 'occupied';
+                    $newTable->save();
+                    $order->table_id = $newTableId;
+                }
+            }
+
+            // Update basic order details
+            $order->order_type = $newOrderType;
+            $order->customer_name = $request->customer_name;
+
             // Update order status
             $oldStatus = $order->status;
             $newStatus = $request->status;
@@ -203,15 +335,37 @@ class OrderController extends Controller
 
             foreach ($request->items as $item) {
                 $menuItem = MenuItem::find($item['menu_item_id']);
+                $orderItem = null;
 
+                // 1. Check if ID provided and exists
                 if (isset($item['id']) && $existingItems->has($item['id'])) {
-                    // Update existing item
                     $orderItem = $existingItems->get($item['id']);
+                }
+                // 2. Fallback: Check if item already exists in this order (by menu_item_id and notes)
+                // This prevents duplicates if user re-submits form with items that lost their IDs (e.g. back button)
+                else {
+                    $orderItem = $existingItems->filter(function ($existing) use ($item) {
+                        return $existing->menu_item_id == $item['menu_item_id'] &&
+                            (string) ($existing->notes ?? '') === (string) ($item['notes'] ?? '');
+                    })->first();
+                }
+
+                if ($orderItem) {
+                    // Update existing item
+
+                    // Restore old inventory
+                    // We need to fetch the original menu item associated with the order item to restore correct stock
+                    // Note: If menu_item_id changed (unlikely here as we matched by it), we restore old, deduct new.
+                    $this->manageInventory($orderItem->menuItem, $orderItem->quantity, 'restore');
+
                     $orderItem->menu_item_id = $menuItem->id;
                     $orderItem->quantity = $item['quantity'];
                     $orderItem->unit_price = $menuItem->price;
                     $orderItem->notes = $item['notes'] ?? null;
                     $orderItem->save();
+
+                    // Deduct new inventory
+                    $this->manageInventory($menuItem, $item['quantity'], 'deduct');
 
                     $keepItemIds[] = $orderItem->id;
                 } else {
@@ -224,6 +378,9 @@ class OrderController extends Controller
                     $orderItem->notes = $item['notes'] ?? null;
                     $orderItem->save();
 
+                    // Deduct Inventory
+                    $this->manageInventory($menuItem, $item['quantity'], 'deduct');
+
                     $keepItemIds[] = $orderItem->id;
                 }
 
@@ -233,6 +390,8 @@ class OrderController extends Controller
             // Delete removed items
             foreach ($existingItems as $existingItem) {
                 if (!in_array($existingItem->id, $keepItemIds)) {
+                    // Restore Inventory
+                    $this->manageInventory($existingItem->menuItem, $existingItem->quantity, 'restore');
                     $existingItem->delete();
                 }
             }
@@ -266,7 +425,7 @@ class OrderController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Order  $order
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
     public function updateStatus(Request $request, Order $order)
     {
@@ -311,25 +470,33 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Order status updated successfully',
-                'order' => [
-                    'id' => $order->id,
-                    'status' => $order->status,
-                    'updated_at' => $order->updated_at
-                ]
-            ]);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order status updated successfully',
+                    'order' => [
+                        'id' => $order->id,
+                        'status' => $order->status,
+                        'updated_at' => $order->updated_at
+                    ]
+                ]);
+            }
+
+            return back()->with('success', 'Order status updated successfully');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
             Log::error('Error updating order status: ' . $e->getMessage());
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Error updating order status: ' . $e->getMessage()
-            ], 500);
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error updating order status: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Error updating order status: ' . $e->getMessage());
         }
     }
 
@@ -357,7 +524,10 @@ class OrderController extends Controller
                 $table->save();
             }
 
-            // Delete order items
+            // Delete order items and restore inventory
+            foreach ($order->orderItems as $item) {
+                $this->manageInventory($item->menuItem, $item->quantity, 'restore');
+            }
             $order->orderItems()->delete();
 
             // Delete the order

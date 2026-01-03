@@ -8,6 +8,8 @@
 
     <title>Manager Dashboard</title>
 
+    <link rel="icon" href="{{ asset('logo_black.png') }}" type="image/png">
+
     <!-- Fonts -->
     <link href="{{ asset('fonts/fonts.css') }}" rel="stylesheet">
 
@@ -25,8 +27,8 @@
                         <!-- Logo -->
                         <div class="shrink-0 flex items-center">
                             <a href="{{ route('manager.dashboard') }}">
-                                <img src="{{ asset('logo_white.jpg') }}" style="width: 50px; height: 50px;"
-                                    alt="logo_white" class="block h-9 w-auto fill-current text-gray-800" />
+                                <img src="{{ asset('logo_black.png') }}" style="width: 50px; height: 50px;"
+                                    alt="logo_black" class="block h-9 w-auto fill-current text-gray-800" />
                             </a>
                         </div>
 
@@ -34,15 +36,39 @@
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <x-nav-link :href="route('manager.dashboard')"
                                 :active="request()->routeIs('manager.dashboard')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
                                 Dashboard
                             </x-nav-link>
                             <x-nav-link :href="route('manager.reports')"
                                 :active="request()->routeIs('manager.reports')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
                                 All Reports
                             </x-nav-link>
                             <x-nav-link :href="route('manager.void-requests.index')"
                                 :active="request()->routeIs('manager.void-requests.*')">
-                                Void/Refund Requests
+                                <span class="flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Void/Refund Requests
+                                    @if(isset($pendingVoidRequestsCount) && $pendingVoidRequestsCount > 0)
+                                        <span
+                                            class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-600"
+                                            style="border-radius: 50%;">
+                                            {{ $pendingVoidRequestsCount }}
+                                        </span>
+                                    @endif
+                                </span>
                             </x-nav-link>
                         </div>
                     </div>
@@ -53,29 +79,52 @@
                             <x-slot name="trigger">
                                 <button
                                     class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
                                     <div>{{ Auth::user()->name }}</div>
 
                                     <div class="ml-1">
-                                        <img src="{{ asset('img/chevron-down.svg') }}" alt="Chevron Down"
-                                            class="h-4 w-4">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
                                     </div>
                                 </button>
                             </x-slot>
 
                             <x-slot name="content">
-                                <x-dropdown-link :href="route('profile.edit')">
+                                <x-dropdown-link :href="route('profile.edit')" class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
                                     {{ __('Profile') }}
                                 </x-dropdown-link>
 
-                                <x-dropdown-link :href="route('shift-reports.create')">
+                                <x-dropdown-link :href="route('shift-reports.create')" class="flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
                                     {{ __('Make Report') }}
                                 </x-dropdown-link>
 
                                 <!-- Authentication -->
-                                <form method="POST" action="{{ route('logout') }}">
+                                <form method="POST" action="{{ route('logout') }}" id="logout-form-manager">
                                     @csrf
-                                    <button type="submit"
-                                        class="block w-full text-left px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
+                                    <button type="button" id="logout-btn-manager"
+                                        class="block w-full text-left px-4 py-2 text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                        </svg>
                                         {{ __('Log Out') }}
                                     </button>
                                 </form>
@@ -86,6 +135,8 @@
             </div>
         </nav>
 
+        @include('components.offline-status-alert')
+
         <!-- Page Content -->
         <main>
             <div class="py-12">
@@ -94,12 +145,55 @@
                 </div>
             </div>
         </main>
-        
+
         <!-- Alert Modal -->
         @include('components.alert-modal')
-        
+
         <!-- Flash Messages -->
         @include('components.flash-messages')
+
+        <!-- Shift Report Reminder Modal -->
+        <div id="report-reminder-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 z-50">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg p-6 max-w-md w-full">
+                    <h3 class="text-xl font-bold mb-4 text-gray-900">⚠️ Shift Report Required</h3>
+                    <p class="mb-6 text-gray-700">You must submit your shift report before logging out. This ensures
+                        proper end-of-day accountability.</p>
+                    <a href="{{ route('shift-reports.create') }}"
+                        class="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition">
+                        Submit Report Now
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const logoutBtn = document.getElementById('logout-btn-manager');
+                const logoutForm = document.getElementById('logout-form-manager');
+                const modal = document.getElementById('report-reminder-modal');
+
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+
+                        fetch('{{ route('shift-report.check') }}')
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.has_report) {
+                                    logoutForm.submit();
+                                } else {
+                                    modal.classList.remove('hidden');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error checking shift report:', error);
+                                modal.classList.remove('hidden');
+                            });
+                    });
+                }
+            });
+        </script>
     </div>
 </body>
 

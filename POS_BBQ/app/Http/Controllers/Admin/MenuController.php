@@ -13,8 +13,19 @@ class MenuController extends Controller
 {
     public function index()
     {
-        $menuItems = MenuItem::with('category')->get();
-        return view('admin.menu.index', compact('menuItems'));
+        $menuItems = MenuItem::select('menu_items.*')
+            ->join('categories', 'menu_items.category_id', '=', 'categories.id')
+            ->orderBy('categories.sort_order')
+            ->orderBy('menu_items.name')
+            ->with(['category', 'branches'])
+            ->get();
+
+        // Group menu items by category for the view
+        $menuItemsByCategory = $menuItems->groupBy(function ($item) {
+            return $item->category->name;
+        });
+
+        return view('admin.menu.index', compact('menuItems', 'menuItemsByCategory'));
     }
 
     public function create()
@@ -35,7 +46,8 @@ class MenuController extends Controller
         ]);
 
         $data = $request->except('image');
-        $data['is_available'] = $request->boolean('is_available');
+        $data['availability'] = $request->boolean('is_available');
+        unset($data['is_available']);
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -56,14 +68,43 @@ class MenuController extends Controller
             $data['image'] = $path;
         }
 
-        MenuItem::create($data);
+        $menuItem = MenuItem::create($data);
+
+        // Attach to both branches by default with availability matching the menu item's global availability
+        $menuItem->branches()->attach([
+            1 => ['is_available' => $data['availability']],
+            2 => ['is_available' => $data['availability']],
+        ]);
 
         return redirect()->route('menu.index')->with('success', 'Menu item created successfully');
     }
 
     public function show(MenuItem $menu)
     {
-        return view('admin.menu.show', compact('menu'));
+        // Calculate sales performance for the last 30 days
+        $salesData = \App\Models\OrderItem::selectRaw('DATE(created_at) as date, SUM(unit_price * quantity) as total_sales, SUM(quantity) as total_quantity')
+            ->where('menu_item_id', $menu->id)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        // Format data for the view/chart
+        $formattedSales = [];
+        $startDate = now()->subDays(29); // Start from 30 days ago
+
+        for ($i = 0; $i < 30; $i++) {
+            $date = $startDate->copy()->addDays($i)->format('Y-m-d');
+            $dayData = $salesData->firstWhere('date', $date);
+
+            $formattedSales[] = [
+                'date' => $date,
+                'total_sales' => $dayData ? $dayData->total_sales : 0,
+                'total_quantity' => $dayData ? $dayData->total_quantity : 0,
+            ];
+        }
+
+        return view('admin.menu.show', compact('menu', 'formattedSales'));
     }
 
     public function edit(MenuItem $menu)
@@ -71,7 +112,7 @@ class MenuController extends Controller
         $categories = Category::all();
         return view('admin.menu.edit', compact('menu', 'categories'));
     }
-
+    // ...
     public function update(Request $request, MenuItem $menu)
     {
         $request->validate([
@@ -84,7 +125,11 @@ class MenuController extends Controller
         ]);
 
         $data = $request->except('image');
-        $data['is_available'] = $request->has('is_available');
+        // Checkbox usually sends 'on' or nothing, but validate rule says boolean, assuming frontend sends 1/0 or true/false
+        // $request->has() checks if key exists. Standard HTML checkbox: missing if unchecked.
+        // Let's stick to boolean conversion helper for safety if strictly validated, or use logic:
+        $data['availability'] = $request->has('is_available');
+        unset($data['is_available']);
 
         if ($request->hasFile('image')) {
             // Delete old image if it exists
@@ -118,13 +163,76 @@ class MenuController extends Controller
 
         $menu->update($data);
 
+        // Sync branch availability based on global availability
+        // If global is false, all branches become false. If true, we set all to true (simplest logic for sync)
+        $menu->branches()->sync([
+             1 => ['is_available' => $data['availability']],
+             2 => ['is_available' => $data['availability']],
+        ]);
+
         return redirect()->route('menu.index')->with('success', 'Menu item updated successfully');
     }
-
-    public function destroy(MenuItem $menu)
+    // ...
+    public function updateAvailability(Request $request, MenuItem $menu)
     {
-        $menu->delete();
+        $request->validate([
+            'is_available' => 'required|boolean',
+        ]);
 
-        return redirect()->route('menu.index')->with('success', 'Menu item archived successfully');
+        $isAvailable = $request->is_available;
+
+        // Update the menu item's global availability
+        $menu->update([
+            'availability' => $isAvailable,
+        ]);
+
+        // Sync branch availability - update all branches to match global availability
+        // Get existing branch associations
+        $branches = $menu->branches()->pluck('branches.id')->toArray();
+
+        if (!empty($branches)) {
+            $syncData = [];
+            foreach ($branches as $branchId) {
+                $syncData[$branchId] = ['is_available' => $isAvailable];
+            }
+            $menu->branches()->sync($syncData);
+        }
+
+        return redirect()->route('menu.index')->with('success', 'Availability updated successfully');
+    }
+
+    /**
+     * Update menu item branch availability
+     */
+    public function updateBranchAvailability(Request $request, MenuItem $menu)
+    {
+        $request->validate([
+            'branch' => 'required|in:branch1,branch2,both',
+        ]);
+
+        $branch = $request->branch;
+
+        // Sync branches based on selection
+        if ($branch === 'both') {
+            // Attach to both branches, mark as available
+            $menu->branches()->sync([
+                1 => ['is_available' => true],
+                2 => ['is_available' => true],
+            ]);
+        } elseif ($branch === 'branch1') {
+            // Only Branch 1, mark Branch 2 as unavailable
+            $menu->branches()->sync([
+                1 => ['is_available' => true],
+                2 => ['is_available' => false],
+            ]);
+        } elseif ($branch === 'branch2') {
+            // Only Branch 2, mark Branch 1 as unavailable
+            $menu->branches()->sync([
+                1 => ['is_available' => false],
+                2 => ['is_available' => true],
+            ]);
+        }
+
+        return redirect()->route('menu.index')->with('success', 'Branch availability updated successfully');
     }
 }

@@ -6,7 +6,14 @@
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Create New Order</h1>
                 <a href="{{ route('orders.index') }}"
-                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Back to Orders</a>
+                    class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back to Orders
+                </a>
             </div>
 
             @if(session('error'))
@@ -45,7 +52,7 @@
                             </select>
                         </div>
 
-                        <div class="mb-4" id="customer_section" style="{{ $selectedTable ? 'display: none;' : '' }}">
+                        <div class="mb-4" id="customer_section">
                             <label for="customer_name" class="block text-sm font-medium text-gray-700 mb-1">Customer
                                 Name</label>
                             <input type="text" name="customer_name" id="customer_name"
@@ -78,27 +85,100 @@
 
                     <div class="mb-4">
                         <div class="flex space-x-2 overflow-x-auto pb-2">
-                            <button type="button" class="category-tab px-4 py-2 bg-blue-600 text-white rounded-t-lg"
-                                data-category="all">All</button>
+                            <button type="button"
+                                class="category-tab px-4 py-2 bg-blue-600 text-white rounded-t-lg flex items-center"
+                                data-category="all">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                                </svg>
+                                All
+                            </button>
                             @foreach($categories as $category)
                                 <button type="button" class="category-tab px-4 py-2 bg-gray-200 text-gray-700 rounded-t-lg"
-                                    data-category="{{ $category->id }}">{{ $category->name }}</button>
+                                    data-category="{{ $category->id }}">
+                                    {{ $category->name }}
+                                </button>
                             @endforeach
                         </div>
 
                         <div class="bg-gray-50 p-4 rounded-lg border">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-                                id="menu_items_container">
+                            <!-- All Categories View (Segmented) -->
+                            <div id="all-categories-view">
                                 @foreach($categories as $category)
-                                    @foreach($category->menuItems as $item)
-                                        <div class="menu-item bg-white p-3 rounded shadow-sm border cursor-pointer"
-                                            data-id="{{ $item->id }}" data-name="{{ $item->name }}" data-price="{{ $item->price }}"
-                                            data-category="{{ $category->id }}">
-                                            <div class="font-medium">{{ $item->name }}</div>
-                                            <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}</div>
-                                            <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                    @if($category->menuItems->count() > 0)
+                                        <div class="category-section mb-6" data-category-section="{{ $category->id }}">
+                                            <div class="mb-3">
+                                                <h3 class="text-lg font-semibold text-gray-800 border-b-2 border-gray-300 pb-2">
+                                                    {{ $category->name }}
+                                                </h3>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                @foreach($category->menuItems as $item)
+                                                    <div class="menu-item bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}"
+                                                        data-price="{{ $item->price }}" data-category="{{ $category->id }}"
+                                                        data-max-quantity="{{ $item->max_quantity }}">
+                                                        <div class="font-medium">{{ $item->name }}</div>
+                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}
+                                                        </div>
+                                                        <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available:
+                                                            {{ $item->max_quantity }}
+                                                        </div>
+                                                        @if($item->max_quantity < 1)
+                                                            <div
+                                                                class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span
+                                                                    class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD
+                                                                    OUT</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
-                                    @endforeach
+                                    @endif
+                                @endforeach
+                            </div>
+
+                            <!-- Single Category View -->
+                            <div id="single-category-view" class="hidden">
+                                @foreach($categories as $category)
+                                    @if($category->menuItems->count() > 0)
+                                        <div class="category-section-single" data-category-section="{{ $category->id }}">
+                                            <div class="mb-3">
+                                                <h3 class="text-lg font-semibold text-gray-800 border-b-2 border-gray-300 pb-2">
+                                                    {{ $category->name }}
+                                                </h3>
+                                            </div>
+                                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                                @foreach($category->menuItems as $item)
+                                                    <div class="menu-item-single bg-white p-3 rounded shadow-sm border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden"
+                                                        data-id="{{ $item->id }}" data-name="{{ $item->name }}"
+                                                        data-price="{{ $item->price }}" data-category="{{ $category->id }}"
+                                                        data-max-quantity="{{ $item->max_quantity }}">
+                                                        <div class="font-medium">{{ $item->name }}</div>
+                                                        <div class="text-sm text-gray-600 mb-1">{{ Str::limit($item->description, 50) }}
+                                                        </div>
+                                                        <div class="text-blue-600 font-bold">₱{{ number_format($item->price, 2) }}</div>
+                                                        <div class="text-xs text-gray-500 mt-1">Available:
+                                                            {{ $item->max_quantity }}
+                                                        </div>
+                                                        @if($item->max_quantity < 1)
+                                                            <div
+                                                                class="absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center">
+                                                                <span
+                                                                    class="text-red-600 font-bold rotate-12 border-2 border-red-600 px-2 py-1 rounded">SOLD
+                                                                    OUT</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endif
                                 @endforeach
                             </div>
                         </div>
@@ -141,11 +221,16 @@
                     </div>
                 </div>
 
-                {{-- done --}}
                 <div class="flex justify-end">
-                    <button type="submit" onclick="return confirm('Are you sure you want to save these changes?')"
-                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700" id="submit_order">Create
-                        Order</button>
+                    <button type="button" onclick="confirmCreateOrder()"
+                        class="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center"
+                        id="submit_order">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Create Order
+                    </button>
                 </div>
             </form>
         </div>
@@ -162,6 +247,7 @@
             // by class - querySelectorAll
             const categoryTabs = document.querySelectorAll('.category-tab');
             const menuItems = document.querySelectorAll('.menu-item');
+            const menuItemsSingle = document.querySelectorAll('.menu-item-single');
 
             // by id
             const selectedItemsContainer = document.getElementById('selected_items_container');
@@ -175,10 +261,10 @@
             orderType.addEventListener('change', function () {
                 if (this.value === 'dine-in') {
                     tableSection.style.display = 'block';
-                    customerSection.style.display = 'none';
+                    // customerSection.style.display = 'none'; // Keep customer visible
                 } else {
                     tableSection.style.display = 'none';
-                    customerSection.style.display = 'block';
+                    // customerSection.style.display = 'block'; // Always visible
                     tableId.value = '';
                 }
             });
@@ -192,23 +278,42 @@
                     this.classList.add('bg-blue-600', 'text-white');
 
                     const categoryId = this.dataset.category;
+                    const allCategoriesView = document.getElementById('all-categories-view');
+                    const singleCategoryView = document.getElementById('single-category-view');
 
-                    menuItems.forEach(item => {
-                        if (categoryId === 'all' || item.dataset.category === categoryId) {
-                            item.style.display = 'block';
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
+                    if (categoryId === 'all') {
+                        // Show segmented view with all categories
+                        allCategoriesView.classList.remove('hidden');
+                        singleCategoryView.classList.add('hidden');
+                    } else {
+                        // Show single category view
+                        allCategoriesView.classList.add('hidden');
+                        singleCategoryView.classList.remove('hidden');
+
+                        // Show/hide category sections
+                        const categorySections = document.querySelectorAll('.category-section-single');
+                        categorySections.forEach(section => {
+                            if (section.dataset.categorySection === categoryId) {
+                                section.style.display = 'block';
+                            } else {
+                                section.style.display = 'none';
+                            }
+                        });
+                    }
                 });
             });
 
-            // Handle menu item clicks
-            menuItems.forEach(item => {
+            // Handle menu item clicks (for both views)
+            function setupMenuItemClick(item) {
                 item.addEventListener('click', function () {
                     const itemId = this.dataset.id;
                     const itemName = this.dataset.name;
                     const itemPrice = parseFloat(this.dataset.price);
+                    const maxQuantity = parseInt(this.dataset.maxQuantity);
+
+                    if (maxQuantity < 1) {
+                        return; // Sold out
+                    }
 
                     // Check if item already exists in the selected items
                     const existingItem = document.querySelector(`#selected_items_container tr[data-id="${itemId}"]`);
@@ -216,36 +321,54 @@
                     if (existingItem) {
                         // Increment quantity
                         const quantityInput = existingItem.querySelector('.quantity-input');
-                        quantityInput.value = parseInt(quantityInput.value) + 1;
+                        const currentVal = parseInt(quantityInput.value);
+                        if (currentVal < maxQuantity) {
+                            quantityInput.value = currentVal + 1;
+                        } else {
+                            AlertModal.show('Cannot add more. Max available limit reached.', 'warning');
+                        }
                         updateItemSubtotal(existingItem);
                     } else {
                         // Add new item
                         const newRow = document.createElement('tr');
                         newRow.dataset.id = itemId;
                         newRow.dataset.price = itemPrice;
+                        newRow.dataset.maxQuantity = maxQuantity;
 
                         newRow.innerHTML = `
-                            <td class="py-2 px-4">${itemName}</td>
-                            <td class="py-2 px-4 text-right">₱${itemPrice.toFixed(2)}</td>
-                            <td class="py-2 px-4 text-center">
-                                <input type="number" name="items[${itemId}][quantity]" value="1" min="1" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                <input type="hidden" name="items[${itemId}][menu_item_id]" value="${itemId}">
-                            </td>
-                            <td class="py-2 px-4">
-                                <input type="text" name="items[${itemId}][notes]" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                            </td>
-                            <td class="py-2 px-4 text-right item-subtotal">₱${itemPrice.toFixed(2)}</td>
-                            <td class="py-2 px-4 text-center">
-                                <button type="button" class="text-red-600 hover:text-red-900 remove-item">Remove</button>
-                            </td>
-                        `;
+                                            <td class="py-2 px-4">${itemName}</td>
+                                            <td class="py-2 px-4 text-right">₱${itemPrice.toFixed(2)}</td>
+                                            <td class="py-2 px-4 text-center">
+                                                <input type="number" name="items[${itemId}][quantity]" value="1" min="1" max="${this.dataset.maxQuantity}" class="quantity-input w-16 text-center rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                                <input type="hidden" name="items[${itemId}][menu_item_id]" value="${itemId}">
+                                            </td>
+                                            <td class="py-2 px-4">
+                                                <input type="text" name="items[${itemId}][notes]" placeholder="Special instructions" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                            </td>
+                                            <td class="py-2 px-4 text-right item-subtotal">₱${itemPrice.toFixed(2)}</td>
+                                            <td class="py-2 px-4 text-center">
+                                                <button type="button" class="text-red-600 hover:text-red-900 remove-item flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                    Remove
+                                                </button>
+                                            </td>
+                                        `;
 
                         selectedItemsContainer.appendChild(newRow);
 
                         // Add event listeners to the new row
                         const quantityInput = newRow.querySelector('.quantity-input');
                         quantityInput.addEventListener('change', function () {
-                            if (parseInt(this.value) < 1) this.value = 1;
+                            let val = parseInt(this.value);
+                            const max = parseInt(newRow.dataset.maxQuantity);
+                            if (val < 1) val = 1;
+                            if (val > max) {
+                                val = max;
+                                AlertModal.show('Max available limit reached.', 'warning');
+                            }
+                            this.value = val;
                             updateItemSubtotal(newRow);
                         });
 
@@ -260,7 +383,11 @@
                     updateOrderSummary();
                     checkNoItems();
                 });
-            });
+            }
+
+            // Setup click handlers for both views
+            menuItems.forEach(item => setupMenuItemClick(item));
+            menuItemsSingle.forEach(item => setupMenuItemClick(item));
 
             // Update item subtotal
             function updateItemSubtotal(row) {
@@ -343,5 +470,60 @@
                 });
             });
         });
+
+        function confirmCreateOrder() {
+            const orderForm = document.getElementById('orderForm');
+            const selectedItemsContainer = document.getElementById('selected_items_container');
+            const orderType = document.getElementById('order_type');
+            const tableId = document.getElementById('table_id');
+
+            const items = selectedItemsContainer.querySelectorAll('tr[data-id]');
+            if (items.length === 0) {
+                AlertModal.show('Please add at least one item to the order', 'warning');
+                return;
+            }
+
+            if (orderType.value === 'dine-in' && !tableId.value) {
+                AlertModal.show('Please select a table for dine-in orders', 'warning');
+                return;
+            }
+
+            AlertModal.showConfirm(
+                'Are you sure you want to create this order?',
+                function () {
+                    // Convert the form data to the expected format
+                    items.forEach((item, index) => {
+                        const itemId = item.dataset.id;
+                        const quantityInput = item.querySelector('.quantity-input');
+                        const notesInput = item.querySelector('input[name^="items"][name$="[notes]"]');
+
+                        // Create new inputs with the correct array format
+                        const menuItemIdInput = document.createElement('input');
+                        menuItemIdInput.type = 'hidden';
+                        menuItemIdInput.name = `items[${index}][menu_item_id]`;
+                        menuItemIdInput.value = itemId;
+
+                        const quantityNewInput = document.createElement('input');
+                        quantityNewInput.type = 'hidden';
+                        quantityNewInput.name = `items[${index}][quantity]`;
+                        quantityNewInput.value = quantityInput.value;
+
+                        const notesNewInput = document.createElement('input');
+                        notesNewInput.type = 'hidden';
+                        notesNewInput.name = `items[${index}][notes]`;
+                        notesNewInput.value = notesInput.value;
+
+                        // Append new inputs to the form
+                        orderForm.appendChild(menuItemIdInput);
+                        orderForm.appendChild(quantityNewInput);
+                        orderForm.appendChild(notesNewInput);
+                    });
+
+                    orderForm.submit();
+                },
+                null,
+                'Create Order Confirmation'
+            );
+        }
     </script>
 @endsection
