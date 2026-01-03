@@ -3,18 +3,23 @@
 @section('content')
 <div class="container my-5">
     <h2 class="mb-4">
-        <i class="fas fa-shopping-cart"></i> Shopping Cart
+        <i class="fas fa-shopping-cart"></i> Food Cart
     </h2>
 
-    <!-- Loading State -->
-    <div id="loading-cart" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+    <!-- Loading State (show by default if migration is needed) -->
+    <div id="loading-cart" class="{{ session('_cart_migration_needed') ? '' : 'd-none' }}">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Loading your cart...</h5>
+                <p class="text-muted">Please wait while we retrieve your items</p>
+            </div>
         </div>
-        <p class="mt-3">Loading your cart...</p>
     </div>
 
-    <!-- Empty Cart -->
+    <!-- Empty Cart (hidden by default if migration is needed) -->
     <div id="empty-cart" class="d-none">
         <div class="card">
             <div class="card-body text-center py-5">
@@ -120,68 +125,90 @@
 @push('scripts')
 <script>
 // =============================================================================
-// CART PAGE - NO API VERSION
-// This script relies entirely on cart.js which stores full product data in localStorage
+// CART PAGE - FIXED: No race condition with migration
 // =============================================================================
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('[Cart Page] Initializing...');
     
-    // Wait for cart.js to be loaded
+    // Check if migration is in progress
+    const migrationNeeded = document.querySelector('meta[name="cart-migration-needed"]');
+    const isMigrating = migrationNeeded && migrationNeeded.content === 'true';
+    
+    if (isMigrating) {
+        console.log('[Cart Page] Migration detected - waiting for completion...');
+        
+        // Listen for migration completion
+        window.addEventListener('cartMigrated', function(e) {
+            console.log('[Cart Page] Migration completed, loading cart...', e.detail);
+            setTimeout(() => loadCartPageSafely(), 500);
+        });
+        
+        // Fallback timeout in case migration event doesn't fire
+        setTimeout(() => {
+            console.log('[Cart Page] Fallback timeout - loading cart anyway');
+            loadCartPageSafely();
+        }, 2000);
+        
+    } else {
+        // No migration needed - load immediately
+        console.log('[Cart Page] No migration needed, loading cart immediately');
+        loadCartPageSafely();
+    }
+    
+    // Setup checkout form
+    setupCheckoutForm();
+});
+
+/**
+ * Safely load cart page (checks if cart.js is loaded)
+ */
+function loadCartPageSafely() {
     if (typeof loadCartPage === 'function') {
         console.log('[Cart Page] cart.js detected, loading cart...');
         loadCartPage();
     } else {
-        console.error('[Cart Page] ERROR: cart.js not loaded! loadCartPage() function not found');
-        showEmptyCart();
+        console.error('[Cart Page] ERROR: cart.js not loaded! Retrying...');
+        setTimeout(loadCartPageSafely, 200);
     }
-    
-    // Setup checkout form
-    const checkoutForm = document.getElementById('checkout-form');
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            console.log('[Cart Page] Checkout form submitted');
-            
-            // Get cart from localStorage (cart.js provides this function)
-            if (typeof getCart !== 'function') {
-                console.error('[Cart Page] ERROR: getCart() function not found');
-                alert('Cart system error. Please refresh the page.');
-                return false;
-            }
-            
-            const cart = getCart();
-            console.log('[Cart Page] Cart data for checkout:', cart);
-            
-            if (cart.length === 0) {
-                alert('Your cart is empty!');
-                return false;
-            }
-            
-            // Set cart data in hidden input
-            const cartJson = JSON.stringify(cart);
-            document.getElementById('cart_items_hidden').value = cartJson;
-            
-            console.log('[Cart Page] Submitting checkout with cart data');
-            
-            // Submit the form
-            this.submit();
-        });
-    }
-});
+}
 
-// Helper function to show empty cart (fallback)
-function showEmptyCart() {
-    const loadingEl = document.getElementById('loading-cart');
-    const emptyEl = document.getElementById('empty-cart');
-    const contentEl = document.getElementById('cart-content');
+/**
+ * Setup checkout form submission
+ */
+function setupCheckoutForm() {
+    const checkoutForm = document.getElementById('checkout-form');
+    if (!checkoutForm) return;
     
-    if (loadingEl) loadingEl.classList.add('d-none');
-    if (emptyEl) emptyEl.classList.remove('d-none');
-    if (contentEl) contentEl.classList.add('d-none');
-    
-    console.log('[Cart Page] Empty cart state displayed');
+    checkoutForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        console.log('[Cart Page] Checkout form submitted');
+        
+        // Get cart from localStorage (cart.js provides this function)
+        if (typeof getCart !== 'function') {
+            console.error('[Cart Page] ERROR: getCart() function not found');
+            alert('Cart system error. Please refresh the page.');
+            return false;
+        }
+        
+        const cart = getCart();
+        console.log('[Cart Page] Cart data for checkout:', cart);
+        
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            return false;
+        }
+        
+        // Set cart data in hidden input
+        const cartJson = JSON.stringify(cart);
+        document.getElementById('cart_items_hidden').value = cartJson;
+        
+        console.log('[Cart Page] Submitting checkout with cart data');
+        
+        // Submit the form
+        this.submit();
+    });
 }
 </script>
 @endpush

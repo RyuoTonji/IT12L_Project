@@ -1,13 +1,14 @@
 <?php return array (
-  'darkaonline/l5-swagger' => 
+  'barryvdh/laravel-dompdf' => 
   array (
     'aliases' => 
     array (
-      'L5Swagger' => 'L5Swagger\\L5SwaggerFacade',
+      'PDF' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
+      'Pdf' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
     ),
     'providers' => 
     array (
-      0 => 'L5Swagger\\L5SwaggerServiceProvider',
+      0 => 'Barryvdh\\DomPDF\\ServiceProvider',
     ),
   ),
   'laravel/pail' => 
@@ -22,6 +23,17 @@
     'providers' => 
     array (
       0 => 'Laravel\\Sail\\SailServiceProvider',
+    ),
+  ),
+  'laravel/socialite' => 
+  array (
+    'aliases' => 
+    array (
+      'Socialite' => 'Laravel\\Socialite\\Facades\\Socialite',
+    ),
+    'providers' => 
+    array (
+      0 => 'Laravel\\Socialite\\SocialiteServiceProvider',
     ),
   ),
   'laravel/tinker' => 

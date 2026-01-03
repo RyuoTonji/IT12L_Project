@@ -38,14 +38,14 @@
                             <td>{{ $product->id }}</td>
                             <td>
                                 @if($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" 
-                                         alt="{{ $product->name }}" 
-                                         style="width: 50px; height: 50px; object-fit: cover;">
+                                <img src="{{ asset('images/' . $product->image) }}"
+                                    alt="{{ $product->name }}"
+                                    style="width: 50px; height: 50px; object-fit: cover;">
                                 @else
-                                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" 
-                                         style="width: 50px; height: 50px;">
-                                        <i class="fas fa-image"></i>
-                                    </div>
+                                <div class="bg-secondary text-white d-flex align-items-center justify-content-center"
+                                    style="width: 50px; height: 50px;">
+                                    <i class="fas fa-image"></i>
+                                </div>
                                 @endif
                             </td>
                             <td>{{ $product->name }}</td>
@@ -54,10 +54,10 @@
                             <td>₱{{ number_format($product->price, 2) }}</td>
                             <td>{{ \Carbon\Carbon::parse($product->deleted_at)->format('M j, Y g:i A') }}</td>
                             <td>
-                                <form action="{{ route('admin.products.restore', $product->id) }}" 
-                                      method="POST" 
-                                      onsubmit="return confirm('Are you sure you want to restore this product?');"
-                                      class="d-inline">
+                                <form action="{{ route('admin.products.restore', $product->id) }}"
+                                    method="POST"
+                                    onsubmit="return confirm('Are you sure you want to restore this product?');"
+                                    class="d-inline">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-success">
                                         <i class="fas fa-undo"></i> Restore

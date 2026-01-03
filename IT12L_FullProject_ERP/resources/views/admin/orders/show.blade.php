@@ -42,13 +42,13 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             @if($item->product_image)
-                                                <img src="{{ asset('storage/' . $item->product_image) }}" 
-                                                     alt="{{ $item->product_name }}" 
-                                                     class="product-image me-3">
+                                            <img src="{{ asset('images/' . $item->product_image) }}"
+                                                alt="{{ $item->product_name }}"
+                                                class="product-image me-3">
                                             @else
-                                                <div class="product-image-placeholder me-3">
-                                                    <i class="fas fa-utensils"></i>
-                                                </div>
+                                            <div class="product-image-placeholder me-3">
+                                                <i class="fas fa-utensils"></i>
+                                            </div>
                                             @endif
                                             <div>
                                                 <strong>{{ $item->product_name }}</strong>
@@ -77,6 +77,32 @@
 
         <!-- Right Column - Details & Actions -->
         <div class="col-lg-4">
+            <!-- Update Status -->
+            <div class="card detail-card">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0 text-light"><i class="fas fa-edit"></i> Update Status</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <div class="mb-3">
+                            <label for="status" class="form-label fw-bold">Order Status</label>
+                            <select name="status" id="status" class="form-select status-select" required>
+                                <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
+                                <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }}>Preparing</option>
+                                <option value="ready" {{ $order->status == 'ready' ? 'selected' : '' }}>Ready for Pickup</option>
+                                <option value="picked up" {{ $order->status == 'picked up' ? 'selected' : '' }}>Picked Up</option>
+                                <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-save"></i> Update Status
+                        </button>
+                    </form>
+                </div>
+            </div>
             <!-- Order Details -->
             <div class="card detail-card mb-4">
                 <div class="card-header">
@@ -91,22 +117,36 @@
                         <span class="detail-label">Status:</span>
                         <span class="detail-value">
                             @php
-                                $statusClass = [
-                                    'pending' => 'pending',
-                                    'confirmed' => 'confirmed',
-                                    'delivered' => 'completed',
-                                    'cancelled' => 'cancelled'
-                                ];
-                                $badgeClass = $statusClass[$order->status] ?? 'pending';
+                            $statusClass = [
+                            'pending' => 'pending',
+                            'confirmed' => 'confirmed',
+                            'preparing' => 'preparing',
+                            'ready' => 'ready',
+                            'picked up' => 'completed',
+                            'cancelled' => 'cancelled'
+                            ];
+                            $badgeClass = $statusClass[$order->status] ?? 'pending';
                             @endphp
                             <span class="status-badge {{ $badgeClass }}">
-                                {{ ucfirst($order->status) }}
+                                {{ $order->status === 'ready' ? 'Ready for Pickup' : ucfirst($order->status) }}
                             </span>
                         </span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Order Date:</span>
                         <span class="detail-value">{{ \Carbon\Carbon::parse($order->created_at)->format('M j, Y g:i A') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Payment Method:</span>
+                        <span class="detail-value">
+                            @if($order->payment_method === 'qr_ph')
+                            <i class="fas fa-qrcode text-primary me-1"></i> QRPh (Universal QR)
+                            @elseif($order->payment_method === 'cash')
+                            <i class="fas fa-money-bill-wave text-success me-1"></i> Cash on Pickup
+                            @else
+                            {{ ucfirst(str_replace('_', ' ', $order->payment_method)) }}
+                            @endif
+                        </span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Branch:</span>
@@ -158,268 +198,247 @@
                 </div>
             </div>
 
-            <!-- Update Status -->
-            <div class="card detail-card">
-                <div class="card-header bg-warning">
-                    <h5 class="mb-0 text-light"><i class="fas fa-edit"></i> Update Status</h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
-                        @csrf
-                        @method('PATCH')
-                        <div class="mb-3">
-                            <label for="status" class="form-label fw-bold">Order Status</label>
-                            <select name="status" id="status" class="form-select status-select" required>
-                                <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Confirmed</option>
-                                <option value="delivered" {{ $order->status == 'delivered' ? 'selected' : '' }}>Delivered</option>
-                                <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-save"></i> Update Status
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-@push('styles')
-<style>
-    /* Order Detail Header */
-    .order-detail-header {
-        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
 
-    .order-detail-header h2 {
-        color: white;
-        font-weight: 700;
-    }
+            @push('styles')
+            <style>
+                /* Order Detail Header */
+                .order-detail-header {
+                    background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
+                    color: white;
+                    padding: 2rem;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                }
 
-    /* Detail Cards */
-    .detail-card {
-        border: none;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-    }
+                .order-detail-header h2 {
+                    color: white;
+                    font-weight: 700;
+                }
 
-    .detail-card .card-header {
-        background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-bottom: none;
-    }
+                /* Detail Cards */
+                .detail-card {
+                    border: none;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    overflow: hidden;
+                }
 
-    .detail-card .card-header h5 {
-        margin: 0;
-        font-weight: 600;
-        color: white;
-    }
+                .detail-card .card-header {
+                    background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%);
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-bottom: none;
+                }
 
-    .detail-card .card-body {
-        padding: 1.5rem;
-    }
+                .detail-card .card-header h5 {
+                    margin: 0;
+                    font-weight: 600;
+                    color: white;
+                }
 
-    /* Detail Table */
-    .detail-table {
-        border-collapse: separate;
-        border-spacing: 0;
-    }
+                .detail-card .card-body {
+                    padding: 1.5rem;
+                }
 
-    .detail-table thead {
-        background: #f8f9fa;
-    }
+                /* Detail Table */
+                .detail-table {
+                    border-collapse: separate;
+                    border-spacing: 0;
+                }
 
-    .detail-table thead th {
-        font-weight: 600;
-        color: #495057;
-        padding: 1rem;
-        border-bottom: 2px solid #dee2e6;
-        text-transform: uppercase;
-        font-size: 0.875rem;
-    }
+                .detail-table thead {
+                    background: #f8f9fa;
+                }
 
-    .detail-table tbody tr {
-        border-bottom: 1px solid #f8f9fa;
-        transition: background-color 0.2s ease;
-    }
+                .detail-table thead th {
+                    font-weight: 600;
+                    color: #495057;
+                    padding: 1rem;
+                    border-bottom: 2px solid #dee2e6;
+                    text-transform: uppercase;
+                    font-size: 0.875rem;
+                }
 
-    .detail-table tbody tr:hover {
-        background-color: rgba(165, 42, 42, 0.05);
-    }
+                .detail-table tbody tr {
+                    border-bottom: 1px solid #f8f9fa;
+                    transition: background-color 0.2s ease;
+                }
 
-    .detail-table tbody td {
-        padding: 1rem;
-        vertical-align: middle;
-    }
+                .detail-table tbody tr:hover {
+                    background-color: rgba(165, 42, 42, 0.05);
+                }
 
-    .detail-table tfoot {
-        background: #f8f9fa;
-        border-top: 2px solid #dee2e6;
-    }
+                .detail-table tbody td {
+                    padding: 1rem;
+                    vertical-align: middle;
+                }
 
-    .detail-table tfoot td {
-        padding: 1rem;
-        font-size: 1.125rem;
-    }
+                .detail-table tfoot {
+                    background: #f8f9fa;
+                    border-top: 2px solid #dee2e6;
+                }
 
-    /* Product Image */
-    .product-image {
-        width: 60px;
-        height: 60px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 2px solid #dee2e6;
-    }
+                .detail-table tfoot td {
+                    padding: 1rem;
+                    font-size: 1.125rem;
+                }
 
-    .product-image-placeholder {
-        width: 60px;
-        height: 60px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        border: 2px solid #dee2e6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #6c757d;
-    }
+                /* Product Image */
+                .product-image {
+                    width: 60px;
+                    height: 60px;
+                    object-fit: cover;
+                    border-radius: 8px;
+                    border: 2px solid #dee2e6;
+                }
 
-    /* Price Cells */
-    .price-cell,
-    .subtotal-cell {
-        font-weight: 600;
-        color: #495057;
-    }
+                .product-image-placeholder {
+                    width: 60px;
+                    height: 60px;
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    border: 2px solid #dee2e6;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #6c757d;
+                }
 
-    .total-amount {
-        font-size: 1.25rem;
-        color: #A52A2A;
-    }
+                /* Price Cells */
+                .price-cell,
+                .subtotal-cell {
+                    font-weight: 600;
+                    color: #495057;
+                }
 
-    /* Quantity Badge */
-    .quantity-badge {
+                .total-amount {
+                    font-size: 1.25rem;
+                    color: #A52A2A;
+                }
 
-        color: #000000ff;
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        font-weight: 600;
-        display: inline-block;
-    }
+                /* Quantity Badge */
+                .quantity-badge {
+                    color: #000000ff;
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    display: inline-block;
+                }
 
-    /* Detail Items */
-    .detail-item {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f8f9fa;
-    }
+                /* Detail Items */
+                .detail-item {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 0.75rem 0;
+                    border-bottom: 1px solid #f8f9fa;
+                }
 
-    .detail-item:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
+                .detail-item:last-child {
+                    border-bottom: none;
+                    padding-bottom: 0;
+                }
 
-    .detail-label {
-        font-weight: 600;
-        color: #495057;
-    }
+                .detail-label {
+                    font-weight: 600;
+                    color: #495057;
+                }
 
-    .detail-value {
-        color: #6c757d;
-        text-align: right;
-    }
+                .detail-value {
+                    color: #6c757d;
+                    text-align: right;
+                }
 
-    .order-id {
-        color: #A52A2A !important;
-        font-weight: 700;
-    }
+                .order-id {
+                    color: #A52A2A !important;
+                    font-weight: 700;
+                }
 
-    .total-highlight {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #000000ff !important;
-    }
+                .total-highlight {
+                    font-size: 1.25rem;
+                    font-weight: 700;
+                    color: #000000ff !important;
+                }
 
-    /* Status Badges */
-    .status-badge {
-        padding: 0.4rem 0.9rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.875rem;
-        display: inline-block;
-        text-transform: capitalize;
-    }
+                /* Status Badges */
+                .status-badge {
+                    padding: 0.4rem 0.9rem;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    font-size: 0.875rem;
+                    display: inline-block;
+                    text-transform: capitalize;
+                }
 
-    .status-badge.pending {
-        color: #ffc107;
-    }
+                .status-badge.pending {
+                    color: #ffc107;
+                }
 
-    .status-badge.confirmed {      
-        color: #0aa2c0;
-    }
+                .status-badge.confirmed {
+                    color: #0aa2c0;
+                }
 
-    .status-badge.completed { 
-        color: #198754;
-    }
+                .status-badge.preparing {
+                    color: #6610f2;
+                }
 
-    .status-badge.cancelled {
-   
-        color: #bb2d3b;
-    }
+                .status-badge.ready {
+                    color: #fd7e14;
+                }
 
-    /* Status Select */
-    .status-select {
-        border: 2px solid #dee2e6;
-        border-radius: 8px;
-        padding: 0.625rem 1rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
+                .status-badge.completed {
+                    color: #198754;
+                }
 
-    .status-select:focus {
-        border-color: #A52A2A;
-        box-shadow: 0 0 0 0.25rem rgba(165, 42, 42, 0.15);
-    }
+                .status-badge.cancelled {
+                    color: #bb2d3b;
+                }
 
-    /* Total Row */
-    .total-row {
-        background: #f8f9fa;
-        font-size: 1.125rem;
-    }
+                /* Status Select */
+                .status-select {
+                    border: 2px solid #dee2e6;
+                    border-radius: 8px;
+                    padding: 0.625rem 1rem;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                }
 
-    .total-row td {
-        padding: 1.25rem 1rem !important;
-    }
+                .status-select:focus {
+                    border-color: #A52A2A;
+                    box-shadow: 0 0 0 0.25rem rgba(165, 42, 42, 0.15);
+                }
 
-    /* Responsive */
-    @media (max-width: 992px) {
-        .order-detail-header {
-            padding: 1.5rem;
-        }
+                /* Total Row */
+                .total-row {
+                    background: #f8f9fa;
+                    font-size: 1.125rem;
+                }
 
-        .order-detail-header h2 {
-            font-size: 1.5rem;
-        }
+                .total-row td {
+                    padding: 1.25rem 1rem !important;
+                }
 
-        .detail-card .card-body {
-            padding: 1rem;
-        }
-    }
+                /* Responsive */
+                @media (max-width: 992px) {
+                    .order-detail-header {
+                        padding: 1.5rem;
+                    }
 
-    @media (max-width: 576px) {
-        .category-badge,
-        .branch-badge {
-            font-size: 0.75rem;
-            padding: 0.3rem 0.6rem;
-        }
-    }
-</style>
-@endpush
-@endsection
+                    .order-detail-header h2 {
+                        font-size: 1.5rem;
+                    }
+
+                    .detail-card .card-body {
+                        padding: 1rem;
+                    }
+                }
+
+                @media (max-width: 576px) {
+                    .status-badge {
+                        font-size: 0.75rem;
+                        padding: 0.3rem 0.6rem;
+                    }
+                }
+            </style>
+            @endpush
+            @endsection

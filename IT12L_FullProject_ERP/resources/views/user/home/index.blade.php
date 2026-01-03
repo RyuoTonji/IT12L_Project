@@ -29,7 +29,7 @@
                     {{-- Right Side: Call to Action --}}
                     <div class="col-md-6 p-4 text-white" style="background: linear-gradient(135deg, #A52A2A 0%, #8B0000 100%); border-radius: 0 0.5rem 0.5rem 0;">
                         <div class="text-center">
-                            <h2 class="fw-bold mb-3">Taste the 🔥 Difference</h2>
+                            <h2 class="fw-bold mb-3">Taste the Difference 🔥</h2>
                             <img src="{{ asset('images/pares.png') }}" alt="Delicious Pares" class="img-fluid d-block mx-auto" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
                             <p class="mt-4 fs-5">
                                 <strong>Delicious BBQ and Pares, Ready When You Are!</strong><br>

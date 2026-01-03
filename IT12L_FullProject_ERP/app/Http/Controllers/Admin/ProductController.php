@@ -87,13 +87,25 @@ class ProductController extends Controller
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
             'is_available' => 'boolean',
         ]);
 
+        // Simple image upload without optimization
         $imagePath = null;
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('products', 'public');
+            try {
+                $image = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                
+                // Store in public/products directory
+                $imagePath = $image->storeAs('products', $filename, 'public');
+                
+                Log::info('Product image uploaded successfully', ['filename' => $filename]);
+            } catch (\Exception $e) {
+                Log::error('Image upload failed', ['error' => $e->getMessage()]);
+                return back()->withInput()->with('error', 'Failed to upload image. Please try again.');
+            }
         }
 
         DB::table('products')->insert([
@@ -136,7 +148,7 @@ class ProductController extends Controller
             'name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
             'is_available' => 'boolean',
         ]);
 
@@ -149,12 +161,26 @@ class ProductController extends Controller
             return redirect()->route('admin.products.index')->with('error', 'Product not found!');
         }
 
+        // Simple image update without optimization
         $imagePath = $product->image;
         if ($request->hasFile('image')) {
-            if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
+            try {
+                // Delete old image if exists
+                if ($imagePath && Storage::disk('public')->exists($imagePath)) {
+                    Storage::disk('public')->delete($imagePath);
+                }
+                
+                $image = $request->file('image');
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                
+                // Store new image
+                $imagePath = $image->storeAs('products', $filename, 'public');
+                
+                Log::info('Product image updated successfully', ['filename' => $filename]);
+            } catch (\Exception $e) {
+                Log::error('Image update failed', ['error' => $e->getMessage()]);
+                return back()->withInput()->with('error', 'Failed to update image. Please try again.');
             }
-            $imagePath = $request->file('image')->store('products', 'public');
         }
 
         DB::table('products')->where('id', $id)->update([

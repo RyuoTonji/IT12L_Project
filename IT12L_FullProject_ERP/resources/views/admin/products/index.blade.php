@@ -45,9 +45,9 @@
                     <select name="category_id" class="form-select">
                         <option value="">All Categories</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
+                        <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                            {{ $category->name }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
@@ -56,9 +56,9 @@
                     <select name="branch_id" class="form-select">
                         <option value="">All Branches</option>
                         @foreach($branches as $branch)
-                            <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
-                                {{ $branch->name }}
-                            </option>
+                        <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                            {{ $branch->name }}
+                        </option>
                         @endforeach
                     </select>
                 </div>
@@ -128,13 +128,14 @@
                             </td>
                             <td>
                                 @if($product->image)
-                                    <img src="{{ asset('storage/' . $product->image) }}" 
-                                         alt="{{ $product->name }}" 
-                                         class="product-image">
+                                <img src="{{ asset('images/' . $product->image) }}"
+                                    alt="{{ $product->name }}"
+                                    class="img-thumbnail"
+                                    style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;">
                                 @else
-                                    <div class="product-image-placeholder">
-                                        <i class="fas fa-utensils"></i>
-                                    </div>
+                                <div class="product-image-placeholder">
+                                    <i class="fas fa-utensils"></i>
+                                </div>
                                 @endif
                             </td>
                             <td>
@@ -167,13 +168,13 @@
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <a href="{{ route('admin.products.edit', $product->id) }}" 
-                                       class="btn btn-sm btn-warning">
+                                    <a href="{{ route('admin.products.edit', $product->id) }}"
+                                        class="btn btn-sm btn-warning">
                                         <i class="fas fa-edit"></i> Edit
                                     </a>
-                                    <form action="{{ route('admin.products.destroy', $product->id) }}" 
-                                          method="POST" 
-                                          onsubmit="return confirm('Are you sure you want to archive this product?');">
+                                    <form action="{{ route('admin.products.destroy', $product->id) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Are you sure you want to archive this product?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger">
@@ -590,7 +591,7 @@
         .products-table {
             font-size: 0.875rem;
         }
-        
+
         .product-image,
         .product-image-placeholder {
             width: 50px;
@@ -645,6 +646,7 @@
     }
 
     @media (max-width: 576px) {
+
         .category-badge,
         .branch-badge {
             font-size: 0.75rem;

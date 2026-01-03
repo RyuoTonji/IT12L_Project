@@ -54,6 +54,11 @@
         <form method="POST" action="{{ route('login') }}">
             @csrf
 
+            {{-- Hidden field to preserve redirect parameter --}}
+            @if(request('redirect'))
+                <input type="hidden" name="redirect" value="{{ request('redirect') }}">
+            @endif
+
             {{-- Email Input --}}
             <div class="mb-3">
                 <label for="email" class="form-label text-white-50 small fw-semibold mb-3">
@@ -111,8 +116,26 @@
             </div>
         </form>
         
+        {{-- Google Sign-In --}}
+        <div class="mt-4 mb-3">
+            <a href="{{ route('auth.google') }}" 
+               class="btn btn-light w-100 fw-bold py-2 google-btn d-flex align-items-center justify-content-center"
+               style="border-radius: 0.5rem; 
+                      background-color: white;
+                      color: #333;
+                      border: none;
+                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                      transition: all 0.3s ease;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                     alt="Google Logo" 
+                     class="me-2" 
+                     style="width: 20px; height: 20px;">
+                Continue with Google
+            </a>
+        </div>
+
         {{-- Register Link --}}
-        <div class="text-center pt-4 mt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+        <div class="text-center pt-3 mt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
             <p class="mb-3 text-white-50">Don't have an account?</p>
             <a href="{{ route('register') }}" 
                class="btn btn-outline-light w-100 fw-bold py-2 register-btn"
@@ -123,7 +146,14 @@
             </a>
         </div>
     </div>
+</div>
 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
 @endsection
@@ -178,6 +208,12 @@
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
+.google-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    background-color: #f8f9fa !important;
+}
+
 /* Label Animation */
 .form-label {
     transition: all 0.3s ease;
@@ -195,17 +231,3 @@
 </style>
 @endpush
 
-
-@if(session('cart_merged'))
-<script>
-    // Signal that login just happened
-    sessionStorage.setItem('just_logged_in', 'true');
-    
-    // Trigger cart sync
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof checkLoginAndSyncCart === 'function') {
-            checkLoginAndSyncCart();
-        }
-    });
-</script>
-@endif

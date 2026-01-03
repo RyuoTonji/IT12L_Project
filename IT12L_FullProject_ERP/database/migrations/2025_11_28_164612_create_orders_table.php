@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         if (!Schema::hasTable('orders')) {
@@ -14,20 +13,28 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
                 $table->foreignId('branch_id')->constrained('branches')->onDelete('cascade');
                 $table->decimal('total_amount', 10, 2);
-                $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'])->default('pending');
-                $table->text('address')->nullable();
+                $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'picked up', 'cancelled'])->default('pending');
+                $table->string('payment_method')->default('cash');
+                $table->string('paymongo_source_id')->nullable();
+                $table->string('payment_status')->default('pending');
+                $table->boolean('is_synced')->default(false);
                 $table->string('customer_name', 100);
                 $table->string('customer_phone', 20);
                 $table->text('notes')->nullable();
                 $table->timestamps();
+                $table->softDeletes();
             });
 
             Schema::create('order_items', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
+                $table->foreignId('product_id')->nullable()->constrained('products')->onDelete('set null');
                 $table->string('product_name', 200);
+                $table->string('product_image')->nullable();
                 $table->integer('quantity');
                 $table->decimal('price', 10, 2);
+                $table->decimal('subtotal', 10, 2);
+                $table->boolean('is_synced')->default(false);
                 $table->timestamps();
             });
         }

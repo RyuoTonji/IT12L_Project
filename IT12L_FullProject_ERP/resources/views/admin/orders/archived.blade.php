@@ -66,7 +66,7 @@
                                     $statusClass = [
                                         'pending' => 'warning',
                                         'confirmed' => 'info',
-                                        'delivered' => 'success',
+                                        'picked up' => 'success',
                                         'cancelled' => 'danger'
                                     ];
                                     $textClass = $statusClass[$order->status] ?? 'secondary';

@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +23,8 @@ class User extends Authenticatable
         'phone',
         'address',
         'is_admin',
+        'google_id',
+        'avatar',
     ];
 
     /**
@@ -45,5 +48,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted()
+    {
+        static::deleted(function ($user) {
+            \Illuminate\Support\Facades\DB::table('deletion_logs')->insert([
+                'table_name' => 'users',
+                'record_id' => $user->id,
+                'data' => json_encode($user->toArray()),
+                'deleted_by' => auth()->id(),
+                'reason' => 'Soft delete',
+                'deleted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
     }
 }

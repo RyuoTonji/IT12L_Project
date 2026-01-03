@@ -100,7 +100,7 @@ class CustomerController extends Controller
         $totalSpent = DB::table('orders')
             ->whereNull('deleted_at')
             ->where('user_id', $id)
-            ->whereIn('status', ['confirmed', 'delivered'])
+            ->whereIn('status', ['confirmed', 'picked up'])
             ->sum('total_amount');
 
         return view('admin.customers.show', compact('customer', 'orders', 'totalOrders', 'totalSpent'));
