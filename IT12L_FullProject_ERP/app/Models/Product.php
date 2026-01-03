@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'branch_id',
         'category_id',
@@ -14,8 +17,6 @@ class Product extends Model
         'image',
         'is_available',
     ];
-
-    public $timestamps = false;
 
     protected $casts = [
         'price' => 'decimal:2',
@@ -57,5 +58,21 @@ class Product extends Model
     public function scopeSearch($query, $search)
     {
         return $query->where('name', 'like', "%{$search}%");
+    }
+
+    protected static function booted()
+    {
+        static::deleted(function ($product) {
+            \Illuminate\Support\Facades\DB::table('deletion_logs')->insert([
+                'table_name' => 'products',
+                'record_id' => $product->id,
+                'data' => json_encode($product->toArray()),
+                'deleted_by' => auth()->id(),
+                'reason' => 'Soft delete',
+                'deleted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
     }
 }

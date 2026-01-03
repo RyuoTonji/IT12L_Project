@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'user_id',
         'branch_id',
@@ -15,6 +18,9 @@ class Order extends Model
         'customer_name',
         'customer_phone',
         'notes',
+        'payment_method',
+        'paymongo_source_id',
+        'payment_status',
     ];
 
     protected $casts = [
@@ -79,5 +85,21 @@ class Order extends Model
             return true;
         }
         return false;
+    }
+
+    protected static function booted()
+    {
+        static::deleted(function ($order) {
+            \Illuminate\Support\Facades\DB::table('deletion_logs')->insert([
+                'table_name' => 'orders',
+                'record_id' => $order->id,
+                'data' => json_encode($order->toArray()),
+                'deleted_by' => auth()->id(),
+                'reason' => 'Soft delete',
+                'deleted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
     }
 }

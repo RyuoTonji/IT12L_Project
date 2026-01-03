@@ -20,4 +20,20 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+
+    protected static function booted()
+    {
+        static::deleted(function ($category) {
+            \Illuminate\Support\Facades\DB::table('deletion_logs')->insert([
+                'table_name' => 'categories',
+                'record_id' => $category->id,
+                'data' => json_encode($category->toArray()),
+                'deleted_by' => auth()->id(),
+                'reason' => 'Soft delete',
+                'deleted_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+    }
 }

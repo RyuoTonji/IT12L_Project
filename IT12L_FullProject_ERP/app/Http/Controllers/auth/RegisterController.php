@@ -35,7 +35,7 @@ class RegisterController extends Controller
 
         // ✅ STEP 1: Capture OLD session ID BEFORE registration/login
         $oldSessionId = $request->session()->getId();
-        
+
         Log::info('Registration attempt', [
             'email' => $request->input('email'),
             'old_session' => $oldSessionId
@@ -47,6 +47,7 @@ class RegisterController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
+                'address' => $request->address,
                 'password' => Hash::make($request->password),
                 'is_admin' => false,
             ]);
@@ -67,7 +68,7 @@ class RegisterController extends Controller
             // ✅ CRITICAL FIX: Store in regular session BEFORE regeneration
             // Don't use flash() - it can be lost during regenerate()
             $request->session()->put('_temp_old_session_id', $oldSessionId);
-            
+
             Log::info('🟡 STEP 4: Temp session data saved', [
                 'temp_old_session' => session('_temp_old_session_id'),
                 'current_session' => $request->session()->getId()
@@ -93,6 +94,7 @@ class RegisterController extends Controller
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|string|max:20',
+            'address' => 'required|string|max:255',
             'password' => 'required|string|min:6|confirmed',
         ]);
     }
@@ -104,7 +106,7 @@ class RegisterController extends Controller
     {
         // ✅ STEP 5: Get old session ID from temp storage BEFORE regeneration
         $oldSessionId = $request->session()->get('_temp_old_session_id');
-        
+
         if (!$oldSessionId) {
             Log::error('❌ STEP 5 FAILED: Old session ID not found in temp storage!', [
                 'all_session_keys' => array_keys(session()->all())
@@ -117,27 +119,27 @@ class RegisterController extends Controller
                 'before_regeneration' => true
             ]);
         }
-        
+
         // ✅ STEP 6: Regenerate session (for security)
         $request->session()->regenerate();
 
         // ✅ STEP 7: Get NEW session ID after regeneration
         $newSessionId = $request->session()->getId();
-        
+
         Log::info('🟢 STEP 6-7: After session regeneration', [
             'new_session_id' => $newSessionId,
             'old_session_preserved' => $oldSessionId !== null
         ]);
-        
+
         // ✅ STEP 8: Now store migration data in the NEW session
         if ($oldSessionId && $oldSessionId !== $newSessionId) {
             $request->session()->put('_cart_old_session_id', $oldSessionId);
             $request->session()->put('_cart_new_session_id', $newSessionId);
             $request->session()->put('_cart_migration_needed', true);
-            
+
             // ✅ CRITICAL: Save the session immediately to ensure data persists
             $request->session()->save();
-            
+
             Log::info('🟡 STEP 8: Migration data stored in new session', [
                 'stored_old_session' => session('_cart_old_session_id'),
                 'stored_new_session' => session('_cart_new_session_id'),
@@ -150,7 +152,7 @@ class RegisterController extends Controller
                 'new_session' => $newSessionId
             ]);
         }
-        
+
         // ✅ STEP 9: Clean up temp storage
         $request->session()->forget('_temp_old_session_id');
 
@@ -173,9 +175,9 @@ class RegisterController extends Controller
         }
 
         return $request->wantsJson()
-                    ? new \Illuminate\Http\JsonResponse([], 201)
-                    : redirect()->intended($this->redirectPath())
-                        ->with('success', 'Registration successful! Welcome, ' . $user->name . '!');
+            ? new \Illuminate\Http\JsonResponse([], 201)
+            : redirect()->intended($this->redirectPath())
+                ->with('success', 'Registration successful! Welcome, ' . $user->name . '!');
     }
 
     protected function registered(Request $request, $user)
@@ -190,18 +192,18 @@ class RegisterController extends Controller
         // Check for redirect parameter (same as LoginController)
         if (request()->has('redirect')) {
             $redirect = request()->input('redirect');
-            
+
             $redirectMap = [
                 'checkout' => '/checkout',
                 'cart' => '/cart',
                 'orders' => '/orders',
             ];
-            
+
             if (isset($redirectMap[$redirect])) {
                 return $redirectMap[$redirect];
             }
         }
-        
+
         if (method_exists($this, 'redirectTo')) {
             return $this->redirectTo();
         }

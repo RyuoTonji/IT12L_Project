@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DashboardController extends Controller
 {
@@ -24,12 +25,12 @@ class DashboardController extends Controller
         // ============================================================================
         // STATIC METRICS (NEVER FILTERED)
         // ============================================================================
-        
+
         // All Time Totals
         $totalOrdersAllTime = DB::table('orders')
             ->whereNull('deleted_at')
             ->count();
-        
+
         $totalRevenueAllTime = DB::table('orders')
             ->whereNull('deleted_at')
             ->sum('total_amount');
@@ -50,7 +51,7 @@ class DashboardController extends Controller
         // ============================================================================
         $statusStartDate = $request->get('status_start_date');
         $statusEndDate = $request->get('status_end_date');
-        
+
         // Default to TODAY ONLY if no filter is applied
         if (!$statusStartDate && !$statusEndDate) {
             $statusFilterStart = Carbon::today()->startOfDay();
@@ -65,7 +66,7 @@ class DashboardController extends Controller
             ->whereNull('deleted_at')
             ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->count();
-        
+
         // TODAY'S REVENUE (uses status filter)
         $todayRevenue = DB::table('orders')
             ->whereNull('deleted_at')
@@ -82,7 +83,7 @@ class DashboardController extends Controller
         $periodDuration = $statusFilterStart->diffInSeconds($statusFilterEnd);
         $previousFilterStart = $statusFilterStart->copy()->subSeconds($periodDuration);
         $previousFilterEnd = $statusFilterStart->copy();
-        
+
         $previousOrderCount = DB::table('orders')
             ->whereNull('deleted_at')
             ->whereBetween('created_at', [$previousFilterStart, $previousFilterEnd])
@@ -102,10 +103,10 @@ class DashboardController extends Controller
         $salesStartDate = $request->get('start_date');
         $salesEndDate = $request->get('end_date');
         $salesBranchId = $request->get('branch_id');
-        
+
         // Build query
         $salesQuery = DB::table('orders')->whereNull('deleted_at');
-        
+
         // Apply date filter based on mode
         if ($salesStartDate && $salesEndDate) {
             // Quick filter mode (30 days, 4 months, 1 year)
@@ -122,7 +123,7 @@ class DashboardController extends Controller
                 Carbon::now()->endOfDay()
             ]);
         }
-        
+
         // Apply branch filter
         if ($salesBranchId && $salesBranchId !== 'all') {
             $salesQuery->where('branch_id', $salesBranchId);
@@ -244,18 +245,18 @@ class DashboardController extends Controller
             'totalRevenueAllTime',
             'totalProducts',
             'pendingOrders',
-            
+
             // Today's Metrics (Synced - all use status filter)
             'todayOrders',
             'todayRevenue',
             'recentOrderCount',
             'previousOrderCount',
             'orderTrend',
-            
+
             // Sales Performance (Separate Filter)
             'salesPerformance',
             'dailySales',
-            
+
             // Orders by Status (Synced with Today's Metrics)
             'orderStatusData',
             'filteredTotalOrders',
@@ -264,11 +265,11 @@ class DashboardController extends Controller
             'statusEndDate',
             'statusFilterStart',
             'statusFilterEnd',
-            
+
             // Never Filtered
             'salesByBranch',
             'topProducts',
-            
+
             // Other
             'recentOrders',
             'branches'
@@ -282,7 +283,7 @@ class DashboardController extends Controller
     {
         $statusStartDate = $request->get('status_start_date');
         $statusEndDate = $request->get('status_end_date');
-        
+
         // Default to TODAY ONLY if no filter
         if (!$statusStartDate && !$statusEndDate) {
             $statusFilterStart = Carbon::today()->startOfDay();
@@ -302,7 +303,7 @@ class DashboardController extends Controller
         $periodDuration = $statusFilterStart->diffInSeconds($statusFilterEnd);
         $previousFilterStart = $statusFilterStart->copy()->subSeconds($periodDuration);
         $previousFilterEnd = $statusFilterStart->copy();
-        
+
         $previousOrderCount = DB::table('orders')
             ->whereNull('deleted_at')
             ->whereBetween('created_at', [$previousFilterStart, $previousFilterEnd])
@@ -320,7 +321,7 @@ class DashboardController extends Controller
             ->whereNull('deleted_at')
             ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->count();
-        
+
         $todayRevenue = DB::table('orders')
             ->whereNull('deleted_at')
             ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
@@ -335,140 +336,140 @@ class DashboardController extends Controller
         ]);
     }
 
-/**
- * Get filtered chart data for AJAX requests
- * Handles separate filters for different chart types
- */
-private function getFilteredChartData(Request $request)
-{
-    $chartType = $request->get('chart_type');
-    $branchId = $request->get('branch_id');
-    $year = $request->get('year');
-    $startDate = $request->get('start_date');
-    $endDate = $request->get('end_date');
-    
-    $response = [];
+    /**
+     * Get filtered chart data for AJAX requests
+     * Handles separate filters for different chart types
+     */
+    private function getFilteredChartData(Request $request)
+    {
+        $chartType = $request->get('chart_type');
+        $branchId = $request->get('branch_id');
+        $year = $request->get('year');
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
 
-    // Sales Performance Chart (Separate filter)
-    if ($chartType === 'sales_performance' || !$chartType) {
-        $query = DB::table('orders')->whereNull('deleted_at');
+        $response = [];
 
-        // Check which filter mode is active
-        if ($startDate && $endDate) {
-            // Quick filter mode
-            $filterStart = Carbon::parse($startDate)->startOfDay();
-            $filterEnd = Carbon::parse($endDate)->endOfDay();
-            $query->whereBetween('created_at', [$filterStart, $filterEnd]);
-        } elseif ($year && $year !== 'all') {
-            // Year filter mode
-            $query->whereYear('created_at', $year);
-        } else {
-            // Default to last 6 months
-            $query->whereBetween('created_at', [
-                Carbon::now()->subMonths(6)->startOfDay(),
-                Carbon::now()->endOfDay()
-            ]);
+        // Sales Performance Chart (Separate filter)
+        if ($chartType === 'sales_performance' || !$chartType) {
+            $query = DB::table('orders')->whereNull('deleted_at');
+
+            // Check which filter mode is active
+            if ($startDate && $endDate) {
+                // Quick filter mode
+                $filterStart = Carbon::parse($startDate)->startOfDay();
+                $filterEnd = Carbon::parse($endDate)->endOfDay();
+                $query->whereBetween('created_at', [$filterStart, $filterEnd]);
+            } elseif ($year && $year !== 'all') {
+                // Year filter mode
+                $query->whereYear('created_at', $year);
+            } else {
+                // Default to last 6 months
+                $query->whereBetween('created_at', [
+                    Carbon::now()->subMonths(6)->startOfDay(),
+                    Carbon::now()->endOfDay()
+                ]);
+            }
+
+            // Apply branch filter
+            if ($branchId && $branchId !== 'all') {
+                $query->where('branch_id', $branchId);
+            }
+
+            $salesPerformance = (clone $query)
+                ->select(
+                    DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'),
+                    DB::raw('SUM(total_amount) as total_sales'),
+                    DB::raw('COUNT(*) as order_count')
+                )
+                ->groupBy('month')
+                ->orderBy('month', 'asc')
+                ->get();
+
+            $dailySales = (clone $query)
+                ->select(
+                    DB::raw('DATE(created_at) as date'),
+                    DB::raw('COUNT(*) as order_count'),
+                    DB::raw('SUM(total_amount) as total')
+                )
+                ->groupBy(DB::raw('DATE(created_at)'))
+                ->orderBy('date', 'asc')
+                ->get();
+
+            $response['salesPerformance'] = $salesPerformance;
+            $response['dailySales'] = $dailySales;
         }
 
-        // Apply branch filter
-        if ($branchId && $branchId !== 'all') {
-            $query->where('branch_id', $branchId);
+        // Orders by Status & Quick Insights (Status filter with branch support)
+        if ($chartType === 'order_status' || !$chartType) {
+            // Determine date range
+            if ($startDate && $endDate) {
+                $filterStartDate = Carbon::parse($startDate)->startOfDay();
+                $filterEndDate = Carbon::parse($endDate)->endOfDay();
+            } else {
+                // Default to TODAY ONLY
+                $filterStartDate = Carbon::today()->startOfDay();
+                $filterEndDate = Carbon::today()->endOfDay();
+            }
+
+            $statusQuery = DB::table('orders')
+                ->whereNull('deleted_at')
+                ->whereBetween('created_at', [$filterStartDate, $filterEndDate]);
+
+            // Apply branch filter for status data
+            if ($branchId && $branchId !== 'all') {
+                $statusQuery->where('branch_id', $branchId);
+            }
+
+            $ordersByStatus = (clone $statusQuery)
+                ->select('status', DB::raw('COUNT(*) as count'))
+                ->groupBy('status')
+                ->get()
+                ->pluck('count', 'status')
+                ->toArray();
+
+            $statusLabels = ['pending', 'confirmed', 'preparing', 'ready', 'picked up', 'cancelled'];
+            $orderStatusData = [];
+            foreach ($statusLabels as $status) {
+                $orderStatusData[$status] = $ordersByStatus[$status] ?? 0;
+            }
+
+            $filteredTotalOrders = array_sum($orderStatusData);
+            $filteredRevenue = (clone $statusQuery)->sum('total_amount');
+
+            // Calculate trend for live metrics
+            $periodDuration = $filterStartDate->diffInSeconds($filterEndDate);
+            $previousFilterStart = $filterStartDate->copy()->subSeconds($periodDuration);
+            $previousFilterEnd = $filterStartDate->copy();
+
+            $previousQuery = DB::table('orders')
+                ->whereNull('deleted_at')
+                ->whereBetween('created_at', [$previousFilterStart, $previousFilterEnd]);
+
+            // Apply branch filter to previous period as well
+            if ($branchId && $branchId !== 'all') {
+                $previousQuery->where('branch_id', $branchId);
+            }
+
+            $previousOrderCount = $previousQuery->count();
+
+            $orderTrend = 0;
+            if ($previousOrderCount > 0) {
+                $orderTrend = (($filteredTotalOrders - $previousOrderCount) / $previousOrderCount) * 100;
+            } elseif ($filteredTotalOrders > 0) {
+                $orderTrend = 100;
+            }
+
+            $response['orderStatusData'] = $orderStatusData;
+            $response['filteredTotalOrders'] = $filteredTotalOrders;
+            $response['filteredRevenue'] = $filteredRevenue;
+            $response['recentOrderCount'] = $filteredTotalOrders;
+            $response['previousOrderCount'] = $previousOrderCount;
+            $response['orderTrend'] = $orderTrend;
+            $response['todayOrders'] = $filteredTotalOrders;
+            $response['todayRevenue'] = $filteredRevenue;
         }
 
-        $salesPerformance = (clone $query)
-            ->select(
-                DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'),
-                DB::raw('SUM(total_amount) as total_sales'),
-                DB::raw('COUNT(*) as order_count')
-            )
-            ->groupBy('month')
-            ->orderBy('month', 'asc')
-            ->get();
-
-        $dailySales = (clone $query)
-            ->select(
-                DB::raw('DATE(created_at) as date'),
-                DB::raw('COUNT(*) as order_count'),
-                DB::raw('SUM(total_amount) as total')
-            )
-            ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy('date', 'asc')
-            ->get();
-
-        $response['salesPerformance'] = $salesPerformance;
-        $response['dailySales'] = $dailySales;
+        return response()->json($response);
     }
-
-    // Orders by Status & Quick Insights (Status filter with branch support)
-    if ($chartType === 'order_status' || !$chartType) {
-        // Determine date range
-        if ($startDate && $endDate) {
-            $filterStartDate = Carbon::parse($startDate)->startOfDay();
-            $filterEndDate = Carbon::parse($endDate)->endOfDay();
-        } else {
-            // Default to TODAY ONLY
-            $filterStartDate = Carbon::today()->startOfDay();
-            $filterEndDate = Carbon::today()->endOfDay();
-        }
-
-        $statusQuery = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$filterStartDate, $filterEndDate]);
-
-        // Apply branch filter for status data
-        if ($branchId && $branchId !== 'all') {
-            $statusQuery->where('branch_id', $branchId);
-        }
-
-        $ordersByStatus = (clone $statusQuery)
-            ->select('status', DB::raw('COUNT(*) as count'))
-            ->groupBy('status')
-            ->get()
-            ->pluck('count', 'status')
-            ->toArray();
-
-        $statusLabels = ['pending', 'confirmed', 'preparing', 'ready', 'picked up', 'cancelled'];
-        $orderStatusData = [];
-        foreach ($statusLabels as $status) {
-            $orderStatusData[$status] = $ordersByStatus[$status] ?? 0;
-        }
-
-        $filteredTotalOrders = array_sum($orderStatusData);
-        $filteredRevenue = (clone $statusQuery)->sum('total_amount');
-
-        // Calculate trend for live metrics
-        $periodDuration = $filterStartDate->diffInSeconds($filterEndDate);
-        $previousFilterStart = $filterStartDate->copy()->subSeconds($periodDuration);
-        $previousFilterEnd = $filterStartDate->copy();
-        
-        $previousQuery = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$previousFilterStart, $previousFilterEnd]);
-        
-        // Apply branch filter to previous period as well
-        if ($branchId && $branchId !== 'all') {
-            $previousQuery->where('branch_id', $branchId);
-        }
-        
-        $previousOrderCount = $previousQuery->count();
-
-        $orderTrend = 0;
-        if ($previousOrderCount > 0) {
-            $orderTrend = (($filteredTotalOrders - $previousOrderCount) / $previousOrderCount) * 100;
-        } elseif ($filteredTotalOrders > 0) {
-            $orderTrend = 100;
-        }
-
-        $response['orderStatusData'] = $orderStatusData;
-        $response['filteredTotalOrders'] = $filteredTotalOrders;
-        $response['filteredRevenue'] = $filteredRevenue;
-        $response['recentOrderCount'] = $filteredTotalOrders;
-        $response['previousOrderCount'] = $previousOrderCount;
-        $response['orderTrend'] = $orderTrend;
-        $response['todayOrders'] = $filteredTotalOrders;
-        $response['todayRevenue'] = $filteredRevenue;
-    }
-
-    return response()->json($response);
-}
 }

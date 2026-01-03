@@ -9,12 +9,15 @@ use App\Http\Controllers\User\OrderController as UserOrderController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Auth\GoogleController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedbackController;
+use App\Http\Controllers\User\FeedbackController;
 
 /*
 |--------------------------------------------------------------------------
@@ -69,13 +72,23 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login'])->name('login.post');
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+
+    // Google Login
+    Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 });
+
+use App\Http\Controllers\User\OtpController;
 
 // Logout (authenticated users only)
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
     Route::get('/logout', [LogoutController::class, 'logout'])->name('logout.get');
-    
+
+    // OTP Routes
+    Route::post('/api/otp/send', [OtpController::class, 'sendOtp'])->name('otp.send');
+    Route::post('/api/otp/verify', [OtpController::class, 'verifyOtp'])->name('otp.verify');
+
     // *** NEW: Cart sync after login (authenticated users only) ***
     Route::get('/api/cart/sync-after-login', [CartController::class, 'syncAfterLogin'])->name('cart.syncAfterLogin');
 });
@@ -90,11 +103,21 @@ Route::middleware(['auth', 'prevent_admin_cart'])->group(function () {
     Route::post('/checkout', [CheckoutController::class, 'index'])->name('checkout.index.post');
     Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
     Route::get('/checkout/confirm', [CheckoutController::class, 'confirm'])->name('checkout.confirm');
-    
+    Route::get('/checkout/check-status', [CheckoutController::class, 'checkPaymentStatus'])->name('checkout.check_status');
+
     // Orders (User's orders)
     Route::get('/orders', [UserOrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{id}', [UserOrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{id}/cancel', [UserOrderController::class, 'cancel'])->name('orders.cancel');
+
+    // Feedback
+    Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedback/send', [FeedbackController::class, 'send'])->name('feedback.send');
+    Route::get('/feedback/history', [FeedbackController::class, 'history'])->name('feedback.history');
+
+    // Profile
+    Route::get('/profile', [App\Http\Controllers\User\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [App\Http\Controllers\User\ProfileController::class, 'update'])->name('profile.update');
 });
 
 // ============================================================================
@@ -102,9 +125,11 @@ Route::middleware(['auth', 'prevent_admin_cart'])->group(function () {
 // ============================================================================
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Deletion Logs Export
+    Route::get('/deletion-logs/export-pdf', [DashboardController::class, 'exportDeletionLogsPdf'])->name('deletion_logs.export_pdf');
 
     // Products Management
     Route::prefix('products')->name('products.')->group(function () {
@@ -143,6 +168,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('/{id}', [CustomerController::class, 'destroy'])->name('destroy');
     });
 
+    // Feedback Management
+    Route::prefix('feedback')->name('feedback.')->group(function () {
+        Route::get('/', [AdminFeedbackController::class, 'index'])->name('index');
+        Route::get('/{id}', [AdminFeedbackController::class, 'show'])->name('show');
+        Route::patch('/{id}/status', [AdminFeedbackController::class, 'updateStatus'])->name('updateStatus');
+        Route::delete('/{id}', [AdminFeedbackController::class, 'destroy'])->name('destroy');
+    });
+
     // Branches Management
     Route::prefix('branches')->name('branches.')->group(function () {
         Route::get('/', [BranchController::class, 'index'])->name('index');
@@ -156,7 +189,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::delete('/{id}', [BranchController::class, 'destroy'])->name('destroy');
     });
 
-// Categories Management
+    // Categories Management
     Route::prefix('categories')->name('categories.')->group(function () {
         Route::get('/', [CategoryController::class, 'index'])->name('index');
         Route::get('/create', [CategoryController::class, 'create'])->name('create');
@@ -167,10 +200,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/archived', [CategoryController::class, 'archived'])->name('archived');
         Route::post('/{id}/restore', [CategoryController::class, 'restore'])->name('restore');
     });
-    });
+});
 
-    // ✅ ADD THIS ROUTE - Cleanup cart migration flags after successful migration
-Route::post('/cart/cleanup-migration-flags', function() {
+// ✅ ADD THIS ROUTE - Cleanup cart migration flags after successful migration
+Route::post('/cart/cleanup-migration-flags', function () {
     session()->forget(['_cart_migration_needed', '_cart_old_session_id', '_cart_new_session_id']);
     return response()->json(['success' => true]);
 })->name('cart.cleanup.flags');

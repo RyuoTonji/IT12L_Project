@@ -739,7 +739,7 @@ function createCartItemRow(item, subtotal) {
     }
     
     const imageHtml = item.image 
-        ? `<img src="/storage/${escapeHtml(item.image)}" 
+        ? `<img src="/images/${escapeHtml(item.image)}" 
                alt="${escapeHtml(item.name)}"
                class="rounded me-3"
                style="width: 60px; height: 60px; object-fit: cover;"
