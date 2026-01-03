@@ -106,7 +106,7 @@ class InventoryController extends Controller
                  }
              }
 
-             return redirect()->route('inventory.index')->with('success', 'Inventory item details updated successfully.');
+             return redirect()->route('inventory.dashboard')->with('success', 'Inventory item details updated successfully.');
         }
 
         return $this->updateStock($request, $inventory);

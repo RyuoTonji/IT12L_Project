@@ -23,6 +23,18 @@
         th {
             background-color: #f2f2f2;
         }
+
+        .status-text {
+            font-weight: bold;
+        }
+
+        .color-success {
+            color: #16a34a;
+        }
+
+        .color-danger {
+            color: #dc2626;
+        }
     </style>
 </head>
 
@@ -79,7 +91,11 @@
                     <td>{{ $item->supplier ?? '-' }}</td>
                     <td>{{ $item->quantity }}</td>
                     <td>{{ $item->unit }}</td>
-                    <td>{{ $item->quantity <= $item->reorder_level ? 'Low Stock' : 'In Stock' }}</td>
+                    <td>
+                        <span class="status-text {{ $item->quantity <= $item->reorder_level ? 'color-danger' : 'color-success' }}">
+                            {{ $item->quantity <= $item->reorder_level ? 'Low Stock' : 'In Stock' }}
+                        </span>
+                    </td>
                 </tr>
             @endforeach
         </tbody>

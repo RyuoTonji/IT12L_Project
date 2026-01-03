@@ -61,15 +61,11 @@
         }
 
         .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
             font-weight: bold;
         }
 
         .status-pending {
-            background-color: #fef3c7;
-            color: #92400e;
+            color: #d97706;
         }
     </style>
 </head>

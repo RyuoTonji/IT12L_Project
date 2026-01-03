@@ -16,7 +16,7 @@
                     <p class="text-sm text-gray-500 ml-10">Monitor ingredients added and dishes prepared</p>
                 </div>
                 <div>
-                    <a href="{{ route('inventory.index') }}"
+                    <a href="{{ route('admin.inventory.index') }}"
                         class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2 flex items-center inline-flex transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">

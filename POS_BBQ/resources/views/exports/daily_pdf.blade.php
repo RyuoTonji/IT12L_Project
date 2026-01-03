@@ -46,6 +46,22 @@
             border: 1px solid #ddd;
             background-color: #f9f9f9;
         }
+
+        .status-text {
+            font-weight: bold;
+        }
+
+        .color-warning {
+            color: #d97706;
+        }
+
+        .color-success {
+            color: #16a34a;
+        }
+
+        .color-danger {
+            color: #dc2626;
+        }
     </style>
 </head>
 
@@ -100,7 +116,10 @@
     @forelse($shiftReports as $report)
         <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; background-color: #f9f9f9;">
             <p style="margin: 3px 0;"><strong>{{ $report->user->name }}</strong> ({{ ucfirst($report->user->role) }}) -
-                {{ ucfirst($report->status) }}</p>
+                <span class="status-text {{ $report->status === 'reviewed' ? 'color-success' : 'color-warning' }}">
+                    {{ ucfirst($report->status) }}
+                </span>
+            </p>
             <p style="margin: 3px 0; font-size: 12px;">
                 Orders: {{ $report->total_orders }} |
                 Sales: ₱{{ number_format($report->total_sales, 2) }} |
@@ -132,7 +151,11 @@
                     <td>{{ $void->order_id }}</td>
                     <td>{{ $void->requester->name }}</td>
                     <td>{{ $void->reason }}</td>
-                    <td>{{ ucfirst($void->status) }}</td>
+                    <td>
+                        <span class="status-text {{ $void->status === 'approved' ? 'color-success' : ($void->status === 'rejected' ? 'color-danger' : 'color-warning') }}">
+                            {{ ucfirst($void->status) }}
+                        </span>
+                    </td>
                     <td>{{ $void->approver->name ?? '-' }}</td>
                 </tr>
             @empty

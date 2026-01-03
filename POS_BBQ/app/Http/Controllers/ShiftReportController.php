@@ -48,7 +48,11 @@ class ShiftReportController extends Controller
     }
 
     /**
-     * Check if user has submitted today's shift report (AJAX)
+     * Check if user has submitted a shift report for the current session.
+     * Logic:
+     * 1. Check if a report was created reasonably recently (e.g., last 12-16 hours) to handle midnight crossovers.
+     * 2. If a report exists, check if ANY new activity (orders, inventory, voids) occurred AFTER that report.
+     * 3. If new activity exists, require a new report.
      */
     public function check()
     {
@@ -59,11 +63,66 @@ class ShiftReportController extends Controller
             return response()->json(['has_report' => true]);
         }
 
-        $hasReport = ShiftReport::where('user_id', $user->id)
-            ->whereDate('shift_date', today())
+        // 1. Get the latest report for this user
+        $lastReport = ShiftReport::where('user_id', $user->id)
+            ->latest()
+            ->first();
+
+        // If no report ever, or last report is too old (e.g., > 12 hours), assume new shift
+        // We use 12 hours as a safe buffer for a single shift. 
+        if (!$lastReport || $lastReport->created_at->diffInHours(now()) > 12) {
+            // If no report recent, we check if there's any activity TODAY.
+            // If they logged in but did nothing, maybe we don't force it?
+            // But to be safe and consistent with previous behavior (always require), we return false.
+            // However, strictly:
+            return response()->json(['has_report' => false]);
+        }
+
+        // 2. If report exists and is recent (< 12 hours), check for Pending Activities SINCE that report
+        $reportTime = $lastReport->created_at;
+
+        // Check Orders (created or updated after report) - for Cashier/Manager
+        $hasNewOrders = Order::withTrashed()
+            ->where('branch_id', $user->branch_id) // Assuming orders are branch-scoped
+            // Ideally filter by user_id if strict, but manager might oversee all. 
+            // The constraint says "if the USER... has transactions".
+            ->where('user_id', $user->id)
+            ->where('updated_at', '>', $reportTime)
             ->exists();
 
-        return response()->json(['has_report' => $hasReport]);
+        if ($hasNewOrders) {
+            return response()->json(['has_report' => false, 'reason' => 'new_orders']);
+        }
+
+        // Check Inventory Logs (for Inventory/Manager)
+        $hasNewInventory = DB::table('inventory_adjustments')
+            ->where('recorded_by', $user->id)
+            ->where('created_at', '>', $reportTime)
+            ->exists();
+
+        if ($hasNewInventory) {
+            return response()->json(['has_report' => false, 'reason' => 'new_inventory']);
+        }
+
+        // Check Void Requests (for Manager/Cashier)
+        // Requester
+        $hasNewVoidRequests = DB::table('void_requests')
+            ->where('requester_id', $user->id)
+            ->where('created_at', '>', $reportTime)
+            ->exists();
+
+        // Approver (Manager)
+        $hasApprovedVoids = DB::table('void_requests')
+            ->where('approver_id', $user->id)
+            ->where('updated_at', '>', $reportTime)
+            ->exists();
+
+        if ($hasNewVoidRequests || $hasApprovedVoids) {
+            return response()->json(['has_report' => false, 'reason' => 'new_voids']);
+        }
+
+        // If we get here: Report exists, is recent, and NO new activities found.
+        return response()->json(['has_report' => true]);
     }
 
     /**

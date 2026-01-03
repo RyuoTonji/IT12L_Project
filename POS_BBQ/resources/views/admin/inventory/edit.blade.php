@@ -5,7 +5,7 @@
         <div class="p-6 text-gray-900">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Edit Inventory Item</h1>
-                <a href="{{ route('inventory.index') }}"
+                <a href="{{ route('admin.inventory.index') }}"
                     class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 flex items-center inline-flex">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
@@ -26,7 +26,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('inventory.update', $inventory) }}" method="POST">
+            <form action="{{ route('admin.inventory.update', $inventory) }}" method="POST">
                 @csrf
                 @method('PUT')
 

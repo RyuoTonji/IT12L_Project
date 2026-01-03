@@ -62,7 +62,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/menu/{menu}/update-branch-availability', [MenuController::class, 'updateBranchAvailability'])->name('menu.update-branch-availability');
 
     Route::get('inventory/report', [InventoryController::class, 'report'])->name('admin.inventory.report');
-    Route::post('inventory/stock-in', [InventoryController::class, 'stockIn'])->name('admin.inventory.stock-in');
+    Route::post('invento    ry/stock-in', [InventoryController::class, 'stockIn'])->name('admin.inventory.stock-in');
     Route::resource('inventory', InventoryController::class)->names('admin.inventory');
     Route::resource('staff', StaffController::class);
 

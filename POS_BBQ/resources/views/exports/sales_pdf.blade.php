@@ -23,6 +23,26 @@
         th {
             background-color: #f2f2f2;
         }
+
+        .status-text {
+            font-weight: bold;
+        }
+
+        .color-warning {
+            color: #d97706;
+        }
+
+        .color-success {
+            color: #16a34a;
+        }
+
+        .color-danger {
+            color: #dc2626;
+        }
+
+        .color-info {
+            color: #1d4ed8;
+        }
     </style>
 </head>
 
@@ -76,8 +96,27 @@
                     <td>{{ $order->created_at->format('Y-m-d H:i') }}</td>
                     <td>{{ $order->user->name }}</td>
                     <td>{{ number_format($order->total_amount, 2) }}</td>
-                    <td>{{ ucfirst($order->status) }}</td>
-                    <td>{{ ucfirst($order->payment_status) }}</td>
+                    <td>
+                        @php
+                            $statusColor = 'color-warning'; // default pending
+                            if (in_array($order->status, ['completed', 'served'])) $statusColor = 'color-success';
+                            if ($order->status === 'cancelled') $statusColor = 'color-danger';
+                            if (in_array($order->status, ['prepared', 'ready'])) $statusColor = 'color-info';
+                        @endphp
+                        <span class="status-text {{ $statusColor }}">
+                            {{ ucfirst($order->status) }}
+                        </span>
+                    </td>
+                    <td>
+                        @php
+                            $paymentColor = 'color-warning'; // default unpaid
+                            if ($order->payment_status === 'paid') $paymentColor = 'color-success';
+                            if ($order->payment_status === 'refunded') $paymentColor = 'color-danger';
+                        @endphp
+                        <span class="status-text {{ $paymentColor }}">
+                            {{ ucfirst($order->payment_status) }}
+                        </span>
+                    </td>
                 </tr>
             @endforeach
         </tbody>

@@ -47,6 +47,18 @@
             margin-bottom: 15px;
             border-left: 4px solid #007bff;
         }
+
+        .status-text {
+            font-weight: bold;
+        }
+
+        .color-warning {
+            color: #d97706;
+        }
+
+        .color-success {
+            color: #16a34a;
+        }
     </style>
 </head>
 
@@ -125,7 +137,11 @@
                         <td>₱{{ number_format($report->total_sales, 2) }}</td>
                         <td>₱{{ number_format($report->total_refunds, 2) }}</td>
                     @endif
-                    <td>{{ ucfirst($report->status) }}</td>
+                    <td>
+                        <span class="status-text {{ $report->status === 'reviewed' ? 'color-success' : 'color-warning' }}">
+                            {{ ucfirst($report->status) }}
+                        </span>
+                    </td>
                 </tr>
             @endforeach
         </tbody>
