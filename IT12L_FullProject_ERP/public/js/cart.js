@@ -1,324 +1,1100 @@
 /**
- * FOOD ORDERING SYSTEM - CART FUNCTIONALITY
+ * ============================================================================
+ * SESSION-BASED CART MANAGEMENT SYSTEM - FIXED VERSION
  * File: public/js/cart.js
- * FIXED: No more blinking cart count
+ * Version: 8.0 - FIXED localStorage Migration After Login
+ * 
+ * Logic: One session = One cart (persists through login with migration)
+ * - Guest adds items → stored in session cart
+ * - User logs in → session regenerates → OLD cart migrated to NEW session
+ * - Checkout → Cart auto-clears
+ * - Migration handled automatically!
+ * ============================================================================
  */
 
-// ============================================================================
-// CHECK IF USER IS ADMIN
-// ============================================================================
-function isAdmin() {
-    const adminMeta = document.querySelector('meta[name="user-is-admin"]');
-    return adminMeta && adminMeta.content === 'true';
-}
+'use strict';
 
 // ============================================================================
-// GET CART STORAGE KEY
+// CONFIGURATION
 // ============================================================================
-function getCartStorageKey() {
-    const userIdMeta = document.querySelector('meta[name="user-id"]');
-    const userId = userIdMeta ? userIdMeta.content : null;
-    
-    if (userId && userId !== '') {
-        return `cart_user_${userId}`;
-    } else {
-        return 'cart_guest';
+
+const CART_CONFIG = {
+    MAX_QUANTITY: 99,
+    MIN_QUANTITY: 1,
+    NOTIFICATION_DURATION: 3000,
+    DEBUG_MODE: false
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+function log(...args) {
+    if (CART_CONFIG.DEBUG_MODE) {
+        console.log('[Cart]', ...args);
     }
 }
 
-// ============================================================================
-// GET CART FROM LOCALSTORAGE
-// ============================================================================
-function getCart() {
+function logError(...args) {
+    console.error('[Cart Error]', ...args);
+}
+
+function logWarn(...args) {
+    console.warn('[Cart Warning]', ...args);
+}
+
+function isAdmin() {
+    const meta = document.querySelector('meta[name="user-is-admin"]');
+    return meta && meta.content === 'true';
+}
+
+function getUserId() {
+    const meta = document.querySelector('meta[name="user-id"]');
+    return meta && meta.content && meta.content !== '' && meta.content !== 'null' 
+        ? meta.content 
+        : null;
+}
+
+/**
+ * ✅ FIXED: Get current session ID from Laravel meta tag
+ */
+function getCurrentSessionId() {
+    const sessionMeta = document.querySelector('meta[name="session-id"]');
+    if (sessionMeta && sessionMeta.content) {
+        return sessionMeta.content;
+    }
+    
+    // Fallback: try to get from cookie
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'laravel_session' || name.includes('session')) {
+            if (value) {
+                return decodeURIComponent(value);
+            }
+        }
+    }
+    
+    // Final fallback: use persistent identifier
+    let sessionId = localStorage.getItem('_cart_session_id');
+    if (!sessionId) {
+        sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('_cart_session_id', sessionId);
+    }
+    
+    return sessionId;
+}
+
+/**
+ * SESSION-BASED: Use PHP session ID as cart key
+ */
+function getCartStorageKey() {
     if (isAdmin()) {
+        log('Admin user detected - no cart');
+        return null;
+    }
+    
+    const sessionId = getCurrentSessionId();
+    const key = `cart_session_${sessionId}`;
+    
+    log('Using SESSION-BASED cart key:', key);
+    log('User status:', getUserId() ? `Logged in (ID: ${getUserId()})` : 'Guest');
+    
+    return key;
+}
+
+function formatPrice(price) {
+    const num = parseFloat(price);
+    if (isNaN(num)) return '0.00';
+    return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+function getCsrfToken() {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (!meta) {
+        logError('CSRF token meta tag not found!');
+        return '';
+    }
+    return meta.content;
+}
+
+function isValidCartItem(item) {
+    return item && 
+           typeof item === 'object' && 
+           item.id && 
+           item.quantity &&
+           !isNaN(parseInt(item.id)) &&
+           !isNaN(parseInt(item.quantity)) &&
+           parseInt(item.id) > 0 &&
+           parseInt(item.quantity) > 0;
+}
+
+// ============================================================================
+// ✅ NEW: CART MIGRATION AFTER LOGIN
+// ============================================================================
+
+/**
+ * ✅ CRITICAL FIX: Migrate cart from old session to new session after login
+ * This is called automatically when login is detected
+ */
+function migrateCartAfterLogin() {
+    log('=== Cart Migration After Login ===');
+    
+    try {
+        // Check if we have migration data from the server
+        const oldSessionIdMeta = document.querySelector('meta[name="cart-old-session"]');
+        const newSessionIdMeta = document.querySelector('meta[name="session-id"]');
+        
+        if (!oldSessionIdMeta || !newSessionIdMeta) {
+            log('No migration meta tags found - checking localStorage');
+            return false;
+        }
+        
+        const oldSessionId = oldSessionIdMeta.content;
+        const newSessionId = newSessionIdMeta.content;
+        
+        log('Migration details:', {
+            oldSession: oldSessionId,
+            newSession: newSessionId
+        });
+        
+        // Skip if same session (shouldn't happen, but safety check)
+        if (oldSessionId === newSessionId) {
+            log('Same session ID - no migration needed');
+            return false;
+        }
+        
+        // Build storage keys
+        const oldKey = `cart_session_${oldSessionId}`;
+        const newKey = `cart_session_${newSessionId}`;
+        
+        log('Migrating cart:', { oldKey, newKey });
+        
+        // Get old cart data
+        const oldCartData = localStorage.getItem(oldKey);
+        
+        if (!oldCartData) {
+            log('No old cart data found - nothing to migrate');
+            return false;
+        }
+        
+        let oldCart;
+        try {
+            oldCart = JSON.parse(oldCartData);
+        } catch (e) {
+            logError('Failed to parse old cart data:', e);
+            return false;
+        }
+        
+        if (!Array.isArray(oldCart) || oldCart.length === 0) {
+            log('Old cart is empty - nothing to migrate');
+            localStorage.removeItem(oldKey);
+            return false;
+        }
+        
+        log(`Found ${oldCart.length} items in old cart`);
+        
+        // Check if new session already has cart data
+        const newCartData = localStorage.getItem(newKey);
+        let newCart = [];
+        
+        if (newCartData) {
+            try {
+                newCart = JSON.parse(newCartData);
+                log(`New session already has ${newCart.length} items`);
+            } catch (e) {
+                logError('Failed to parse new cart data:', e);
+                newCart = [];
+            }
+        }
+        
+        // Merge carts (old cart takes priority for quantities)
+        const mergedCart = mergeCartItems(oldCart, newCart);
+        
+        // Save merged cart to new session
+        localStorage.setItem(newKey, JSON.stringify(mergedCart));
+        
+        // Remove old cart
+        localStorage.removeItem(oldKey);
+        
+        log(`✅ Cart migrated successfully! ${mergedCart.length} items in new cart`);
+        
+        // Update UI
+        updateCartCount();
+        
+        // Show success notification
+        if (mergedCart.length > 0 && typeof showNotification === 'function') {
+            showNotification(
+                `Welcome back! Your cart has ${mergedCart.length} item(s)`,
+                'success'
+            );
+        }
+        
+        return true;
+        
+    } catch (error) {
+        logError('Cart migration failed:', error);
+        return false;
+    }
+}
+
+/**
+ * ✅ NEW: Merge two cart arrays intelligently
+ * Priority: old cart quantities take precedence
+ */
+function mergeCartItems(oldCart, newCart) {
+    const merged = {};
+    
+    // Add all old cart items first
+    oldCart.forEach(item => {
+        if (isValidCartItem(item)) {
+            merged[item.id] = item;
+        }
+    });
+    
+    // Add new cart items that don't exist in old cart
+    newCart.forEach(item => {
+        if (isValidCartItem(item) && !merged[item.id]) {
+            merged[item.id] = item;
+        }
+    });
+    
+    // Convert back to array
+    const result = Object.values(merged);
+    
+    log(`Merged ${oldCart.length} old + ${newCart.length} new = ${result.length} total items`);
+    
+    return result;
+}
+
+// ============================================================================
+// CORE CART OPERATIONS (SESSION-BASED)
+// ============================================================================
+
+function getCart() {
+    const cartKey = getCartStorageKey();
+    
+    if (!cartKey) {
+        log('No cart key available (admin user)');
         return [];
     }
     
-    const cartKey = getCartStorageKey();
-    const cartData = localStorage.getItem(cartKey);
-    return JSON.parse(cartData || '[]');
-}
-
-// ============================================================================
-// SAVE CART TO LOCALSTORAGE
-// ============================================================================
-function saveCart(cart) {
-    if (isAdmin()) {
-        console.warn('Admin users cannot use cart functionality');
-        return;
-    }
-    
-    const cartKey = getCartStorageKey();
-    localStorage.setItem(cartKey, JSON.stringify(cart));
-    
-    // Update cart count ONCE after saving
-    updateCartCount();
-}
-
-// ============================================================================
-// CLEAR GUEST CART
-// ============================================================================
-function clearGuestCart() {
-    localStorage.removeItem('cart_guest');
-}
-
-// ============================================================================
-// MIGRATE GUEST CART TO USER CART
-// ============================================================================
-function migrateGuestCartToUser() {
-    const guestCart = JSON.parse(localStorage.getItem('cart_guest') || '[]');
-    
-    if (guestCart.length > 0) {
-        const userIdMeta = document.querySelector('meta[name="user-id"]');
-        const userId = userIdMeta ? userIdMeta.content : null;
-        
-        if (userId && userId !== '' && !isAdmin()) {
-            const userCartKey = `cart_user_${userId}`;
-            let userCart = JSON.parse(localStorage.getItem(userCartKey) || '[]');
-            
-            guestCart.forEach(guestItem => {
-                const existingIndex = userCart.findIndex(item => item.id == guestItem.id);
-                if (existingIndex > -1) {
-                    userCart[existingIndex].quantity += guestItem.quantity;
-                } else {
-                    userCart.push(guestItem);
-                }
-            });
-            
-            localStorage.setItem(userCartKey, JSON.stringify(userCart));
-            clearGuestCart();
-            updateCartCount();
-            
-            console.log('Guest cart migrated to user cart');
-        }
-    }
-}
-
-// ============================================================================
-// UPDATE CART COUNT - OPTIMIZED VERSION (NO BLINKING)
-// ============================================================================
-let updateCartCountTimeout = null;
-
-function updateCartCount() {
-    // Clear any pending updates to prevent multiple rapid calls
-    if (updateCartCountTimeout) {
-        clearTimeout(updateCartCountTimeout);
-    }
-    
-    // Debounce: Wait 50ms before actually updating
-    updateCartCountTimeout = setTimeout(() => {
-        performCartCountUpdate();
-    }, 50);
-}
-
-function performCartCountUpdate() {
     try {
-        // Hide cart for admins
-        if (isAdmin()) {
-            const elements = document.querySelectorAll('.cart-count, #cart-count');
-            elements.forEach(el => {
-                el.style.display = 'none';
-            });
-            return;
+        const cartData = localStorage.getItem(cartKey);
+        
+        if (!cartData) {
+            log('No cart data found in localStorage');
+            return [];
         }
         
-        // Get cart and calculate total
-        const cart = getCart();
-        const count = cart.reduce((sum, item) => sum + parseInt(item.quantity || 0), 0);
+        const cart = JSON.parse(cartData);
         
-        // Find all cart count elements
-        const elements = document.querySelectorAll('.cart-count, #cart-count, [class*="cart-count"]');
-        
-        if (elements.length === 0) {
-            console.warn('No cart count elements found');
-            return;
+        if (!Array.isArray(cart)) {
+            logError('Cart data is not an array:', cart);
+            localStorage.removeItem(cartKey);
+            return [];
         }
         
-        // Update each element ONCE
-        elements.forEach(el => {
-            // Only update if value changed (prevents unnecessary redraws)
-            if (el.textContent != count) {
-                el.textContent = count;
-                el.innerText = count;
+        const validCart = cart.filter(item => {
+            const isValid = isValidCartItem(item);
+            if (!isValid) {
+                logWarn('Invalid cart item filtered out:', item);
             }
-            
-            // Update visibility
-            if (count > 0) {
-                if (el.style.display !== 'inline-block') {
-                    el.style.display = 'inline-block';
-                    el.style.visibility = 'visible';
-                    el.style.opacity = '1';
-                }
-            } else {
-                if (el.style.display !== 'none') {
-                    el.style.display = 'none';
-                }
-            }
+            return isValid;
         });
+        
+        if (validCart.length !== cart.length) {
+            logWarn(`Filtered ${cart.length - validCart.length} invalid items from cart`);
+            saveCart(validCart);
+        }
+        
+        log('Cart retrieved from localStorage:', validCart);
+        return validCart;
         
     } catch (error) {
-        console.error('Error updating cart count:', error);
+        logError('Error reading cart from localStorage:', error);
+        try {
+            localStorage.removeItem(cartKey);
+        } catch (e) {
+            logError('Failed to clear corrupted cart:', e);
+        }
+        return [];
     }
 }
 
-// ============================================================================
-// ADD TO CART
-// ============================================================================
-function addToCart(productData, quantity = 1) {
-    if (isAdmin()) {
-        showAlert('warning', 'Administrators cannot add items to cart.', 3000);
-        return false;
-    }
-    
-    console.log('Adding to cart:', productData);
-    
-    if (!productData.id) {
-        console.error('Product data missing id:', productData);
-        showAlert('error', 'Error adding item to cart', 3000);
-        return false;
-    }
-    
-    let cart = getCart();
-    const existingIndex = cart.findIndex(item => item.id == productData.id);
-    
-    if (existingIndex > -1) {
-        cart[existingIndex].quantity = parseInt(cart[existingIndex].quantity) + parseInt(quantity);
-    } else {
-        cart.push({
-            id: productData.id,
-            name: productData.name,
-            price: productData.price,
-            image: productData.image,
-            branch_id: productData.branch_id,
-            branch_name: productData.branch_name,
-            quantity: parseInt(quantity)
-        });
-    }
-    
-    saveCart(cart);
-    showAlert('success', `${productData.name} added to cart!`, 3000);
-    
-    // Cart count will be updated by saveCart() - no need to call again
-    
-    return true;
-}
-
-// ============================================================================
-// UPDATE CART ITEM QUANTITY
-// ============================================================================
-function updateCartItem(productId, quantity) {
-    if (isAdmin()) return;
-    
-    console.log('Updating cart item:', productId, 'Quantity:', quantity);
-    
-    let cart = getCart();
-    const index = cart.findIndex(item => item.id == productId);
-    
-    if (index > -1) {
-        cart[index].quantity = parseInt(quantity);
-        saveCart(cart);
-    }
-}
-
-// ============================================================================
-// REMOVE FROM CART
-// ============================================================================
-function removeFromCart(productId, productName) {
-    if (isAdmin()) return;
-    
-    if (!confirm(`Remove ${productName} from cart?`)) {
-        return;
-    }
-    
-    let cart = getCart();
-    cart = cart.filter(item => item.id != productId);
-    saveCart(cart);
-    
-    showAlert('success', 'Item removed from cart', 2000);
-    
-    if (cart.length === 0) {
-        setTimeout(() => location.reload(), 1000);
-    }
-}
-
-// ============================================================================
-// CLEAR CART
-// ============================================================================
-function clearCart() {
-    if (isAdmin()) return;
-    
-    if (!confirm('Are you sure you want to clear your cart?')) {
-        return;
-    }
-    
+function saveCart(cart) {
     const cartKey = getCartStorageKey();
-    localStorage.removeItem(cartKey);
-    updateCartCount();
-    showAlert('success', 'Cart cleared', 2000);
-    setTimeout(() => location.reload(), 1000);
-}
-
-// ============================================================================
-// FORMAT CURRENCY
-// ============================================================================
-function formatCurrency(amount) {
-    return '₱' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-}
-
-// ============================================================================
-// SHOW ALERT
-// ============================================================================
-function showAlert(type, message, duration = 3000) {
-    document.querySelectorAll('.custom-cart-alert').forEach(alert => alert.remove());
     
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed custom-cart-alert`;
-    alertDiv.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px;';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    if (!cartKey) {
+        logWarn('Cannot save cart (admin user or no key)');
+        return false;
+    }
+    
+    try {
+        if (!Array.isArray(cart)) {
+            logError('Attempted to save non-array as cart:', cart);
+            cart = [];
+        }
+        
+        const validCart = cart.filter(isValidCartItem);
+        
+        if (validCart.length !== cart.length) {
+            logWarn('Some invalid items were filtered during save');
+        }
+        
+        localStorage.setItem(cartKey, JSON.stringify(validCart));
+        
+        log('Cart saved to localStorage:', validCart);
+        
+        updateCartCount();
+        
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('cartUpdated', { 
+            detail: { cart: validCart } 
+        }));
+        
+        return true;
+        
+    } catch (error) {
+        logError('Error saving cart to localStorage:', error);
+        
+        if (error.name === 'QuotaExceededError') {
+            showNotification('Cart storage is full. Please clear some items.', 'error');
+        }
+        
+        return false;
+    }
+}
+
+/**
+ * Add item to cart - SESSION-BASED (no user check needed)
+ */
+function addToCart(productData, quantity = 1, productName = 'Product') {
+    if (isAdmin()) {
+        showNotification('Admins cannot add items to cart', 'warning');
+        return false;
+    }
+    
+    // Handle different input formats
+    let product = {};
+    
+    if (typeof productData === 'object' && productData !== null) {
+        product = productData;
+    } else {
+        product = {
+            id: productData,
+            name: productName
+        };
+    }
+    
+    const productId = parseInt(product.id);
+    quantity = parseInt(quantity);
+    
+    if (isNaN(productId) || productId <= 0) {
+        logError('Invalid product ID:', productData);
+        showNotification('Invalid product', 'error');
+        return false;
+    }
+    
+    if (isNaN(quantity) || quantity <= 0) {
+        logWarn('Invalid quantity, defaulting to 1:', quantity);
+        quantity = 1;
+    }
+    
+    if (quantity > CART_CONFIG.MAX_QUANTITY) {
+        quantity = CART_CONFIG.MAX_QUANTITY;
+        showNotification(`Maximum quantity is ${CART_CONFIG.MAX_QUANTITY}`, 'warning');
+    }
+    
+    const cart = getCart();
+    const existingItemIndex = cart.findIndex(item => item.id === productId);
+    
+    if (existingItemIndex !== -1) {
+        const existingItem = cart[existingItemIndex];
+        const newQuantity = parseInt(existingItem.quantity) + quantity;
+        
+        if (newQuantity > CART_CONFIG.MAX_QUANTITY) {
+            cart[existingItemIndex].quantity = CART_CONFIG.MAX_QUANTITY;
+            showNotification(`${product.name || 'Product'} quantity updated to maximum (${CART_CONFIG.MAX_QUANTITY})`, 'warning');
+        } else {
+            cart[existingItemIndex].quantity = newQuantity;
+            showNotification(`${product.name || 'Product'} quantity updated!`, 'success');
+        }
+    } else {
+        const cartItem = {
+            id: productId,
+            name: product.name || 'Product',
+            price: product.price || 0,
+            image: product.image || null,
+            branch_id: product.branch_id || null,
+            branch_name: product.branch_name || 'Unknown Branch',
+            is_available: product.is_available !== false,
+            quantity: quantity
+        };
+        
+        cart.push(cartItem);
+        showNotification(`${product.name || 'Product'} added to cart!`, 'success');
+    }
+    
+    const saved = saveCart(cart);
+    
+    if (saved) {
+        log('Item added to cart:', { productId, quantity, product });
+    }
+    
+    return saved;
+}
+
+function updateCartItem(productId, quantity) {
+    productId = parseInt(productId);
+    quantity = parseInt(quantity);
+    
+    if (isNaN(productId) || isNaN(quantity)) {
+        logError('Invalid parameters for updateCartItem:', { productId, quantity });
+        return false;
+    }
+    
+    if (quantity <= 0) {
+        return removeFromCart(productId);
+    }
+    
+    if (quantity > CART_CONFIG.MAX_QUANTITY) {
+        quantity = CART_CONFIG.MAX_QUANTITY;
+        showNotification(`Maximum quantity is ${CART_CONFIG.MAX_QUANTITY}`, 'warning');
+    }
+    
+    const cart = getCart();
+    const itemIndex = cart.findIndex(item => item.id === productId);
+    
+    if (itemIndex !== -1) {
+        cart[itemIndex].quantity = quantity;
+        const saved = saveCart(cart);
+        
+        if (saved) {
+            log('Cart item updated:', { productId, quantity });
+        }
+        
+        return saved;
+    }
+    
+    logWarn('Item not found in cart for update:', productId);
+    return false;
+}
+
+function removeFromCart(productId, productName = 'Item') {
+    productId = parseInt(productId);
+    
+    if (isNaN(productId) || productId <= 0) {
+        logError('Invalid product ID for removal:', productId);
+        return false;
+    }
+    
+    const cart = getCart();
+    const originalLength = cart.length;
+    const filteredCart = cart.filter(item => item.id !== productId);
+    
+    if (filteredCart.length < originalLength) {
+        const saved = saveCart(filteredCart);
+        
+        if (saved) {
+            showNotification(`${productName} removed from cart`, 'info');
+            log('Item removed from cart:', productId);
+        }
+        
+        return saved;
+    }
+    
+    logWarn('Item not found in cart for removal:', productId);
+    return false;
+}
+
+function clearCart() {
+    const cartKey = getCartStorageKey();
+    
+    if (!cartKey) {
+        logWarn('Cannot clear cart (no key)');
+        return false;
+    }
+    
+    try {
+        localStorage.removeItem(cartKey);
+        updateCartCount();
+        showNotification('Cart cleared', 'info');
+        
+        log('Cart cleared');
+        
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('cartCleared'));
+        
+        if (window.location.pathname.includes('/cart')) {
+            setTimeout(() => location.reload(), 500);
+        }
+        
+        return true;
+        
+    } catch (error) {
+        logError('Error clearing cart:', error);
+        return false;
+    }
+}
+
+/**
+ * ✅ Clear cart after successful checkout
+ */
+function clearCartAfterCheckout() {
+    log('🛒 Order placed - clearing cart after checkout');
+    const result = clearCart();
+    
+    if (result) {
+        log('✅ Cart cleared successfully after checkout');
+    } else {
+        logError('❌ Failed to clear cart after checkout');
+    }
+    
+    return result;
+}
+
+function getCartCount() {
+    const cart = getCart();
+    const count = cart.reduce((total, item) => {
+        return total + parseInt(item.quantity || 0);
+    }, 0);
+    
+    log('Cart count:', count);
+    return count;
+}
+
+function getCartTotal() {
+    const cart = getCart();
+    let total = 0;
+    
+    cart.forEach(item => {
+        if (item.price) {
+            total += parseFloat(item.price) * parseInt(item.quantity);
+        }
+    });
+    
+    return total;
+}
+
+// ============================================================================
+// UI UPDATE FUNCTIONS
+// ============================================================================
+
+function updateCartCount() {
+    if (isAdmin()) {
+        log('Skipping cart count update (admin user)');
+        return;
+    }
+    
+    const count = getCartCount();
+    const selectors = ['#cart-count', '.cart-count'];
+    
+    selectors.forEach(selector => {
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+            el.textContent = count;
+            el.setAttribute('data-count', count);
+            
+            if (count > 0) {
+                el.style.display = 'flex';
+                el.classList.remove('d-none');
+            } else {
+                el.style.display = 'none';
+                el.classList.add('d-none');
+            }
+        });
+    });
+    
+    log(`Updated cart count display to: ${count}`);
+}
+
+function showNotification(message, type = 'success') {
+    document.querySelectorAll('.cart-notification-alert').forEach(el => el.remove());
+    
+    if (type === 'error') type = 'danger';
+    
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show position-fixed cart-notification-alert`;
+    alert.style.cssText = 'top: 80px; right: 20px; z-index: 9999; min-width: 300px; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+    alert.setAttribute('role', 'alert');
+    
+    const icons = {
+        success: 'check-circle',
+        danger: 'exclamation-circle',
+        warning: 'exclamation-triangle',
+        info: 'info-circle'
+    };
+    
+    const icon = icons[type] || 'info-circle';
+    
+    alert.innerHTML = `
+        <i class="fas fa-${icon} me-2"></i>${escapeHtml(message)}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     `;
     
-    document.body.appendChild(alertDiv);
+    document.body.appendChild(alert);
     
     setTimeout(() => {
-        alertDiv.remove();
-    }, duration);
+        alert.classList.remove('show');
+        setTimeout(() => alert.remove(), 150);
+    }, CART_CONFIG.NOTIFICATION_DURATION);
+    
+    log('Notification shown:', { message, type });
 }
 
 // ============================================================================
-// INITIALIZE ON PAGE LOAD
+// CART PAGE FUNCTIONS
 // ============================================================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== Cart.js initialized ===');
-    console.log('Is Admin:', isAdmin());
-    console.log('Cart Storage Key:', getCartStorageKey());
+
+function loadCartPage() {
+    const cart = getCart();
     
-    // Migrate guest cart if needed
-    if (!isAdmin()) {
-        migrateGuestCartToUser();
+    log('=== Loading Cart Page (SESSION-BASED) ===');
+    log('Cart items:', cart);
+    
+    if (cart.length === 0) {
+        showEmptyCart();
+        return;
     }
     
-    // Update cart count ONCE on page load
+    renderCartItems(cart);
+}
+
+function showEmptyCart() {
+    const loadingEl = document.getElementById('loading-cart');
+    const emptyEl = document.getElementById('empty-cart');
+    const contentEl = document.getElementById('cart-content');
+    
+    if (loadingEl) loadingEl.classList.add('d-none');
+    if (emptyEl) emptyEl.classList.remove('d-none');
+    if (contentEl) contentEl.classList.add('d-none');
+    
+    log('Empty cart state displayed');
+}
+
+function renderCartItems(cart) {
+    log('Rendering cart items...');
+    
+    const loadingEl = document.getElementById('loading-cart');
+    const emptyEl = document.getElementById('empty-cart');
+    const contentEl = document.getElementById('cart-content');
+    
+    if (loadingEl) loadingEl.classList.add('d-none');
+    if (emptyEl) emptyEl.classList.add('d-none');
+    if (contentEl) contentEl.classList.remove('d-none');
+    
+    const tbody = document.getElementById('cart-items-body');
+    
+    if (!tbody) {
+        logError('Cart items tbody element not found!');
+        return;
+    }
+    
+    tbody.innerHTML = '';
+    
+    let total = 0;
+    let hasUnavailableItems = false;
+    
+    cart.forEach(item => {
+        const subtotal = parseFloat(item.price || 0) * parseInt(item.quantity);
+        total += subtotal;
+        
+        if (item.is_available === false) {
+            hasUnavailableItems = true;
+        }
+        
+        const row = createCartItemRow(item, subtotal);
+        tbody.appendChild(row);
+    });
+    
+    if (hasUnavailableItems) {
+        showNotification('Some items in your cart may no longer be available', 'warning');
+    }
+    
+    updateTotalDisplay(total);
+    attachCartEventListeners();
+    
+    log('Cart rendered successfully. Total:', total);
+}
+
+function createCartItemRow(item, subtotal) {
+    const row = document.createElement('tr');
+    row.dataset.productId = item.id;
+    
+    if (item.is_available === false) {
+        row.classList.add('table-warning');
+    }
+    
+    const imageHtml = item.image 
+        ? `<img src="/images/${escapeHtml(item.image)}" 
+               alt="${escapeHtml(item.name)}"
+               class="rounded me-3"
+               style="width: 60px; height: 60px; object-fit: cover;"
+               onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'60\\' height=\\'60\\'%3E%3Crect fill=\\'%23ddd\\' width=\\'60\\' height=\\'60\\'/%3E%3Ctext x=\\'50%25\\' y=\\'50%25\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'12\\'%3ENo Image%3C/text%3E%3C/svg%3E';">`
+        : `<div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center" 
+                style="width: 60px; height: 60px;">
+               <i class="fas fa-utensils text-white"></i>
+           </div>`;
+    
+    const availabilityBadge = item.is_available === false
+        ? '<br><span class="badge bg-danger">Out of Stock</span>' 
+        : '';
+    
+    const isDisabled = item.is_available === false ? 'disabled' : '';
+    
+    row.innerHTML = `
+        <td>
+            <div class="d-flex align-items-center">
+                ${imageHtml}
+                <div>
+                    <strong>${escapeHtml(item.name)}</strong>
+                    <br>
+                    <small class="text-muted">
+                        <i class="fas fa-store"></i> ${escapeHtml(item.branch_name || 'Unknown')}
+                    </small>
+                    ${availabilityBadge}
+                </div>
+            </div>
+        </td>
+        <td class="align-middle">₱${formatPrice(item.price || 0)}</td>
+        <td class="align-middle">
+            <div class="input-group" style="width: 130px;">
+                <button class="btn btn-sm btn-outline-secondary decrease-qty" 
+                        data-product-id="${item.id}"
+                        ${isDisabled}>
+                    <i class="fas fa-minus"></i>
+                </button>
+                <input type="number" 
+                       class="form-control form-control-sm text-center quantity-input" 
+                       value="${item.quantity}" 
+                       min="${CART_CONFIG.MIN_QUANTITY}" 
+                       max="${CART_CONFIG.MAX_QUANTITY}"
+                       data-product-id="${item.id}"
+                       ${isDisabled}>
+                <button class="btn btn-sm btn-outline-secondary increase-qty" 
+                        data-product-id="${item.id}"
+                        ${isDisabled}>
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </td>
+        <td class="align-middle item-subtotal">₱${formatPrice(subtotal)}</td>
+        <td class="align-middle">
+            <button class="btn btn-sm btn-danger remove-item" 
+                    data-product-id="${item.id}"
+                    data-product-name="${escapeHtml(item.name)}">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    `;
+    
+    return row;
+}
+
+function updateTotalDisplay(total) {
+    const totalEl = document.getElementById('cart-total');
+    const totalFinalEl = document.getElementById('cart-total-final');
+    
+    const formattedTotal = '₱' + formatPrice(total);
+    
+    if (totalEl) totalEl.textContent = formattedTotal;
+    if (totalFinalEl) totalFinalEl.textContent = formattedTotal;
+}
+
+function attachCartEventListeners() {
+    log('Attaching cart event listeners...');
+    
+    // Clone and replace to remove old listeners
+    document.querySelectorAll('.decrease-qty, .increase-qty, .quantity-input, .remove-item').forEach(el => {
+        const newEl = el.cloneNode(true);
+        if (el.tagName === 'INPUT') newEl.value = el.value;
+        el.parentNode.replaceChild(newEl, el);
+    });
+    
+    // Decrease quantity
+    document.querySelectorAll('.decrease-qty').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = parseInt(this.dataset.productId);
+            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+            let qty = parseInt(input.value);
+            
+            if (qty > CART_CONFIG.MIN_QUANTITY) {
+                qty--;
+                input.value = qty;
+                updateCartItem(productId, qty);
+                loadCartPage();
+            }
+        });
+    });
+
+    // Increase quantity
+    document.querySelectorAll('.increase-qty').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = parseInt(this.dataset.productId);
+            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+            let qty = parseInt(input.value);
+            
+            if (qty < CART_CONFIG.MAX_QUANTITY) {
+                qty++;
+                input.value = qty;
+                updateCartItem(productId, qty);
+                loadCartPage();
+            }
+        });
+    });
+    
+    // Manual quantity input
+    document.querySelectorAll('.quantity-input').forEach(input => {
+        input.addEventListener('change', function(e) {
+            const productId = parseInt(this.dataset.productId);
+            let qty = parseInt(this.value);
+            
+            if (isNaN(qty) || qty < CART_CONFIG.MIN_QUANTITY) {
+                qty = CART_CONFIG.MIN_QUANTITY;
+            } else if (qty > CART_CONFIG.MAX_QUANTITY) {
+                qty = CART_CONFIG.MAX_QUANTITY;
+            }
+            
+            this.value = qty;
+            updateCartItem(productId, qty);
+            loadCartPage();
+        });
+        
+        input.addEventListener('keypress', function(e) {
+            if (e.key && !/[0-9]/.test(e.key) && e.key !== 'Enter') {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Remove item
+    document.querySelectorAll('.remove-item').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const productId = parseInt(this.dataset.productId);
+            const productName = this.dataset.productName;
+            
+            removeFromCart(productId, productName);
+            setTimeout(() => loadCartPage(), 300);
+        });
+    });
+    
+    // Clear cart button
+    const clearCartBtn = document.getElementById('clear-cart');
+    if (clearCartBtn) {
+        const newClearBtn = clearCartBtn.cloneNode(true);
+        clearCartBtn.parentNode.replaceChild(newClearBtn, clearCartBtn);
+        
+        newClearBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (confirm('Are you sure you want to clear your entire cart?')) {
+                clearCart();
+            }
+        });
+    }
+
+    log('Event listeners attached successfully');
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
+function initializeCart() {
+    log('=== Initializing Cart System (SESSION-BASED v8.0 - FIXED) ===');
+    log('Current page:', window.location.pathname);
+    log('User is admin:', isAdmin());
+    log('User ID:', getUserId() || 'Guest');
+    log('Cart storage key:', getCartStorageKey());
+    
+    // ✅ CRITICAL: Check for cart migration after login
+    const migrationNeeded = document.querySelector('meta[name="cart-migration-needed"]');
+    if (migrationNeeded && migrationNeeded.content === 'true') {
+        log('🔄 Login detected - initiating cart migration...');
+        setTimeout(() => {
+            const migrated = migrateCartAfterLogin();
+            if (migrated) {
+                log('✅ Cart migration completed successfully');
+            } else {
+                log('ℹ️ No cart migration performed');
+            }
+        }, 100);
+    }
+    
     updateCartCount();
+    
+    if (window.location.pathname.includes('/cart')) {
+        log('Cart page detected, loading cart items...');
+        loadCartPage();
+        setupCheckoutForm();
+    }
+    
+    setupAddToCartButtons();
+    
+    log('=== Cart System Initialized ===');
+}
+
+function setupCheckoutForm() {
+    const checkoutForm = document.getElementById('checkout-form');
+    
+    if (!checkoutForm) {
+        log('Checkout form not found');
+        return;
+    }
+    
+    checkoutForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        log('Checkout form submitted');
+        
+        const cart = getCart();
+        
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            return false;
+        }
+        
+        const cartJson = JSON.stringify(cart);
+        log('Sending cart to checkout:', cartJson);
+        
+        const hiddenInput = document.getElementById('cart_items_hidden');
+        if (hiddenInput) {
+            hiddenInput.value = cartJson;
+        } else {
+            logError('Hidden input cart_items_hidden not found!');
+        }
+        
+        this.submit();
+    });
+    
+    log('Checkout form setup complete');
+}
+
+function setupAddToCartButtons() {
+    const buttons = document.querySelectorAll('[data-add-to-cart], .add-to-cart-btn, #add-to-cart-detail');
+    
+    log(`Found ${buttons.length} "Add to Cart" button(s)`);
+    
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const productData = {
+                id: this.dataset.productId || this.dataset.id,
+                name: this.dataset.productName || this.dataset.name || 'Product',
+                price: this.dataset.productPrice || this.dataset.price || 0,
+                image: this.dataset.productImage || this.dataset.image || null,
+                branch_id: this.dataset.branchId || null,
+                branch_name: this.dataset.branchName || 'Unknown Branch',
+                is_available: this.dataset.isAvailable !== 'false'
+            };
+            
+            const quantityInput = document.getElementById('quantity');
+            const quantity = quantityInput ? parseInt(quantityInput.value) : parseInt(this.dataset.quantity || 1);
+            
+            log('Add to cart button clicked:', productData, 'Quantity:', quantity);
+            
+            addToCart(productData, quantity);
+        });
+    });
+}
+
+// ============================================================================
+// EVENT LISTENERS
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', initializeCart);
+
+window.addEventListener('storage', function(e) {
+    if (e.key && e.key.startsWith('cart_session_')) {
+        log('Cart updated in another tab/window');
+        updateCartCount();
+        
+        if (window.location.pathname.includes('/cart')) {
+            loadCartPage();
+        }
+    }
 });
 
-// Also update on page show (when navigating back)
-window.addEventListener('pageshow', function() {
-    updateCartCount();
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        log('Page became visible, updating cart count');
+        updateCartCount();
+    }
 });
 
-// Export functions globally
+// ============================================================================
+// DEBUG UTILITIES
+// ============================================================================
+
+window.debugCart = function() {
+    console.log('=== CART DEBUG INFO (SESSION-BASED v8.0 - FIXED) ===');
+    console.log('Configuration:', CART_CONFIG);
+    console.log('Cart Key:', getCartStorageKey());
+    console.log('Cart Contents:', getCart());
+    console.log('Cart Count:', getCartCount());
+    console.log('Cart Total:', getCartTotal());
+    console.log('Is Admin:', isAdmin());
+    console.log('User ID:', getUserId() || 'Guest');
+    console.log('Current Session ID:', getCurrentSessionId());
+    console.log('All localStorage keys:', Object.keys(localStorage));
+    console.log('======================');
+};
+
+window.clearAllCarts = function() {
+    console.log('Clearing all cart data from localStorage...');
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('cart_')) {
+            console.log(`Removing: ${key}`);
+            localStorage.removeItem(key);
+        }
+    });
+    updateCartCount();
+    console.log('All carts cleared!');
+};
+
+window.resetCart = function() {
+    console.log('Resetting current cart...');
+    clearCart();
+    console.log('Cart reset complete!');
+};
+
+// ============================================================================
+// EXPORT FUNCTIONS TO WINDOW (for external access)
+// ============================================================================
+
+window.getCart = getCart;
 window.addToCart = addToCart;
 window.updateCartItem = updateCartItem;
 window.removeFromCart = removeFromCart;
 window.clearCart = clearCart;
+window.clearCartAfterCheckout = clearCartAfterCheckout;
+window.getCartCount = getCartCount;
+window.getCartTotal = getCartTotal;
 window.updateCartCount = updateCartCount;
-window.getCart = getCart;
-window.isAdmin = isAdmin;
-window.migrateGuestCartToUser = migrateGuestCartToUser;
-window.formatCurrency = formatCurrency;
-window.showAlert = showAlert;
+window.showNotification = showNotification;
+window.loadCartPage = loadCartPage;
 window.getCartStorageKey = getCartStorageKey;
+window.getCurrentSessionId = getCurrentSessionId;
+window.migrateCartAfterLogin = migrateCartAfterLogin;
+window.isAdmin = isAdmin;
+window.getUserId = getUserId;
+window.formatPrice = formatPrice;
 
-console.log('✅ Cart functions exported globally');
+log('✅ Cart.js v8.0 loaded successfully - FIXED with localStorage migration');

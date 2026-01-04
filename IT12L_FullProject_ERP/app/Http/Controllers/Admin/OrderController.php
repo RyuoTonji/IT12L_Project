@@ -3,85 +3,108 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\User;
+use App\Models\Branch;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DB::table('orders')
-            ->join('users', 'orders.user_id', '=', 'users.id')
-            ->join('branches', 'orders.branch_id', '=', 'branches.id')
-            ->select(
-                'orders.*',
-                'users.name as user_name',
-                'users.email as user_email',
-                'branches.name as branch_name'
-            )
-            ->orderBy('orders.created_at', 'desc');
+        $query = Order::with(['user', 'branch']);
 
-        // Filter by status if provided
+        // Filter by status
         if ($request->has('status') && $request->status != '') {
-            $query->where('orders.status', $request->status);
+            $query->where('status', $request->status);
         }
 
-        $orders = $query->paginate(20);
+        // Filter by branch
+        if ($request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
 
-        return view('admin.orders.index', compact('orders'));
+        // Date range filter
+        if ($request->has('start_date') && $request->start_date != '') {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->has('end_date') && $request->end_date != '') {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        $orders = $query->orderBy('created_at', 'desc')->paginate(20);
+        $branches = Branch::all();
+
+        return view('admin.orders.index', compact('orders', 'branches'));
     }
 
     public function show($id)
     {
-        $order = DB::table('orders')
-            ->join('users', 'orders.user_id', '=', 'users.id')
-            ->join('branches', 'orders.branch_id', '=', 'branches.id')
-            ->select(
-                'orders.*',
-                'users.name as user_name',
-                'users.email as user_email',
-                'users.phone as user_phone',
-                'branches.name as branch_name',
-                'branches.address as branch_address'
-            )
-            ->where('orders.id', $id)
-            ->first();
+        $order = Order::with(['user', 'branch', 'items'])->find($id);
 
         if (!$order) {
             return redirect()->route('admin.orders.index')->with('error', 'Order not found!');
         }
 
-        // Get order items
-        $orderItems = DB::table('order_items')
-            ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->select(
-                'order_items.*',
-                'products.name as product_name',
-                'products.image as product_image'
-            )
-            ->where('order_items.order_id', $id)
-            ->get();
-
-        return view('admin.orders.show', compact('order', 'orderItems'));
+        return view('admin.orders.show', compact('order'));
     }
 
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,delivered,cancelled'
+            'status' => 'required|in:pending,confirmed,preparing,ready,picked up,cancelled'
         ]);
 
-        $order = DB::table('orders')->where('id', $id)->first();
+        $order = Order::find($id);
 
         if (!$order) {
             return redirect()->route('admin.orders.index')->with('error', 'Order not found!');
         }
 
-        DB::table('orders')->where('id', $id)->update([
-            'status' => $request->status,
-            'updated_at' => now()
+        $order->update([
+            'status' => $request->status
         ]);
 
         return redirect()->route('admin.orders.show', $id)->with('success', 'Order status updated successfully!');
+    }
+
+    public function destroy($id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            return redirect()->route('admin.orders.index')->with('error', 'Order not found!');
+        }
+
+        $order->delete();
+
+        return redirect()->route('admin.orders.index')->with('success', 'Order archived successfully!');
+    }
+
+    public function archived(Request $request)
+    {
+        $query = Order::onlyTrashed()->with(['user', 'branch']);
+
+        // Filter by branch
+        if ($request->has('branch_id') && $request->branch_id != '') {
+            $query->where('branch_id', $request->branch_id);
+        }
+
+        $orders = $query->orderBy('deleted_at', 'desc')->paginate(20);
+        $branches = Branch::all();
+
+        return view('admin.orders.archived', compact('orders', 'branches'));
+    }
+
+    public function restore($id)
+    {
+        $order = Order::onlyTrashed()->find($id);
+
+        if ($order) {
+            $order->restore();
+            return redirect()->route('admin.orders.archived')->with('success', 'Order restored successfully!');
+        }
+
+        return redirect()->route('admin.orders.archived')->with('error', 'Order not found!');
     }
 }

@@ -3,18 +3,23 @@
 @section('content')
 <div class="container my-5">
     <h2 class="mb-4">
-        <i class="fas fa-shopping-cart"></i> Shopping Cart
+        <i class="fas fa-shopping-cart"></i> Food Cart
     </h2>
 
-    <!-- Loading State -->
-    <div id="loading-cart" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+    <!-- Loading State (show by default if migration is needed) -->
+    <div id="loading-cart" class="{{ session('_cart_migration_needed') ? '' : 'd-none' }}">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h5>Loading your cart...</h5>
+                <p class="text-muted">Please wait while we retrieve your items</p>
+            </div>
         </div>
-        <p class="mt-3">Loading your cart...</p>
     </div>
 
-    <!-- Empty Cart -->
+    <!-- Empty Cart (hidden by default if migration is needed) -->
     <div id="empty-cart" class="d-none">
         <div class="card">
             <div class="card-body text-center py-5">
@@ -46,7 +51,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="cart-items-body">
-                                    <!-- Items will be inserted here -->
+                                    <!-- Items will be inserted here by cart.js -->
                                 </tbody>
                             </table>
                         </div>
@@ -119,257 +124,91 @@
 
 @push('scripts')
 <script>
+// =============================================================================
+// CART PAGE - FIXED: No race condition with migration
+// =============================================================================
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Cart page loaded');
-    loadCartPage();
+    console.log('[Cart Page] Initializing...');
     
-    // Attach checkout form submit handler
-    const checkoutForm = document.getElementById('checkout-form');
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            console.log('Checkout form submit triggered');
-            
-            // Get cart from localStorage
-            const cart = getCart();
-            console.log('Cart from localStorage:', cart);
-            
-            if (cart.length === 0) {
-                alert('Your cart is empty!');
-                return false;
-            }
-            
-            // Set cart data in hidden input
-            const cartJson = JSON.stringify(cart);
-            console.log('Cart JSON to send:', cartJson);
-            document.getElementById('cart_items_hidden').value = cartJson;
-            
-            console.log('Hidden input value:', document.getElementById('cart_items_hidden').value);
-            console.log('Form action:', this.action);
-            console.log('Form method:', this.method);
-            
-            // Submit the form
-            this.submit();
+    // Check if migration is in progress
+    const migrationNeeded = document.querySelector('meta[name="cart-migration-needed"]');
+    const isMigrating = migrationNeeded && migrationNeeded.content === 'true';
+    
+    if (isMigrating) {
+        console.log('[Cart Page] Migration detected - waiting for completion...');
+        
+        // Listen for migration completion
+        window.addEventListener('cartMigrated', function(e) {
+            console.log('[Cart Page] Migration completed, loading cart...', e.detail);
+            setTimeout(() => loadCartPageSafely(), 500);
         });
+        
+        // Fallback timeout in case migration event doesn't fire
+        setTimeout(() => {
+            console.log('[Cart Page] Fallback timeout - loading cart anyway');
+            loadCartPageSafely();
+        }, 2000);
+        
     } else {
-        console.error('Checkout form not found!');
+        // No migration needed - load immediately
+        console.log('[Cart Page] No migration needed, loading cart immediately');
+        loadCartPageSafely();
     }
+    
+    // Setup checkout form
+    setupCheckoutForm();
 });
 
-function loadCartPage() {
-    // Check if getCart function exists
-    if (typeof getCart === 'undefined') {
-        console.error('getCart function not found!');
-        showEmptyCart();
-        return;
+/**
+ * Safely load cart page (checks if cart.js is loaded)
+ */
+function loadCartPageSafely() {
+    if (typeof loadCartPage === 'function') {
+        console.log('[Cart Page] cart.js detected, loading cart...');
+        loadCartPage();
+    } else {
+        console.error('[Cart Page] ERROR: cart.js not loaded! Retrying...');
+        setTimeout(loadCartPageSafely, 200);
     }
-    
-    const cart = getCart();
-    console.log('Cart contents:', cart);
-    
-    if (cart.length === 0) {
-        showEmptyCart();
-        return;
-    }
-    
-    // Fetch product details
-    const productIds = cart.map(item => item.id);
-    
-    fetch('/api/cart/products', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ product_ids: productIds })
-    })
-    .then(res => res.json())
-    .then(products => {
-        console.log('Products fetched:', products);
-        if (products.length === 0) {
-            showEmptyCart();
-            return;
-        }
-        renderCartItems(cart, products);
-    })
-    .catch(error => {
-        console.error('Error loading cart:', error);
-        showEmptyCart();
-    });
 }
 
-function showEmptyCart() {
-    document.getElementById('loading-cart').classList.add('d-none');
-    document.getElementById('empty-cart').classList.remove('d-none');
-    document.getElementById('cart-content').classList.add('d-none');
-}
-
-function renderCartItems(cart, products) {
-    document.getElementById('loading-cart').classList.add('d-none');
-    document.getElementById('empty-cart').classList.add('d-none');
-    document.getElementById('cart-content').classList.remove('d-none');
+/**
+ * Setup checkout form submission
+ */
+function setupCheckoutForm() {
+    const checkoutForm = document.getElementById('checkout-form');
+    if (!checkoutForm) return;
     
-    const tbody = document.getElementById('cart-items-body');
-    tbody.innerHTML = '';
-    
-    let total = 0;
-    
-    cart.forEach((cartItem, index) => {
-        const product = products.find(p => p.id == cartItem.id);
+    checkoutForm.addEventListener('submit', function(e) {
+        e.preventDefault();
         
-        if (!product) {
-            console.warn('Product not found for cart item:', cartItem);
-            return;
+        console.log('[Cart Page] Checkout form submitted');
+        
+        // Get cart from localStorage (cart.js provides this function)
+        if (typeof getCart !== 'function') {
+            console.error('[Cart Page] ERROR: getCart() function not found');
+            alert('Cart system error. Please refresh the page.');
+            return false;
         }
         
-        const subtotal = product.price * cartItem.quantity;
-        total += subtotal;
+        const cart = getCart();
+        console.log('[Cart Page] Cart data for checkout:', cart);
         
-        const row = document.createElement('tr');
-        row.dataset.productId = product.id;
+        if (cart.length === 0) {
+            alert('Your cart is empty!');
+            return false;
+        }
         
-        row.innerHTML = `
-            <td>
-                <div class="d-flex align-items-center">
-                    ${product.image 
-                        ? `<img src="/storage/${product.image}" 
-                               alt="${product.name}"
-                               class="rounded me-3"
-                               style="width: 60px; height: 60px; object-fit: cover;">`
-                        : `<div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                               <i class="fas fa-utensils text-white"></i>
-                           </div>`
-                    }
-                    <div>
-                        <strong>${product.name}</strong>
-                        <br>
-                        <small class="text-muted">
-                            <i class="fas fa-store"></i> ${product.branch_name}
-                        </small>
-                        ${product.is_available ? '' : '<br><span class="badge bg-danger">Out of Stock</span>'}
-                    </div>
-                </div>
-            </td>
-            <td class="align-middle">₱${parseFloat(product.price).toFixed(2)}</td>
-            <td class="align-middle">
-                <div class="input-group" style="width: 130px;">
-                    <button class="btn btn-sm btn-outline-secondary decrease-qty" data-product-id="${product.id}">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <input type="number" 
-                           class="form-control form-control-sm text-center quantity-input" 
-                           value="${cartItem.quantity}" 
-                           min="1" max="99"
-                           data-product-id="${product.id}">
-                    <button class="btn btn-sm btn-outline-secondary increase-qty" data-product-id="${product.id}">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </td>
-            <td class="align-middle item-subtotal">₱${subtotal.toFixed(2)}</td>
-            <td class="align-middle">
-                <button class="btn btn-sm btn-danger remove-item" 
-                        data-product-id="${product.id}"
-                        data-product-name="${product.name}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
+        // Set cart data in hidden input
+        const cartJson = JSON.stringify(cart);
+        document.getElementById('cart_items_hidden').value = cartJson;
         
-        tbody.appendChild(row);
+        console.log('[Cart Page] Submitting checkout with cart data');
+        
+        // Submit the form
+        this.submit();
     });
-    
-    updateTotalDisplay(total);
-    attachEventListeners();
-}
-
-function updateTotalDisplay(total) {
-    document.getElementById('cart-total').textContent = formatCurrency(total);
-    document.getElementById('cart-total-final').textContent = formatCurrency(total);
-}
-
-function attachEventListeners() {
-    // Attach decrease quantity
-    document.querySelectorAll('.decrease-qty').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = parseInt(this.dataset.productId);
-            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-            let qty = parseInt(input.value);
-            if (qty > 1) {
-                qty--;
-                input.value = qty;
-                if (typeof updateCartItem !== 'undefined') {
-                    updateCartItem(productId, qty);
-                }
-                loadCartPage();
-            }
-        });
-    });
-    
-    // Attach increase quantity
-    document.querySelectorAll('.increase-qty').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = parseInt(this.dataset.productId);
-            const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
-            let qty = parseInt(input.value);
-            if (qty < 99) {
-                qty++;
-                input.value = qty;
-                if (typeof updateCartItem !== 'undefined') {
-                    updateCartItem(productId, qty);
-                }
-                loadCartPage();
-            }
-        });
-    });
-    
-    // Attach quantity input change
-    document.querySelectorAll('.quantity-input').forEach(input => {
-        input.addEventListener('change', function() {
-            const productId = parseInt(this.dataset.productId);
-            let qty = parseInt(this.value);
-            
-            if (isNaN(qty) || qty < 1) {
-                qty = 1;
-            } else if (qty > 99) {
-                qty = 99;
-            }
-            
-            this.value = qty;
-            if (typeof updateCartItem !== 'undefined') {
-                updateCartItem(productId, qty);
-            }
-            loadCartPage();
-        });
-    });
-    
-    // Attach remove buttons
-    document.querySelectorAll('.remove-item').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const productId = parseInt(this.dataset.productId);
-            const productName = this.dataset.productName;
-            
-            if (typeof removeFromCart !== 'undefined') {
-                removeFromCart(productId, productName);
-                setTimeout(() => loadCartPage(), 500);
-            }
-        });
-    });
-    
-    // Attach clear cart button
-    const clearCartBtn = document.getElementById('clear-cart');
-    if (clearCartBtn) {
-        clearCartBtn.addEventListener('click', function() {
-            if (typeof clearCart !== 'undefined') {
-                clearCart();
-            }
-        });
-    }
-}
-
-function formatCurrency(amount) {
-    return '₱' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
 }
 </script>
 @endpush

@@ -12,12 +12,19 @@ class EventServiceProvider extends ServiceProvider
     /**
      * The event listener mappings for the application.
      *
-     * @var array
+     * @var array<class-string, array<int, class-string>>
      */
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        
+        // ============================================================================
+        // ✅ NO CART MERGE LISTENER NEEDED
+        // ============================================================================
+        // Cart is now session-based - same cart persists through login automatically
+        // No need for Login event listener or MergeGuestCart
+        // ============================================================================
     ];
 
     /**
@@ -28,5 +35,15 @@ class EventServiceProvider extends ServiceProvider
     public function boot()
     {
         //
+    }
+
+    /**
+     * Determine if events and listeners should be automatically discovered.
+     *
+     * @return bool
+     */
+    public function shouldDiscoverEvents()
+    {
+        return false;
     }
 }
