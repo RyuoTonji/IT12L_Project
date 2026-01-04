@@ -6,6 +6,19 @@
    GLOBAL STYLES
    ============================================================================ */
     /* Main theme color */
+/* ============================================================================
+   PAGE RESET (FIX WHITE GAP ISSUE)
+   ============================================================================ */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+    background-color: #f8f9fa;
+}
+
+
 :root {
     --primary-color: #A52A2A;
     --primary-color-dark: #822222;
@@ -19,21 +32,28 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
 }
 
 .content {
-    flex: 1;
+    min-height: 100vh;
+    background-color: #f8f9fa;
 }
+
 
 /* ============================================================================
    NAVIGATION
    ============================================================================ */
+/* ============================================================================
+   NAVIGATION
+   ============================================================================ */
 .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    background-color: #ffffff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
 
 .navbar-brand {
     font-size: 1.5rem;
@@ -264,9 +284,6 @@ body {
 /* ============================================================================
    FOOTER
    ============================================================================ */
-footer {
-    margin-top: auto;
-}
 
 footer a {
     text-decoration: none;
