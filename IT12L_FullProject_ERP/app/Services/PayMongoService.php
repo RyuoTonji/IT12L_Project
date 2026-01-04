@@ -22,12 +22,13 @@ class PayMongoService
      * @param string $description Payment description
      * @param int $orderId Order ID
      * @param string $type Payment source type: 'gcash', 'paymaya', 'qr_ph'
+     * @param array $billingData Optional billing data [name, email, phone]
      */
-    public function createSource($amount, $description, $orderId, $type = 'qr_ph')
+    public function createSource($amount, $description, $orderId, $type = 'qr_ph', $billingData = [])
     {
         // Special handling for QRPh which uses Payment Intent API
         if ($type === 'qr_ph') {
-            return $this->createQRPhPayment($amount, $description, $orderId);
+            return $this->createQRPhPayment($amount, $description, $orderId, $billingData);
         }
 
         try {
@@ -38,9 +39,9 @@ class PayMongoService
                         'type' => $type, // 'gcash' or 'paymaya'
                         'currency' => 'PHP',
                         'billing' => [
-                            'name' => Auth::user()->name ?? 'Guest',
-                            'email' => Auth::user()->email ?? '',
-                            'phone' => Auth::user()->phone ?? '',
+                            'name' => $billingData['name'] ?? Auth::user()->name ?? 'Guest',
+                            'email' => $billingData['email'] ?? Auth::user()->email ?? '',
+                            'phone' => $billingData['phone'] ?? Auth::user()->phone ?? '',
                         ],
                         'redirect' => [
                             'success' => route('checkout.confirm', ['order_id' => $orderId]),
@@ -87,7 +88,7 @@ class PayMongoService
     /**
      * Specialized flow for QRPh using Payment Intents
      */
-    public function createQRPhPayment($amount, $description, $orderId)
+    public function createQRPhPayment($amount, $description, $orderId, $billingData = [])
     {
         try {
             // 1. Create Payment Intent
@@ -123,9 +124,9 @@ class PayMongoService
                     'attributes' => [
                         'type' => 'qrph',
                         'billing' => [
-                            'name' => Auth::user()->name ?? 'Guest',
-                            'email' => Auth::user()->email ?? '',
-                            'phone' => Auth::user()->phone ?? '',
+                            'name' => $billingData['name'] ?? Auth::user()->name ?? 'Guest',
+                            'email' => $billingData['email'] ?? Auth::user()->email ?? '',
+                            'phone' => $billingData['phone'] ?? Auth::user()->phone ?? '',
                         ],
                     ],
                 ],
@@ -168,11 +169,11 @@ class PayMongoService
             }
 
             $data = $attachResponse->json();
-            
+
             // Extract the QR data (can be show_qr.data or code.image_url depending on the method)
             $nextAction = $data['data']['attributes']['next_action'] ?? null;
             $qrData = null;
-            
+
             if ($nextAction) {
                 if (isset($nextAction['show_qr']['data'])) {
                     $qrData = $nextAction['show_qr']['data'];
@@ -180,7 +181,7 @@ class PayMongoService
                     $qrData = $nextAction['code']['image_url'];
                 }
             }
-            
+
             // Map the response to a legacy source-like structure for the controller
             return [
                 'data' => [
@@ -209,7 +210,7 @@ class PayMongoService
         try {
             // Check if it's a Payment Intent (QRPh) or Source (GCash/Maya)
             $endpoint = str_starts_with($sourceId, 'src_') ? "/sources/{$sourceId}" : "/payment_intents/{$sourceId}";
-            
+
             $response = Http::withHeaders([
                 'Authorization' => 'Basic ' . base64_encode($this->secretKey . ':'),
             ])->get($this->baseUrl . $endpoint);
@@ -231,18 +232,18 @@ class PayMongoService
                 'Authorization' => 'Basic ' . base64_encode($this->secretKey . ':'),
                 'Content-Type' => 'application/json',
             ])->post($this->baseUrl . '/payments', [
-                'data' => [
-                    'attributes' => [
-                        'amount' => $amount * 100,
-                        'source' => [
-                            'id' => $sourceId,
-                            'type' => 'source',
+                        'data' => [
+                            'attributes' => [
+                                'amount' => $amount * 100,
+                                'source' => [
+                                    'id' => $sourceId,
+                                    'type' => 'source',
+                                ],
+                                'currency' => 'PHP',
+                                'description' => $description,
+                            ],
                         ],
-                        'currency' => 'PHP',
-                        'description' => $description,
-                    ],
-                ],
-            ]);
+                    ]);
 
             Log::info('PayMongo Payment Creation Response', [
                 'status' => $response->status(),
