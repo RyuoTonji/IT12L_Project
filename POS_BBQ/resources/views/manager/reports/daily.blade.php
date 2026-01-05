@@ -48,7 +48,8 @@
                 </div>
                 <div class="bg-red-100 p-4 rounded-lg shadow">
                     <h2 class="text-lg font-bold text-red-800">Total Refunds (Est.)</h2>
-                    <p class="text-2xl font-bold text-red-800 text-right mt-2">₱{{ number_format(abs($totalRefunds), 2) }}</p>
+                    <p class="text-2xl font-bold text-red-800 text-right mt-2">₱{{ number_format(abs($totalRefunds), 2) }}
+                    </p>
                 </div>
                 <div class="bg-blue-100 p-4 rounded-lg shadow">
                     <h2 class="text-lg font-bold text-blue-800">Shift Reports</h2>
@@ -66,34 +67,52 @@
                         <table class="min-w-full divide-y divide-gray-200 bg-white border rounded-lg">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Sales</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Refunds</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Staff</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Role</th>
+                                    <th
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Orders</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Sales</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Refunds</th>
+                                    <th
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status</th>
+                                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 @foreach($shiftReports as $report)
                                     <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $report->user->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ ucfirst($report->user->role) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">{{ $report->total_orders }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">₱{{ number_format($report->total_sales, 2) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">₱{{ number_format($report->total_refunds, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {{ $report->user->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ ucfirst($report->user->role) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">
+                                            {{ $report->total_orders }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                                            ₱{{ number_format($report->total_sales, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
+                                            ₱{{ number_format($report->total_refunds, 2) }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <span class="text-xs font-semibold {{ $report->status == 'reviewed' ? 'text-green-600' : 'text-yellow-600' }}">
+                                            <span
+                                                class="text-xs font-semibold {{ $report->status == 'reviewed' ? 'text-green-600' : 'text-yellow-600' }}">
                                                 {{ ucfirst($report->status) }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                            <a href="{{ route('admin.shift-reports.show', $report) }}" 
-                                               class="text-blue-600 hover:text-blue-900 font-medium flex items-center justify-end">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            <a href="{{ route('admin.shift-reports.show', $report) }}"
+                                                class="text-blue-600 hover:text-blue-900 font-medium flex items-center justify-end">
+                                                <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <circle cx="11.5" cy="15.5" r="2.5"></circle>
+                                                    <path d="M16 20l-2-2"></path>
                                                 </svg>
                                                 View & Reply
                                             </a>

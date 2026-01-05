@@ -3,32 +3,32 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $branches = DB::table('branches')->get();
-        
+        $branches = Branch::all();
+
         return view('user.home.index', compact('branches'));
     }
 
     public function browse($id)
     {
-        $branch = DB::table('branches')->where('id', $id)->first();
-        
+        $branch = Branch::find($id);
+
         if (!$branch) {
             return redirect()->route('home')->with('error', 'Branch not found!');
         }
 
-        $categories = DB::table('categories')->get();
-        
-        $products = DB::table('products')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->where('products.branch_id', $id)
-            ->select('products.*', 'categories.name as category_name')
+        $categories = Category::all();
+
+        $products = Product::where('branch_id', $id)
+            ->with('category')
             ->paginate(12);
 
         return view('user.home.browse', compact('branch', 'categories', 'products'));
@@ -36,19 +36,17 @@ class HomeController extends Controller
 
     public function filterByCategory($branchId, $categoryId)
     {
-        $branch = DB::table('branches')->where('id', $branchId)->first();
-        
+        $branch = Branch::find($branchId);
+
         if (!$branch) {
             return redirect()->route('home')->with('error', 'Branch not found!');
         }
 
-        $categories = DB::table('categories')->get();
-        
-        $products = DB::table('products')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->where('products.branch_id', $branchId)
-            ->where('products.category_id', $categoryId)
-            ->select('products.*', 'categories.name as category_name')
+        $categories = Category::all();
+
+        $products = Product::where('branch_id', $branchId)
+            ->where('category_id', $categoryId)
+            ->with('category')
             ->paginate(12);
 
         return view('user.home.browse', compact('branch', 'categories', 'products'));

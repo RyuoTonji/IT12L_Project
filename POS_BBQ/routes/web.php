@@ -62,7 +62,8 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('/menu/{menu}/update-branch-availability', [MenuController::class, 'updateBranchAvailability'])->name('menu.update-branch-availability');
 
     Route::get('inventory/report', [InventoryController::class, 'report'])->name('admin.inventory.report');
-    Route::post('invento    ry/stock-in', [InventoryController::class, 'stockIn'])->name('admin.inventory.stock-in');
+    Route::post('inventory/stock-in', [InventoryController::class, 'stockIn'])->name('admin.inventory.stock-in');
+    Route::get('inventory/stock-in-history', [InventoryController::class, 'stockInHistory'])->name('admin.inventory.stock-in-history');
     Route::resource('inventory', InventoryController::class)->names('admin.inventory');
     Route::resource('staff', StaffController::class);
 
@@ -100,8 +101,10 @@ Route::prefix('cashier')->middleware(['auth', 'role:cashier'])->group(function (
 
 Route::prefix('inventory')->middleware(['auth', 'role:inventory'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\InventoryController::class, 'index'])->name('inventory.dashboard');
-    Route::post('/add', [\App\Http\Controllers\InventoryController::class, 'addStock'])->name('inventory.add');
-    Route::patch('/{inventory}', [\App\Http\Controllers\InventoryController::class, 'updateStock'])->name('inventory.update');
+    Route::get('/create', [\App\Http\Controllers\InventoryController::class, 'create'])->name('inventory.create');
+    Route::post('/', [\App\Http\Controllers\InventoryController::class, 'store'])->name('inventory.store');
+    Route::get('/{inventory}/edit', [\App\Http\Controllers\InventoryController::class, 'edit'])->name('inventory.edit');
+    Route::match(['PUT', 'PATCH'], '/{inventory}', [\App\Http\Controllers\InventoryController::class, 'update'])->name('inventory.update');
     Route::delete('/{inventory}', [\App\Http\Controllers\InventoryController::class, 'destroy'])->name('inventory.destroy');
     Route::get('/report', [\App\Http\Controllers\InventoryController::class, 'report'])->name('inventory.report');
     Route::post('/stock-in', [\App\Http\Controllers\InventoryController::class, 'stockIn'])->name('inventory.stock-in');
@@ -162,7 +165,7 @@ Route::middleware(['auth', 'role:admin,manager'])->group(function () {
     Route::get('/export/staff', [\App\Http\Controllers\ExportController::class, 'exportStaff'])->name('export.staff');
     Route::get('/export/daily', [\App\Http\Controllers\ExportController::class, 'exportDaily'])->name('export.daily');
     Route::get('/export/report/{report}', [\App\Http\Controllers\ExportController::class, 'exportShiftReport'])->name('export.report');
-    
+
     // Shared Shift Report Actions
     Route::get('/shift-reports/{shiftReport}', [\App\Http\Controllers\ShiftReportController::class, 'show'])->name('admin.shift-reports.show');
     Route::post('/shift-reports/{shiftReport}/reply', [\App\Http\Controllers\ShiftReportController::class, 'reply'])->name('admin.shift-reports.reply');

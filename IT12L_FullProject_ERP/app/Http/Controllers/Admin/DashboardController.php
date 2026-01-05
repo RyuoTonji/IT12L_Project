@@ -3,15 +3,48 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Branch;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
+<<<<<<< Updated upstream
+        // Get statistics
+        $totalOrders = DB::table('orders')->count();
+        
+        $totalRevenue = DB::table('orders')
+            ->whereIn('status', ['confirmed', 'delivered'])
+            ->sum('total_amount');
+        
+        $pendingOrders = DB::table('orders')
+            ->where('status', 'pending')
+            ->count();
+        
+        $totalProducts = DB::table('products')->count();
+
+        // Get recent orders
+        $recentOrders = DB::table('orders')
+            ->join('users', 'orders.user_id', '=', 'users.id')
+            ->join('branches', 'orders.branch_id', '=', 'branches.id')
+            ->select(
+                'orders.id',
+                'orders.total_amount',
+                'orders.status',
+                'orders.created_at as ordered_at',
+                'users.name as user_name',
+                'branches.name as branch_name'
+            )
+            ->orderBy('orders.created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+=======
         // Check if this is an AJAX request for live count
         if ($request->ajax() && $request->has('live_count')) {
             return $this->getLiveOrderCount($request);
@@ -27,24 +60,15 @@ class DashboardController extends Controller
         // ============================================================================
 
         // All Time Totals
-        $totalOrdersAllTime = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->count();
+        $totalOrdersAllTime = Order::count();
 
-        $totalRevenueAllTime = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->sum('total_amount');
+        $totalRevenueAllTime = Order::sum('total_amount');
 
         // Total Products
-        $totalProducts = DB::table('products')
-            ->whereNull('deleted_at')
-            ->count();
+        $totalProducts = Product::count();
 
         // Current Pending Orders (All Time)
-        $pendingOrders = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->where('status', 'pending')
-            ->count();
+        $pendingOrders = Order::pending()->count();
 
         // ============================================================================
         // TODAY'S METRICS (DEFAULT - SYNCED WITH LIVE & STATUS)
@@ -62,31 +86,22 @@ class DashboardController extends Controller
         }
 
         // TODAY'S ORDERS (uses status filter)
-        $todayOrders = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
+        $todayOrders = Order::whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->count();
 
         // TODAY'S REVENUE (uses status filter)
-        $todayRevenue = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
+        $todayRevenue = Order::whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->sum('total_amount');
 
         // LIVE ORDER COUNT (uses status filter)
-        $recentOrderCount = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
-            ->count();
+        $recentOrderCount = $todayOrders;
 
         // Calculate trend (compare with previous period)
         $periodDuration = $statusFilterStart->diffInSeconds($statusFilterEnd);
         $previousFilterStart = $statusFilterStart->copy()->subSeconds($periodDuration);
         $previousFilterEnd = $statusFilterStart->copy();
 
-        $previousOrderCount = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$previousFilterStart, $previousFilterEnd])
+        $previousOrderCount = Order::whereBetween('created_at', [$previousFilterStart, $previousFilterEnd])
             ->count();
 
         $orderTrend = 0;
@@ -105,7 +120,7 @@ class DashboardController extends Controller
         $salesBranchId = $request->get('branch_id');
 
         // Build query
-        $salesQuery = DB::table('orders')->whereNull('deleted_at');
+        $salesQuery = Order::query();
 
         // Apply date filter based on mode
         if ($salesStartDate && $salesEndDate) {
@@ -153,9 +168,7 @@ class DashboardController extends Controller
         // ============================================================================
         // ORDERS BY STATUS (USES STATUS FILTER)
         // ============================================================================
-        $ordersByStatus = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
+        $ordersByStatus = Order::whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
             ->get()
@@ -170,17 +183,13 @@ class DashboardController extends Controller
 
         // Quick Insights (filtered totals)
         $filteredTotalOrders = array_sum($orderStatusData);
-        $filteredRevenue = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
+        $filteredRevenue = Order::whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->sum('total_amount');
 
         // ============================================================================
         // CONFIRMED SALES BY BRANCH (NEVER FILTERED - ALL TIME)
         // ============================================================================
-        $salesByBranch = DB::table('orders')
-            ->join('branches', 'orders.branch_id', '=', 'branches.id')
-            ->whereNull('orders.deleted_at')
+        $salesByBranch = Order::join('branches', 'orders.branch_id', '=', 'branches.id')
             ->whereNull('branches.deleted_at')
             ->where('orders.status', 'picked up')
             ->select(
@@ -196,9 +205,7 @@ class DashboardController extends Controller
         // ============================================================================
         // TOP SELLING PRODUCTS (NEVER FILTERED - ALL TIME)
         // ============================================================================
-        $topProducts = DB::table('order_items')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->whereNull('orders.deleted_at')
+        $topProducts = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
             ->where('orders.status', 'picked up')
             ->select(
                 'order_items.product_name as name',
@@ -214,67 +221,29 @@ class DashboardController extends Controller
         // ============================================================================
         // RECENT ORDERS (ALWAYS LATEST 10)
         // ============================================================================
-        $recentOrders = DB::table('orders')
-            ->join('users', 'orders.user_id', '=', 'users.id')
-            ->join('branches', 'orders.branch_id', '=', 'branches.id')
-            ->whereNull('orders.deleted_at')
-            ->select(
-                'orders.id',
-                'orders.total_amount',
-                'orders.status',
-                'orders.created_at as ordered_at',
-                'users.name as user_name',
-                'branches.name as branch_name'
-            )
-            ->orderBy('orders.created_at', 'desc')
+        $recentOrders = Order::with(['user', 'branch'])
+            ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
         // ============================================================================
         // BRANCH LIST FOR FILTERS
         // ============================================================================
-        $branches = DB::table('branches')
-            ->whereNull('deleted_at')
-            ->select('id', 'name')
+        $branches = Branch::select('id', 'name')
             ->orderBy('name')
             ->get();
 
+>>>>>>> Stashed changes
         return view('admin.dashboard', compact(
-            // Static Metrics
-            'totalOrdersAllTime',
-            'totalRevenueAllTime',
-            'totalProducts',
+            'totalOrders',
+            'totalRevenue',
             'pendingOrders',
-
-            // Today's Metrics (Synced - all use status filter)
-            'todayOrders',
-            'todayRevenue',
-            'recentOrderCount',
-            'previousOrderCount',
-            'orderTrend',
-
-            // Sales Performance (Separate Filter)
-            'salesPerformance',
-            'dailySales',
-
-            // Orders by Status (Synced with Today's Metrics)
-            'orderStatusData',
-            'filteredTotalOrders',
-            'filteredRevenue',
-            'statusStartDate',
-            'statusEndDate',
-            'statusFilterStart',
-            'statusFilterEnd',
-
-            // Never Filtered
-            'salesByBranch',
-            'topProducts',
-
-            // Other
-            'recentOrders',
-            'branches'
+            'totalProducts',
+            'recentOrders'
         ));
     }
+<<<<<<< Updated upstream
+=======
 
     /**
      * Get live order count for AJAX requests
@@ -294,9 +263,7 @@ class DashboardController extends Controller
         }
 
         // Current period count
-        $recentOrderCount = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
+        $recentOrderCount = Order::whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->count();
 
         // Previous period count (same duration)
@@ -304,9 +271,7 @@ class DashboardController extends Controller
         $previousFilterStart = $statusFilterStart->copy()->subSeconds($periodDuration);
         $previousFilterEnd = $statusFilterStart->copy();
 
-        $previousOrderCount = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$previousFilterStart, $previousFilterEnd])
+        $previousOrderCount = Order::whereBetween('created_at', [$previousFilterStart, $previousFilterEnd])
             ->count();
 
         $orderTrend = 0;
@@ -317,14 +282,9 @@ class DashboardController extends Controller
         }
 
         // Today's stats
-        $todayOrders = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
-            ->count();
+        $todayOrders = $recentOrderCount;
 
-        $todayRevenue = DB::table('orders')
-            ->whereNull('deleted_at')
-            ->whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
+        $todayRevenue = Order::whereBetween('created_at', [$statusFilterStart, $statusFilterEnd])
             ->sum('total_amount');
 
         return response()->json([
@@ -352,7 +312,7 @@ class DashboardController extends Controller
 
         // Sales Performance Chart (Separate filter)
         if ($chartType === 'sales_performance' || !$chartType) {
-            $query = DB::table('orders')->whereNull('deleted_at');
+            $query = Order::query();
 
             // Check which filter mode is active
             if ($startDate && $endDate) {
@@ -412,9 +372,7 @@ class DashboardController extends Controller
                 $filterEndDate = Carbon::today()->endOfDay();
             }
 
-            $statusQuery = DB::table('orders')
-                ->whereNull('deleted_at')
-                ->whereBetween('created_at', [$filterStartDate, $filterEndDate]);
+            $statusQuery = Order::whereBetween('created_at', [$filterStartDate, $filterEndDate]);
 
             // Apply branch filter for status data
             if ($branchId && $branchId !== 'all') {
@@ -442,9 +400,7 @@ class DashboardController extends Controller
             $previousFilterStart = $filterStartDate->copy()->subSeconds($periodDuration);
             $previousFilterEnd = $filterStartDate->copy();
 
-            $previousQuery = DB::table('orders')
-                ->whereNull('deleted_at')
-                ->whereBetween('created_at', [$previousFilterStart, $previousFilterEnd]);
+            $previousQuery = Order::whereBetween('created_at', [$previousFilterStart, $previousFilterEnd]);
 
             // Apply branch filter to previous period as well
             if ($branchId && $branchId !== 'all') {
@@ -472,4 +428,5 @@ class DashboardController extends Controller
 
         return response()->json($response);
     }
+>>>>>>> Stashed changes
 }

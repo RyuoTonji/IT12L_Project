@@ -14,9 +14,18 @@
                     </svg>
                     Inventory Management
                 </h3>
-                <div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('admin.inventory.stock-in-history') }}"
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Stock-In History
+                    </a>
                     <a href="{{ route('admin.inventory.report') }}"
-                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 mr-2 flex items-center inline-flex transition-colors duration-200">
+                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -24,8 +33,16 @@
                         </svg>
                         Daily Report
                     </a>
+                    <button onclick="document.getElementById('addStockModal').classList.remove('hidden')"
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Stock In
+                    </button>
                     <button onclick="showExportConfirmation()"
-                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 mr-2 flex items-center inline-flex transition-colors duration-200">
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -34,7 +51,7 @@
                         Export PDF
                     </button>
                     <a href="{{ route('admin.inventory.create') }}"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex transition-colors duration-200">
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -144,25 +161,30 @@
                                                 <div class="flex justify-center space-x-2">
                                                     <a href="{{ route('admin.inventory.show', $item) }}"
                                                         class="text-blue-600 hover:text-blue-900 inline-flex items-center transition-colors">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                                            <circle cx="11.5" cy="15.5" r="2.5"></circle>
+                                                            <path d="M16 20l-2-2"></path>
                                                         </svg>
                                                         View
                                                     </a>
                                                     <button type="button" onclick="confirmArchive({{ $item->id }})"
                                                         class="text-gray-500 hover:text-red-600 inline-flex items-center transition-colors ml-2">
-                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                            </path>
+                                                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                            <path d="M4 10h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10Z"></path>
+                                                            <path d="M6 10V7h12v3"></path>
+                                                            <path d="M8 7V5h8v2"></path>
+                                                            <rect x="9" y="14" width="6" height="2" rx="0.5"></rect>
+                                                            <path d="M4 10l2-4h12l2 4"></path>
                                                         </svg>
                                                         Archive
                                                     </button>
                                                     <form id="deleteInventoryForm{{ $item->id }}"
-                                                        action="{{ route('admin.inventory.destroy', $item) }}" method="POST" class="hidden">
+                                                        action="{{ route('admin.inventory.destroy', $item) }}" method="POST"
+                                                        class="hidden">
                                                         @csrf @method('DELETE')
                                                     </form>
                                                 </div>
@@ -248,25 +270,29 @@
                                         <div class="flex justify-center space-x-2">
                                             <a href="{{ route('admin.inventory.show', $item) }}"
                                                 class="text-blue-600 hover:text-blue-900 inline-flex items-center transition-colors">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <circle cx="11.5" cy="15.5" r="2.5"></circle>
+                                                    <path d="M16 20l-2-2"></path>
                                                 </svg>
                                                 View
                                             </a>
                                             <button type="button" onclick="confirmArchive({{ $item->id }})"
                                                 class="text-gray-500 hover:text-red-600 inline-flex items-center transition-colors ml-2">
-                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                    </path>
+                                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                    <path d="M4 10h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10Z"></path>
+                                                    <path d="M6 10V7h12v3"></path>
+                                                    <path d="M8 7V5h8v2"></path>
+                                                    <rect x="9" y="14" width="6" height="2" rx="0.5"></rect>
+                                                    <path d="M4 10l2-4h12l2 4"></path>
                                                 </svg>
                                                 Archive
                                             </button>
                                             <form id="deleteInventoryForm{{ $item->id }}"
-                                                action="{{ route('inventory.destroy', $item) }}" method="POST" class="hidden">
+                                                action="{{ route('admin.inventory.destroy', $item) }}" method="POST" class="hidden">
                                                 @csrf @method('DELETE')
                                             </form>
                                         </div>
@@ -286,7 +312,92 @@
         </div>
     </div>
 
+    <div id="addStockModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold">Stock In</h3>
+                <button onclick="document.getElementById('addStockModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-600">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form action="{{ route('admin.inventory.stock-in') }}" method="POST" id="stockInForm">
+                @csrf
+                <div class="mb-4">
+                    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select name="category_id" id="category_id" required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        onchange="loadMenuItems()">
+                        <option value="">Select Category</option>
+                        @php
+                            $categories = \App\Models\Category::orderBy('sort_order')->get();
+                        @endphp
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="menu_item_id" class="block text-sm font-medium text-gray-700 mb-1">Menu Item</label>
+                    <select name="menu_item_id" id="menu_item_id" required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        disabled>
+                        <option value="">Select category first</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="stock_quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity to Add</label>
+                    <input type="number" name="quantity" id="stock_quantity" step="0.01" min="0.01" required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                </div>
+                <div class="mb-4">
+                    <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Reason / Notes</label>
+                    <textarea name="reason" id="reason" rows="2"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        placeholder="e.g. Daily delivery, New stock"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="document.getElementById('addStockModal').classList.add('hidden')"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                        Add Stock
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        function loadMenuItems() {
+            const categoryId = document.getElementById('category_id').value;
+            const menuItemSelect = document.getElementById('menu_item_id');
+
+            if (!categoryId) {
+                menuItemSelect.disabled = true;
+                menuItemSelect.innerHTML = '<option value="">Select category first</option>';
+                return;
+            }
+
+            // Fetch menu items for this category
+            fetch(`/api/menu-items/${categoryId}`)
+                .then(response => response.json())
+                .then(data => {
+                    menuItemSelect.disabled = false;
+                    menuItemSelect.innerHTML = '<option value="">Select menu item</option>';
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        menuItemSelect.appendChild(option);
+                    });
+                });
+        }
+
         function showExportConfirmation() {
             AlertModal.showConfirm(
                 'Are you sure you want to export the inventory report as PDF?',
@@ -318,7 +429,7 @@
             @else
                 paginateTable('table-filtered-result', 10);
             @endif
-                        });
+                                            });
 
         function paginateTable(tableId, rowsPerPage) {
             const table = document.getElementById(tableId);
@@ -377,10 +488,10 @@
 
                 // Previous Button
                 html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
-                                            class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                            ${page === 1 ? 'disabled' : ''}>
-                                            ${prevIcon}
-                                         </button>`;
+                                                                class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                ${page === 1 ? 'disabled' : ''}>
+                                                                ${prevIcon}
+                                                             </button>`;
 
                 // Generate Page Numbers
                 let range = [];
@@ -405,18 +516,18 @@
                             ? 'bg-gray-800 text-white font-bold'
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
-                                                    class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                                    ${item}
-                                                 </button>`;
+                                                                         class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                                         ${item}
+                                                                      </button>`;
                     }
                 });
 
                 // Next Button
                 html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
-                                            class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                            ${page === pCount ? 'disabled' : ''}>
-                                            ${nextIcon}
-                                         </button>`;
+                                                                class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                ${page === pCount ? 'disabled' : ''}>
+                                                                ${nextIcon}
+                                                             </button>`;
 
                 pDiv.innerHTML = html;
             };

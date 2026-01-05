@@ -40,12 +40,14 @@
                     <div>
                         <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                         <select name="category" id="category"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            required>
                             <option value="">Select Category</option>
-                            <option value="Ingredient" {{ old('category') == 'Ingredient' ? 'selected' : '' }}>Ingredient
+                            <option value="Ingredients" {{ old('category') == 'Ingredients' ? 'selected' : '' }}>Ingredients
                             </option>
-                            <option value="Product" {{ old('category') == 'Product' ? 'selected' : '' }}>Product</option>
-                            <option value="Other" {{ old('category') == 'Other' ? 'selected' : '' }}>Other</option>
+                            <option value="Prepared Menu" {{ old('category') == 'Prepared Menu' ? 'selected' : '' }}>Prepared
+                                Menu</option>
+                            <option value="Others" {{ old('category') == 'Others' ? 'selected' : '' }}>Others</option>
                         </select>
                     </div>
 

@@ -22,10 +22,13 @@
                         <button type="button"
                             class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center inline-flex"
                             onclick="confirmArchiveCategory()">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                            <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M4 10h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10Z"></path>
+                                <path d="M6 10V7h12v3"></path>
+                                <path d="M8 7V5h8v2"></path>
+                                <rect x="9" y="14" width="6" height="2" rx="0.5"></rect>
+                                <path d="M4 10l2-4h12l2 4"></path>
                             </svg>
                             Archive
                         </button>
@@ -80,8 +83,9 @@
                                 <td class="py-2 px-4 font-medium text-gray-900">{{ $item->name }}</td>
                                 <td class="py-2 px-4 text-right">₱{{ number_format($item->price, 2) }}</td>
                                 <td class="py-2 px-4 text-center">
-                                    <span class="inline-flex text-xs leading-5 font-semibold items-center
-                                                            {{ $item->is_available ? 'text-green-600' : 'text-red-600' }}">
+                                    <span
+                                        class="inline-flex text-xs leading-5 font-semibold items-center
+                                                                    {{ $item->is_available ? 'text-green-600' : 'text-red-600' }}">
                                         {{ $item->is_available ? 'Yes' : 'No' }}
                                     </span>
                                 </td>

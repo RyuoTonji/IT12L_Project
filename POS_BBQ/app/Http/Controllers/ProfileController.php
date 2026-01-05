@@ -48,6 +48,11 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Prevent Admin account deletion
+        if ($user->role === 'admin') {
+            return back()->with('error', 'Administrator accounts cannot be deleted.');
+        }
+
         Auth::logout();
 
         $user->delete();

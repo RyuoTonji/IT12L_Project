@@ -3,26 +3,42 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
+use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class BranchController extends Controller
 {
-    /**
-     * Display a listing of branches.
-     */
     public function index()
     {
+<<<<<<< Updated upstream
         $branches = DB::table('branches')
-            ->whereNull('deleted_at')
-            ->select(
-                'branches.*',
-                DB::raw('(SELECT COUNT(*) FROM orders WHERE orders.branch_id = branches.id AND orders.deleted_at IS NULL) as orders_count'),
-                DB::raw('(SELECT COUNT(*) FROM products WHERE products.branch_id = branches.id AND products.deleted_at IS NULL) as inventories_count'),
-                DB::raw('(SELECT COUNT(*) FROM products WHERE products.branch_id = branches.id AND products.is_available = 1 AND products.deleted_at IS NULL) as available_menu_items_count')
-            )
+=======
+        $branches = Branch::withCount([
+            'orders' => function ($query) {
+                $query->whereNull('deleted_at');
+            },
+            'products' => function ($query) {
+                $query->whereNull('deleted_at');
+            },
+            'products as available_menu_items_count' => function ($query) {
+                $query->where('is_available', 1)->whereNull('deleted_at');
+            }
+        ])
+>>>>>>> Stashed changes
             ->orderBy('id', 'desc')
             ->paginate(20);
+
+        // Rename withCount attributes for view compatibility if needed, 
+        // but index view uses $branch->orders_count, $branch->available_menu_items_count, $branch->inventories_count
+        // we can alias in withCount or just rename them in the collection if needed.
+        // Actually inventories_count is products_count in our withCount.
+
+        $branches->getCollection()->transform(function ($branch) {
+            $branch->inventories_count = $branch->products_count;
+            return $branch;
+        });
 
         return view('admin.branches.index', compact('branches'));
     }
@@ -38,91 +54,75 @@ class BranchController extends Controller
             'name' => 'required|string|max:200',
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
-            'is_active' => 'nullable|boolean'
+            'is_active' => 'boolean'
         ]);
 
-        DB::table('branches')->insert([
+        Branch::create([
             'name' => $request->name,
             'address' => $request->address,
             'phone' => $request->phone,
-            'is_active' => $request->is_active ? 1 : 0,
+<<<<<<< Updated upstream
+            'is_active' => $request->has('is_active') ? 1 : 0,
             'created_at' => now(),
             'updated_at' => now()
+=======
+            'is_active' => $request->is_active ? 1 : 0
+>>>>>>> Stashed changes
         ]);
 
         return redirect()->route('admin.branches.index')->with('success', 'Branch created successfully!');
     }
 
+<<<<<<< Updated upstream
+=======
     /**
      * Display the specified branch with operations.
      */
     public function show($id)
     {
-        // Get branch details
-        $branch = DB::table('branches')->where('id', $id)->first();
+        $branch = Branch::find($id);
 
         if (!$branch) {
             return redirect()->route('admin.branches.index')->with('error', 'Branch not found!');
         }
 
         // Get today's sales for this branch
-        $todaySales = DB::table('orders')
-            ->where('branch_id', $id)
+        $todaySales = Order::where('branch_id', $id)
             ->whereDate('created_at', today())
             ->whereIn('status', ['confirmed', 'picked up'])
-            ->whereNull('deleted_at')
             ->sum('total_amount');
 
         // Get today's orders for this branch
-        $todayOrders = DB::table('orders')
-            ->where('branch_id', $id)
+        $todayOrders = Order::where('branch_id', $id)
             ->whereDate('created_at', today())
-            ->whereNull('deleted_at')
             ->count();
 
-        // Get active orders for this branch - FIXED: Added user join
-        $activeOrders = DB::table('orders')
-            ->join('users', 'orders.user_id', '=', 'users.id')
-            ->where('orders.branch_id', $id)
-            ->whereNotIn('orders.status', ['picked up', 'cancelled'])
-            ->whereNull('orders.deleted_at')
-            ->select(
-                'orders.*',
-                'users.name as user_name',
-                'users.email as user_email'
-            )
-            ->orderBy('orders.created_at', 'desc')
+        // Get active orders for this branch
+        $activeOrders = Order::with('user')
+            ->where('branch_id', $id)
+            ->whereNotIn('status', ['picked up', 'cancelled'])
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Get recent orders for this branch
-        $recentOrders = DB::table('orders')
-            ->join('users', 'orders.user_id', '=', 'users.id')
-            ->where('orders.branch_id', $id)
-            ->whereNull('orders.deleted_at')
-            ->select(
-                'orders.*',
-                'users.name as user_name'
-            )
-            ->orderBy('orders.created_at', 'desc')
+        $recentOrders = Order::with('user')
+            ->where('branch_id', $id)
+            ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
 
         // Get available menu items for this branch grouped by category
-        $menuItemsRaw = DB::table('products')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->where('products.branch_id', $id)
-            ->where('products.is_available', 1)
-            ->whereNull('products.deleted_at')
-            ->select(
-                'products.*',
-                'categories.name as category_name'
-            )
-            ->orderBy('categories.name')
-            ->orderBy('products.name')
+        $menuItemsRaw = Product::with('category')
+            ->where('branch_id', $id)
+            ->where('is_available', 1)
+            ->orderBy('category_id') // We'll group by category name below
+            ->orderBy('name')
             ->get();
 
-        // Group menu items by category
-        $menuItems = $menuItemsRaw->groupBy('category_name');
+        // Group menu items by category name
+        $menuItems = $menuItemsRaw->groupBy(function ($item) {
+            return $item->category->name;
+        });
 
         return view('admin.branches.show', compact(
             'branch',
@@ -134,9 +134,10 @@ class BranchController extends Controller
         ));
     }
 
+>>>>>>> Stashed changes
     public function edit($id)
     {
-        $branch = DB::table('branches')->where('id', $id)->first();
+        $branch = Branch::find($id);
 
         if (!$branch) {
             return redirect()->route('admin.branches.index')->with('error', 'Branch not found!');
@@ -151,21 +152,25 @@ class BranchController extends Controller
             'name' => 'required|string|max:200',
             'address' => 'required|string',
             'phone' => 'nullable|string|max:20',
-            'is_active' => 'nullable|boolean'
+            'is_active' => 'boolean'
         ]);
 
-        $branch = DB::table('branches')->where('id', $id)->first();
+        $branch = Branch::find($id);
 
         if (!$branch) {
             return redirect()->route('admin.branches.index')->with('error', 'Branch not found!');
         }
 
-        DB::table('branches')->where('id', $id)->update([
+        $branch->update([
             'name' => $request->name,
             'address' => $request->address,
             'phone' => $request->phone,
-            'is_active' => $request->is_active ? 1 : 0,
+<<<<<<< Updated upstream
+            'is_active' => $request->has('is_active') ? 1 : 0,
             'updated_at' => now()
+=======
+            'is_active' => $request->is_active ? 1 : 0
+>>>>>>> Stashed changes
         ]);
 
         return redirect()->route('admin.branches.index')->with('success', 'Branch updated successfully!');
@@ -173,19 +178,28 @@ class BranchController extends Controller
 
     public function destroy($id)
     {
-        $branch = DB::table('branches')
-            ->where('id', $id)
-            ->whereNull('deleted_at')
-            ->first();
+<<<<<<< Updated upstream
+        $branch = DB::table('branches')->where('id', $id)->first();
+=======
+        $branch = Branch::find($id);
+>>>>>>> Stashed changes
 
         if (!$branch) {
             return redirect()->route('admin.branches.index')->with('error', 'Branch not found!');
         }
 
-        // Soft delete
-        DB::table('branches')->where('id', $id)->update([
-            'deleted_at' => now()
-        ]);
+<<<<<<< Updated upstream
+        // Check if branch has products
+        $productCount = DB::table('products')->where('branch_id', $id)->count();
+        if ($productCount > 0) {
+            return redirect()->route('admin.branches.index')->with('error', 'Cannot delete branch with existing products!');
+        }
+
+        DB::table('branches')->where('id', $id)->delete();
+
+        return redirect()->route('admin.branches.index')->with('success', 'Branch deleted successfully!');
+=======
+        $branch->delete();
 
         return redirect()->route('admin.branches.index')->with('success', 'Branch archived successfully!');
     }
@@ -195,14 +209,14 @@ class BranchController extends Controller
      */
     public function switchBranch(Request $request, $id)
     {
-        $branch = DB::table('branches')->where('id', $id)->first();
+        $branch = Branch::find($id);
 
         if (!$branch) {
             return redirect()->back()->with('error', 'Branch not found!');
         }
 
         $request->session()->put('active_branch_id', $id);
-        
+
         return redirect()->back()->with('success', "Switched to {$branch->name}");
     }
 
@@ -211,8 +225,7 @@ class BranchController extends Controller
      */
     public function archived()
     {
-        $branches = DB::table('branches')
-            ->whereNotNull('deleted_at')
+        $branches = Branch::onlyTrashed()
             ->orderBy('deleted_at', 'desc')
             ->paginate(20);
 
@@ -224,20 +237,15 @@ class BranchController extends Controller
      */
     public function restore($id)
     {
-        $branch = DB::table('branches')
-            ->where('id', $id)
-            ->whereNotNull('deleted_at')
-            ->first();
+        $branch = Branch::onlyTrashed()->find($id);
 
         if (!$branch) {
             return redirect()->route('admin.branches.archived')->with('error', 'Branch not found!');
         }
 
-        DB::table('branches')->where('id', $id)->update([
-            'deleted_at' => null,
-            'updated_at' => now()
-        ]);
+        $branch->restore();
 
         return redirect()->route('admin.branches.archived')->with('success', 'Branch restored successfully!');
+>>>>>>> Stashed changes
     }
 }

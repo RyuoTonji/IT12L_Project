@@ -40,6 +40,49 @@ class InventoryController extends Controller
 
     public function stockIn(Request $request)
     {
+        // Check if menu_item_id is provided (new feature matched from Inventory User)
+        if ($request->has('menu_item_id')) {
+            $request->validate([
+                'menu_item_id' => 'required|exists:menu_items,id',
+                'quantity' => 'required|numeric|min:0.01',
+                'reason' => 'nullable|string',
+            ]);
+
+            DB::transaction(function () use ($request) {
+                $menuItem = \App\Models\MenuItem::with('inventoryItems')->find($request->menu_item_id);
+
+                if (!$menuItem || $menuItem->inventoryItems->isEmpty()) {
+                    throw new \Exception('This menu item is not linked to any inventory ingredient.');
+                }
+
+                // Stock in for ALL linked inventory items proportional to quantity_needed
+                foreach ($menuItem->inventoryItems as $ingredient) {
+                    $stockToAdd = $request->quantity * $ingredient->pivot->quantity_needed;
+                    $quantityBefore = $ingredient->quantity;
+
+                    // Update Inventory
+                    $ingredient->increment('quantity', $stockToAdd);
+                    $ingredient->increment('stock_in', $stockToAdd);
+
+                    $quantityAfter = $ingredient->fresh()->quantity;
+
+                    // Create Adjustment Record with before/after tracking
+                    InventoryAdjustment::create([
+                        'inventory_id' => $ingredient->id,
+                        'adjustment_type' => 'stock_in',
+                        'quantity' => $stockToAdd,
+                        'quantity_before' => $quantityBefore,
+                        'quantity_after' => $quantityAfter,
+                        'reason' => $request->reason ?? "Stock in for {$menuItem->name}",
+                        'recorded_by' => Auth::id(),
+                    ]);
+                }
+            });
+
+            return redirect()->back()->with('success', 'Stock added successfully.');
+        }
+
+        // Original logic for inventory_id (used in admin menu report)
         $request->validate([
             'inventory_id' => 'required|exists:inventories,id',
             'quantity' => 'required|numeric|min:0.01',
@@ -49,22 +92,47 @@ class InventoryController extends Controller
 
         DB::transaction(function () use ($request) {
             $inventory = Inventory::findOrFail($request->inventory_id);
-
-            // Create Adjustment Record
-            InventoryAdjustment::create([
-                'inventory_id' => $inventory->id,
-                'adjustment_type' => 'stock_in',
-                'quantity' => $request->quantity,
-                'reason' => $request->reason,
-                'recorded_by' => Auth::id(),
-            ]);
+            $quantityBefore = $inventory->quantity;
 
             // Update Inventory
             $inventory->increment('quantity', $request->quantity);
             $inventory->increment('stock_in', $request->quantity);
+
+            $quantityAfter = $inventory->fresh()->quantity;
+
+            // Create Adjustment Record with before/after tracking
+            InventoryAdjustment::create([
+                'inventory_id' => $inventory->id,
+                'adjustment_type' => 'stock_in',
+                'quantity' => $request->quantity,
+                'quantity_before' => $quantityBefore,
+                'quantity_after' => $quantityAfter,
+                'reason' => $request->reason,
+                'recorded_by' => Auth::id(),
+            ]);
         });
 
         return redirect()->route('admin.inventory.report')->with('success', 'Stock added successfully.');
+    }
+
+    /**
+     * Display stock-in history for admin
+     */
+    public function stockInHistory(Request $request)
+    {
+        $date = $request->input('date');
+
+        $query = InventoryAdjustment::with(['inventory', 'recorder'])
+            ->where('adjustment_type', 'stock_in')
+            ->orderBy('created_at', 'desc');
+
+        if ($date) {
+            $query->whereDate('created_at', $date);
+        }
+
+        $stockInHistory = $query->paginate(20);
+
+        return view('admin.inventory.stock_in_history', compact('stockInHistory', 'date'));
     }
 
     public function index(Request $request)
@@ -80,8 +148,32 @@ class InventoryController extends Controller
         // $suppliers = Inventory::select('supplier')->distinct()->whereNotNull('supplier')->pluck('supplier'); // No longer needed for dropdown
         // $categories = Inventory::select('category')->distinct()->whereNotNull('category')->pluck('category'); // No longer needed for dropdown
 
-        // Group inventory items by category
-        $inventoryByCategory = $inventoryItems->groupBy('category');
+        // Group inventory items by normalized categories
+        $inventoryByCategory = $inventoryItems->groupBy(function ($item) {
+            $cat = $item->category;
+            if ($cat === 'Ingredients' || $cat === 'Ingredient') {
+                return 'Ingredients';
+            } elseif ($cat === 'Prepared Menu' || $cat === 'Prepared' || $cat === 'Product') {
+                return 'Prepared Menu';
+            } else {
+                return 'Others';
+            }
+        });
+
+        // Ensure all categories exist even if empty
+        if (!$inventoryByCategory->has('Ingredients'))
+            $inventoryByCategory->put('Ingredients', collect());
+        if (!$inventoryByCategory->has('Prepared Menu'))
+            $inventoryByCategory->put('Prepared Menu', collect());
+        if (!$inventoryByCategory->has('Others'))
+            $inventoryByCategory->put('Others', collect());
+
+        // Sort keys to have a consistent order: Ingredients, Prepared Menu, Others
+        $inventoryByCategory = collect([
+            'Ingredients' => $inventoryByCategory->get('Ingredients'),
+            'Prepared Menu' => $inventoryByCategory->get('Prepared Menu'),
+            'Others' => $inventoryByCategory->get('Others'),
+        ]);
 
         return view('admin.inventory.index', compact('inventoryItems', 'inventoryByCategory'));
     }
@@ -150,7 +242,7 @@ class InventoryController extends Controller
         DB::transaction(function () use ($request, $inventory) {
             $oldQuantity = $inventory->quantity;
             $newQuantity = $request->quantity;
-            
+
             // Update details
             $inventory->update([
                 'name' => $request->name,
@@ -161,24 +253,17 @@ class InventoryController extends Controller
                 'quantity' => $newQuantity
             ]);
 
-            // If quantity changed, log it
+            // If quantity changed, log it as an adjustment (correction)
             if ($oldQuantity != $newQuantity) {
                 $diff = $newQuantity - $oldQuantity;
-                $type = $diff > 0 ? 'stock_in' : 'stock_out'; // Or 'adjustment'
-                
-                // If it's positive, we might count it as stock_in. If negative, maybe not 'stock_out' (sales), but manual adjustment.
-                // However, for simplicity and reporting, positive manual changes usually mean adding stock.
-                if ($diff > 0) {
-                    $inventory->increment('stock_in', $diff);
-                }
-                
+
                 InventoryAdjustment::create([
                     'inventory_id' => $inventory->id,
-                    'adjustment_type' => $diff > 0 ? 'stock_in' : 'adjustment', // 'stock_out' usually reserved for sales? Let's use 'adjustment' for negative manual fix if needed or just keep generic
+                    'adjustment_type' => 'adjustment',
                     'quantity' => abs($diff),
                     'quantity_before' => $oldQuantity,
                     'quantity_after' => $newQuantity,
-                    'reason' => 'Manual Update (Admin)',
+                    'reason' => 'Manual Correction (Admin)',
                     'recorded_by' => Auth::id(),
                 ]);
             }

@@ -13,6 +13,7 @@ class Branch extends Model
         'name',
         'address',
         'phone',
+        'is_active',
     ];
 
     // Relationships
