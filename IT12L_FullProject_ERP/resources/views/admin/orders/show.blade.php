@@ -78,37 +78,68 @@
             <!-- Right Column - Details & Actions -->
             <div class="col-lg-4">
                 <!-- Update Status -->
-                <div class="card detail-card">
+               <div class="card detail-card">
                     <div class="card-header bg-warning">
-                        <h5 class="mb-0 text-light"><i class="fas fa-edit"></i> Update Status</h5>
-                    </div>
-                    <div class="card-body">
-                        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
-                            @csrf
-                            @method('PATCH')
-                            <div class="mb-3">
-                                <label for="status" class="form-label fw-bold">Order Status</label>
-                                <select name="status" id="status" class="form-select status-select" required>
-                                    <option value="pending" {{ $order->status == 'pending' ? 'selected' : '' }}>Pending
-                                    </option>
-                                    <option value="confirmed" {{ $order->status == 'confirmed' ? 'selected' : '' }}>Confirmed
-                                    </option>
-                                    <option value="preparing" {{ $order->status == 'preparing' ? 'selected' : '' }}>Preparing
-                                    </option>
-                                    <option value="ready" {{ $order->status == 'ready' ? 'selected' : '' }}>Ready for Pickup
-                                    </option>
-                                    <option value="picked up" {{ $order->status == 'picked up' ? 'selected' : '' }}>Picked Up
-                                    </option>
-                                    <option value="cancelled" {{ $order->status == 'cancelled' ? 'selected' : '' }}>Cancelled
-                                    </option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="fas fa-save"></i> Update Status
-                            </button>
-                        </form>
-                    </div>
-                </div>
+        <h5 class="mb-0 text-light">
+            <i class="fas fa-edit"></i> Update Status
+        </h5>
+    </div>
+
+    <div class="card-body">
+        <form action="{{ route('admin.orders.updateStatus', $order->id) }}" method="POST">
+            @csrf
+            @method('PATCH')
+
+            @php
+                $flow = [
+                    'pending'    => ['label' => 'Pending', 'class' => 'secondary'],
+                    'confirmed'  => ['label' => 'Confirmed', 'class' => 'info'],
+                    'preparing'  => ['label' => 'Preparing', 'class' => 'primary'],
+                    'ready'      => ['label' => 'Ready for Pickup', 'class' => 'warning'],
+                    'picked up'  => ['label' => 'Picked Up', 'class' => 'success'],
+                ];
+    $currentIndex = array_search($order->status, array_keys($flow));
+@endphp
+
+
+            <label class="form-label fw-bold mb-2">Order Status</label>
+
+           <div class="d-grid gap-2">
+    @foreach($flow as $key => $data)
+        @php
+            $index = array_search($key, array_keys($flow));
+            $locked = $index <= $currentIndex;
+        @endphp
+
+        <button
+            type="submit"
+            name="status"
+            value="{{ $key }}"
+            class="btn btn-{{ $data['class'] }}"
+            @if($locked) disabled @endif
+        >
+            {{ $data['label'] }}
+        </button>
+    @endforeach
+
+    {{-- Cancel button ONLY if NOT picked up --}}
+    @if(!in_array($order->status, ['picked up', 'cancelled']))
+        <button
+            type="submit"
+            name="status"
+            value="cancelled"
+            class="btn btn-danger"
+        >
+            Cancel Order
+        </button>
+    @endif
+</div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
                 <!-- Order Details -->
                 <div class="card detail-card mb-4">
                     <div class="card-header">

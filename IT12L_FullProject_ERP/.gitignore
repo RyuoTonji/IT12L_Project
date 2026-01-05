@@ -22,3 +22,11 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+/node_modules
+/vendor
+
+/storage/framework/views/*
+/storage/logs/*
+.env
+
+package-lock.json
