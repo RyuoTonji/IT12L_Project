@@ -50,23 +50,42 @@ class OrderController extends Controller
     }
 
     public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:pending,confirmed,preparing,ready,picked up,cancelled'
-        ]);
+{
+    $request->validate([
+        'status' => 'required|in:pending,confirmed,preparing,ready,picked up,cancelled'
+    ]);
 
-        $order = Order::find($id);
+    $order = Order::findOrFail($id);
 
-        if (!$order) {
-            return redirect()->route('admin.orders.index')->with('error', 'Order not found!');
-        }
-
-        $order->update([
-            'status' => $request->status
-        ]);
-
-        return redirect()->route('admin.orders.show', $id)->with('success', 'Order status updated successfully!');
+    // FINAL states
+    if (in_array($order->status, ['picked up', 'cancelled'])) {
+        return back()->with('error', 'This order is already final.');
     }
+
+    // Allowed forward flow
+    $flow = ['pending', 'confirmed', 'preparing', 'ready', 'picked up'];
+
+    $currentIndex = array_search($order->status, $flow);
+    $newIndex = array_search($request->status, $flow);
+
+    // Cancel allowed ONLY before picked up
+    if ($request->status === 'cancelled') {
+        $order->status = 'cancelled';
+        $order->save();
+        return back()->with('success', 'Order cancelled.');
+    }
+
+    // Block backward or invalid transitions
+    if ($newIndex === false || $newIndex <= $currentIndex) {
+        return back()->with('error', 'Invalid status change.');
+    }
+
+    $order->status = $request->status;
+    $order->save();
+
+    return back()->with('success', 'Order status updated.');
+}
+
 
     public function destroy($id)
     {
