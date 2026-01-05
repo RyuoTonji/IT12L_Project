@@ -38,7 +38,7 @@ class StaffController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,cashier,manager,inventory'],
+            'role' => ['required', 'in:admin,cashier'],
             'status' => ['required', 'in:active,disabled'],
         ]);
 
@@ -68,7 +68,7 @@ class StaffController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $staff->id],
-            'role' => ['required', 'in:admin,cashier,manager,inventory'],
+            'role' => ['required', 'in:admin,cashier'],
             'status' => ['required', 'in:active,disabled'],
         ];
 

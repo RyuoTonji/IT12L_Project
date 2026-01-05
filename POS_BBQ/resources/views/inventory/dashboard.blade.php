@@ -15,7 +15,7 @@
 
                 <div class="flex gap-2 flex-wrap justify-center md:justify-end w-full md:w-auto">
                     <a href="{{ route('inventory.stock-in-history') }}"
-                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex">
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center inline-flex transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -24,7 +24,7 @@
                         Stock-In History
                     </a>
                     <a href="{{ route('inventory.daily-report') }}"
-                        class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center inline-flex">
+                        class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 flex items-center inline-flex transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -33,13 +33,21 @@
                         Daily Report
                     </a>
                     <button onclick="document.getElementById('addStockModal').classList.remove('hidden')"
-                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex">
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center inline-flex transition-colors duration-200">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         Stock In
                     </button>
+                    <a href="{{ route('inventory.create') }}"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center inline-flex transition-colors duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Item
+                    </a>
                 </div>
             </div>
 
@@ -69,87 +77,62 @@
                         <table class="min-w-full divide-y divide-gray-200" id="table-cat-{{ $loop->index }}">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Ingredient Name</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Sold</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Unsold</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Spoilage</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Stock-In</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Stock-Out</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Remaining</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Unit</th>
-                                    <th scope="col"
-                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sold</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Stock-In</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Stock-Out</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Spoilage</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
+                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($items as $inventory)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ $inventory->name }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                            {{ number_format($inventory->sold, 2) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                            {{ number_format($inventory->quantity - $inventory->sold, 2) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-red-600">
-                                            {{ number_format($inventory->spoilage, 2) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-green-600">
-                                            {{ number_format($inventory->stock_in, 2) }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-orange-600">
-                                            {{ number_format($inventory->stock_out, 2) }}
-                                        </td>
-                                        <td
-                                            class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= 0 ? 'text-red-600' : 'text-green-600' }}">
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ $inventory->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inventory->supplier ?: '-' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ number_format($inventory->sold, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ number_format($inventory->stock_in, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ number_format($inventory->stock_out, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600 font-medium {{ $inventory->spoilage > 0 ? 'text-orange-600' : 'text-gray-400' }}">{{ number_format($inventory->spoilage, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= ($inventory->reorder_level ?? 0) ? 'text-red-600' : 'text-green-600' }}">
                                             {{ number_format($inventory->quantity, 2) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
-                                            {{ $inventory->unit }}
-                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ $inventory->unit }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                            <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')"
-                                                class="text-indigo-600 hover:text-indigo-900 mr-3 inline-flex items-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                                    viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                                </svg>
-                                                Update Stock
-                                            </button>
-                                            <form action="{{ route('inventory.destroy', $inventory->id) }}" method="POST"
-                                                class="inline-block" onsubmit="return false;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="button"
-                                                    onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())"
-                                                    class="text-gray-600 hover:text-gray-900 inline-flex items-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                                        viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                            <div class="flex items-center justify-center space-x-3">
+                                                <a href="{{ route('inventory.edit', $inventory->id) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>
-                                                    Archive
+                                                    Edit
+                                                </a>
+                                                <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')" class="text-blue-600 hover:text-blue-900 flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                    </svg>
+                                                    Stock In
                                                 </button>
-                                            </form>
+                                                <form action="{{ route('inventory.destroy', $inventory->id) }}" method="POST"
+                                                    class="inline-block" onsubmit="return false;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button"
+                                                        onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())"
+                                                        class="text-gray-600 hover:text-gray-900 flex items-center transition-colors duration-200">
+                                                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                            <path d="M4 10h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10Z"></path>
+                                                            <path d="M6 10V7h12v3"></path>
+                                                            <path d="M8 7V5h8v2"></path>
+                                                            <rect x="9" y="14" width="6" height="2" rx="0.5"></rect>
+                                                            <path d="M4 10l2-4h12l2 4"></path>
+                                                        </svg>
+                                                        Archive
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -320,7 +303,7 @@
             @foreach($inventoriesByCategory as $categoryName => $items)
                 paginateTable('table-cat-{{ $loop->index }}', 10);
             @endforeach
-                                        });
+                                            });
 
         function paginateTable(tableId, rowsPerPage) {
             const table = document.getElementById(tableId);
@@ -363,10 +346,10 @@
 
                 // Previous Button
                 html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
-                                                                    class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                                    ${page === 1 ? 'disabled' : ''}>
-                                                                    ${prevIcon}
-                                                                 </button>`;
+                                                                        class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                        ${page === 1 ? 'disabled' : ''}>
+                                                                        ${prevIcon}
+                                                                     </button>`;
 
                 // Generate Page Numbers
                 let range = [];
@@ -391,18 +374,18 @@
                             ? 'bg-gray-800 text-white font-bold'
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
-                                                                            class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                                                            ${item}
-                                                                         </button>`;
+                                                                                class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                                                ${item}
+                                                                             </button>`;
                     }
                 });
 
                 // Next Button
                 html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
-                                                                    class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                                    ${page === pCount ? 'disabled' : ''}>
-                                                                    ${nextIcon}
-                                                                 </button>`;
+                                                                        class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                        ${page === pCount ? 'disabled' : ''}>
+                                                                        ${nextIcon}
+                                                                     </button>`;
 
                 // Add flex styling
                 html = '<div class="flex justify-end items-center space-x-2 w-full">' + html + '</div>';

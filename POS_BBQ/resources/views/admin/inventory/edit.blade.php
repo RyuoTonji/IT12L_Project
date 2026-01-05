@@ -41,12 +41,13 @@
                     <div>
                         <label for="category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                         <select name="category" id="category"
-                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            required>
                             <option value="">Select Category</option>
-                            <option value="Ingredient" {{ old('category', $inventory->category) == 'Ingredient' ? 'selected' : '' }}>Ingredient</option>
-                            <option value="Product" {{ old('category', $inventory->category) == 'Product' ? 'selected' : '' }}>Product</option>
-                            <option value="Other" {{ old('category', $inventory->category) == 'Other' ? 'selected' : '' }}>
-                                Other</option>
+                            <option value="Ingredients" {{ old('category', $inventory->category) == 'Ingredients' || old('category', $inventory->category) == 'Ingredient' ? 'selected' : '' }}>Ingredients
+                            </option>
+                            <option value="Prepared Menu" {{ old('category', $inventory->category) == 'Prepared Menu' || old('category', $inventory->category) == 'Prepared' || old('category', $inventory->category) == 'Product' ? 'selected' : '' }}>Prepared Menu</option>
+                            <option value="Others" {{ old('category', $inventory->category) == 'Others' || old('category', $inventory->category) == 'Other' ? 'selected' : '' }}>Others</option>
                         </select>
                     </div>
 

@@ -183,9 +183,11 @@
                                             <td class="py-4 px-6 text-center">
                                                 <div class="flex justify-center items-center space-x-2">
                                                     <a href="{{ route('menu.show', ['menu' => $item, 'source' => 'menu']) }}" class="text-blue-600 hover:text-blue-900 inline-flex items-center transition-colors">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                                            <circle cx="11.5" cy="15.5" r="2.5"></circle>
+                                                            <path d="M16 20l-2-2"></path>
                                                         </svg>
                                                         View
                                                     </a>
@@ -193,8 +195,12 @@
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="button" class="text-gray-500 hover:text-red-600 inline-flex items-center transition-colors ml-2" onclick="confirmArchiveMenu({{ $item->id }})">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                            <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                                <path d="M4 10h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10Z"></path>
+                                                                <path d="M6 10V7h12v3"></path>
+                                                                <path d="M8 7V5h8v2"></path>
+                                                                <rect x="9" y="14" width="6" height="2" rx="0.5"></rect>
+                                                                <path d="M4 10l2-4h12l2 4"></path>
                                                             </svg>
                                                             Archive
                                                         </button>

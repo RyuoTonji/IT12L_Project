@@ -60,13 +60,18 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200">
-                                            @foreach($reportData as $item)
-                                                <tr class="hover:bg-gray-50">
-                                                    <td class="px-3 py-2 text-gray-900">{{ $item->name }}</td>
-                                                    <td class="px-3 py-2 text-center text-gray-600">{{ number_format($item->start_count, 2) }} {{ $item->unit }}</td>
-                                                    <td class="px-3 py-2 text-center text-green-600 font-medium">{{ $item->stock_in > 0 ? '+' . number_format($item->stock_in, 2) : '-' }}</td>
-                                                    <td class="px-3 py-2 text-center text-blue-700 font-bold bg-blue-50">{{ number_format($item->start_count + $item->stock_in, 2) }}</td>
+                                            @foreach($reportDataGrouped as $categoryName => $items)
+                                                <tr class="bg-gray-100 font-bold">
+                                                    <td colspan="4" class="px-3 py-1 text-gray-700 uppercase tracking-wider text-xs">{{ $categoryName ?: 'Uncategorized' }}</td>
                                                 </tr>
+                                                @foreach($items as $item)
+                                                    <tr class="hover:bg-gray-50">
+                                                        <td class="px-3 py-2 text-gray-900">{{ $item->name }}</td>
+                                                        <td class="px-3 py-2 text-center text-gray-600">{{ number_format($item->start_count, 2) }} {{ $item->unit }}</td>
+                                                        <td class="px-3 py-2 text-center text-green-600 font-medium">{{ $item->stock_in > 0 ? '+' . number_format($item->stock_in, 2) : '-' }}</td>
+                                                        <td class="px-3 py-2 text-center text-blue-700 font-bold bg-blue-50">{{ number_format($item->start_count + $item->stock_in, 2) }}</td>
+                                                    </tr>
+                                                @endforeach
                                             @endforeach
                                         </tbody>
                                     </table>
@@ -137,13 +142,18 @@
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200">
-                                            @foreach($reportData as $item)
-                                                <tr class="hover:bg-gray-50">
-                                                    <td class="px-3 py-2 text-gray-900">{{ $item->name }}</td>
-                                                    <td class="px-3 py-2 text-center text-green-600">{{ $item->stock_in > 0 ? '+' . number_format($item->stock_in, 2) : '-' }}</td>
-                                                    <td class="px-3 py-2 text-center text-orange-600">{{ $item->stock_out > 0 ? '-' . number_format($item->stock_out, 2) : '-' }}</td>
-                                                    <td class="px-3 py-2 text-center text-blue-700 font-bold">{{ number_format($item->end_count, 2) }} {{ $item->unit }}</td>
+                                            @foreach($reportDataGrouped as $categoryName => $items)
+                                                <tr class="bg-gray-100 font-bold">
+                                                    <td colspan="4" class="px-3 py-1 text-gray-700 uppercase tracking-wider text-xs">{{ $categoryName ?: 'Uncategorized' }}</td>
                                                 </tr>
+                                                @foreach($items as $item)
+                                                    <tr class="hover:bg-gray-50">
+                                                        <td class="px-3 py-2 text-gray-900">{{ $item->name }}</td>
+                                                        <td class="px-3 py-2 text-center text-green-600">{{ $item->stock_in > 0 ? '+' . number_format($item->stock_in, 2) : '-' }}</td>
+                                                        <td class="px-3 py-2 text-center text-orange-600">{{ $item->stock_out > 0 ? '-' . number_format($item->stock_out, 2) : '-' }}</td>
+                                                        <td class="px-3 py-2 text-center text-blue-700 font-bold">{{ number_format($item->end_count, 2) }} {{ $item->unit }}</td>
+                                                    </tr>
+                                                @endforeach
                                             @endforeach
                                         </tbody>
                                     </table>

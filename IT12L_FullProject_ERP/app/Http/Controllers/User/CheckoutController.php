@@ -3,6 +3,14 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+<<<<<<< Updated upstream
+=======
+use App\Models\Cart;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Product;
+use App\Models\Branch;
+>>>>>>> Stashed changes
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -44,8 +52,7 @@ class CheckoutController extends Controller
         $productIds = array_column($cart, 'id');
         
         // Fetch products from database
-        $products = DB::table('products')
-            ->whereIn('id', $productIds)
+        $products = Product::whereIn('id', $productIds)
             ->get()
             ->keyBy('id');
         
@@ -56,8 +63,13 @@ class CheckoutController extends Controller
         
         // Get branch from first product
         $firstProduct = $products->first();
+<<<<<<< Updated upstream
         $branch = DB::table('branches')->where('id', $firstProduct->branch_id)->first();
         
+=======
+        $branch = Branch::find($firstProduct->branch_id);
+
+>>>>>>> Stashed changes
         if (!$branch) {
             return redirect()->route('cart.index')->with('error', 'Branch not found!');
         }
@@ -103,8 +115,7 @@ class CheckoutController extends Controller
         $productIds = array_column($cart, 'id');
         
         // Fetch products
-        $products = DB::table('products')
-            ->whereIn('id', $productIds)
+        $products = Product::whereIn('id', $productIds)
             ->get()
             ->keyBy('id');
 

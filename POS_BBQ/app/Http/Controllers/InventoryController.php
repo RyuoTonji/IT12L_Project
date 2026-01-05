@@ -16,34 +16,30 @@ class InventoryController extends Controller
     {
         $inventories = Inventory::with(['menuItems.category'])->orderBy('name')->get();
 
-        // Group inventory items by menu item categories
-        $inventoriesByCategory = collect();
+        // Initialize fixed categories
+        $inventoriesByCategory = collect([
+            'Ingredients' => collect(),
+            'Prepared Menu' => collect(),
+            'Others' => collect(),
+        ]);
 
         foreach ($inventories as $inventory) {
-            // Get all menu items linked to this inventory item
-            $menuItems = $inventory->menuItems;
+            $cat = $inventory->category;
 
-            if ($menuItems->isNotEmpty()) {
-                // Get unique categories from linked menu items
-                foreach ($menuItems as $menuItem) {
-                    $categoryName = $menuItem->category ? $menuItem->category->name : 'Uncategorized';
-
-                    if (!$inventoriesByCategory->has($categoryName)) {
-                        $inventoriesByCategory->put($categoryName, collect());
-                    }
-
-                    // Add inventory to this category if not already there
-                    if (!$inventoriesByCategory[$categoryName]->contains('id', $inventory->id)) {
-                        $inventoriesByCategory[$categoryName]->push($inventory);
-                    }
-                }
+            // Normalize category name
+            if ($cat === 'Ingredients' || $cat === 'Ingredient') {
+                $categoryName = 'Ingredients';
+            } elseif ($cat === 'Prepared Menu' || $cat === 'Prepared' || $cat === 'Product') {
+                $categoryName = 'Prepared Menu';
             } else {
-                // No menu items linked - put in "Uncategorized"
-                if (!$inventoriesByCategory->has('Uncategorized')) {
-                    $inventoriesByCategory->put('Uncategorized', collect());
-                }
-                $inventoriesByCategory['Uncategorized']->push($inventory);
+                $categoryName = 'Others';
             }
+
+            if (!$inventoriesByCategory->has($categoryName)) {
+                $inventoriesByCategory->put($categoryName, collect());
+            }
+
+            $inventoriesByCategory[$categoryName]->push($inventory);
         }
 
         return view('inventory.dashboard', compact('inventories', 'inventoriesByCategory'));
@@ -56,20 +52,20 @@ class InventoryController extends Controller
         return view('inventory.create', compact('categories', 'branches'));
     }
 
-    public function store(Request $request)
-    {
-        // Wrapper for addStock logic to match Resource Controller
-        return $this->addStock($request);
-    }
+
 
     public function show(Inventory $inventory)
     {
-       // Load necessary relationships for the show view
-       $inventory->load(['menuItems', 'adjustments.recorder', 'adjustments' => function($q) {
-           $q->latest()->limit(50);
-       }]);
-       
-       return view('inventory.show', compact('inventory'));
+        // Load necessary relationships for the show view
+        $inventory->load([
+            'menuItems',
+            'adjustments.recorder',
+            'adjustments' => function ($q) {
+                $q->latest()->limit(50);
+            }
+        ]);
+
+        return view('inventory.show', compact('inventory'));
     }
 
     public function edit(Inventory $inventory)
@@ -82,42 +78,67 @@ class InventoryController extends Controller
         // Wrapper for updateStock logic to match Resource Controller
         // Note: The Admin update form might send more data than just quantity, so we may need a specific update logic here 
         // if we want to allow editing name/unit/etc. For now, let's assume it primarily handles stock updates or simple edits.
-        
+
         // Check if this is a full update or just stock
         if ($request->has('name') || $request->has('unit')) {
-             $request->validate([
+            $request->validate([
                 'name' => 'required|string|max:255',
                 'unit' => 'required|string|max:50',
-                'quantity' => 'nullable|numeric|min:0', // Optional if just editing details
+                'category' => 'required|string|in:Ingredients,Prepared Menu,Others',
+                'supplier' => 'nullable|string|max:255',
+                'quantity' => 'nullable|numeric|min:0',
             ]);
+
+            $oldQuantity = $inventory->quantity;
+            $newQuantity = $request->input('quantity', $oldQuantity);
 
             $inventory->update([
                 'name' => $request->name,
                 'unit' => $request->unit,
-                'category' => $request->category ?? $inventory->category,
+                'category' => $request->category,
+                'supplier' => $request->supplier,
+                'quantity' => $newQuantity,
             ]);
 
-            // If quantity is also provided (e.g. correction), handle that
-             if ($request->filled('quantity') && $request->quantity != $inventory->quantity) {
-                 // Calculate difference for adjustment
-                 $diff = $request->quantity - $inventory->quantity;
-                 if ($diff != 0) {
-                     return $this->updateStock(new Request(['quantity' => $diff]), $inventory);
-                 }
-             }
+            // If quantity changed, log a correction adjustment (not stock_in)
+            if ($oldQuantity != $newQuantity) {
+                $diff = $newQuantity - $oldQuantity;
 
-             return redirect()->route('inventory.dashboard')->with('success', 'Inventory item details updated successfully.');
+                InventoryAdjustment::create([
+                    'inventory_id' => $inventory->id,
+                    'adjustment_type' => 'adjustment', // Use 'adjustment' for corrections
+                    'quantity' => abs($diff),
+                    'quantity_before' => $oldQuantity,
+                    'quantity_after' => $newQuantity,
+                    'reason' => 'Inventory Correction',
+                    'recorded_by' => Auth::id(),
+                ]);
+
+                // Activity Logging
+                Activity::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'inventory_adjustment',
+                    'details' => "Corrected quantity for {$inventory->name} from {$oldQuantity} to {$newQuantity} {$inventory->unit}.",
+                    'status' => 'info',
+                    'related_id' => $inventory->id,
+                    'related_model' => Inventory::class,
+                ]);
+            }
+
+            return redirect()->route('inventory.dashboard')->with('success', 'Inventory item updated successfully.');
         }
 
         return $this->updateStock($request, $inventory);
     }
 
-    public function addStock(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
             'quantity' => 'required|numeric|min:0',
             'unit' => 'required|string|max:50',
+            'category' => 'required|string|in:Ingredients,Prepared Menu,Others',
+            'supplier' => 'nullable|string|max:255',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -125,9 +146,10 @@ class InventoryController extends Controller
                 'name' => $request->name,
                 'quantity' => $request->quantity,
                 'unit' => $request->unit,
+                'supplier' => $request->supplier,
                 'stock_in' => $request->quantity, // Initialize stock_in
                 'stock_out' => 0,
-                'category' => $request->category ?? null,
+                'category' => $request->category,
                 'branch_id' => Auth::user()->branch_id ?? null,
             ]);
 
@@ -236,17 +258,17 @@ class InventoryController extends Controller
 
         // 1. Get all Inventory Items with optional branch filtering
         $inventoryQuery = Inventory::with(['menuItems']);
-        
+
         if ($branch !== 'all') {
             $inventoryQuery->where('branch_id', $branch);
         }
-        
+
         $inventoryItems = $inventoryQuery->orderBy('name')->get();
 
         // 2. Fetch Future Adjustments (After the selected date)
         $futureAdjustmentsQuery = InventoryAdjustment::where('created_at', '>', $endOfDay);
         if ($branch !== 'all') {
-            $futureAdjustmentsQuery->whereHas('inventory', function($q) use ($branch) {
+            $futureAdjustmentsQuery->whereHas('inventory', function ($q) use ($branch) {
                 $q->where('branch_id', $branch);
             });
         }
@@ -267,7 +289,7 @@ class InventoryController extends Controller
                     if ($branch !== 'all' && $ingredient->branch_id != $branch) {
                         continue;
                     }
-                    
+
                     $qty = $item->quantity * $ingredient->pivot->quantity_needed;
                     if (!isset($futureStockOuts[$ingredient->id])) {
                         $futureStockOuts[$ingredient->id] = 0;
@@ -280,13 +302,13 @@ class InventoryController extends Controller
         // 4. Fetch Target Date Adjustments
         $todaysAdjustmentsQuery = InventoryAdjustment::with(['inventory', 'recorder'])
             ->whereBetween('created_at', [$startOfDay, $endOfDay]);
-            
+
         if ($branch !== 'all') {
-            $todaysAdjustmentsQuery->whereHas('inventory', function($q) use ($branch) {
+            $todaysAdjustmentsQuery->whereHas('inventory', function ($q) use ($branch) {
                 $q->where('branch_id', $branch);
             });
         }
-        
+
         $todaysAdjustments = $todaysAdjustmentsQuery->get();
 
         $todaysAdjustmentsByItem = $todaysAdjustments->groupBy('inventory_id');
@@ -309,7 +331,7 @@ class InventoryController extends Controller
                     if ($branch !== 'all' && $ingredient->branch_id != $branch) {
                         continue;
                     }
-                    
+
                     $qty = $item->quantity * $ingredient->pivot->quantity_needed;
                     if (!isset($todaysStockOuts[$ingredient->id])) {
                         $todaysStockOuts[$ingredient->id] = 0;
@@ -335,6 +357,10 @@ class InventoryController extends Controller
                         $futureIn += $adj->quantity;
                     } elseif ($adj->adjustment_type == 'spoilage') {
                         $futureSpoilage += $adj->quantity;
+                    } elseif ($adj->adjustment_type == 'adjustment') {
+                        // Reverse the adjustment: if it was an increase (A > B), we subtract. If decrease (A < B), we add.
+                        $diff = $adj->quantity_after - $adj->quantity_before;
+                        $futureIn += $diff; // This handles both signs when subtracted below: - futureIn
                     }
                 }
             }
@@ -353,6 +379,12 @@ class InventoryController extends Controller
                         $todayIn += $adj->quantity;
                     } elseif ($adj->adjustment_type == 'spoilage') {
                         $todaySpoilage += $adj->quantity;
+                    } elseif ($adj->adjustment_type == 'adjustment') {
+                        // For Today's stats, we also need to account for manual corrections
+                        // Unlike stock_in, we don't necessarily want to show corrections as "In" in the summary table
+                        // But for reverse engineering the start count, we MUST account for it.
+                        $diff = $adj->quantity_after - $adj->quantity_before;
+                        $todayIn += $diff;
                     }
                 }
             }
@@ -484,7 +516,10 @@ class InventoryController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('inventory.daily_report', compact('today', 'reportHistory', 'startOfDayReport', 'endOfDayReport', 'reportData'));
+        // Group report data by category
+        $reportDataGrouped = collect($reportData)->groupBy('category');
+
+        return view('inventory.daily_report', compact('today', 'reportHistory', 'startOfDayReport', 'endOfDayReport', 'reportData', 'reportDataGrouped'));
     }
 
     /**
@@ -503,7 +538,7 @@ class InventoryController extends Controller
 
         // Decode the JSON data
         $reportItems = json_decode($request->report_json, true);
-
+        $reportItemsGrouped = collect($reportItems)->groupBy('category');
         // Calculate Totals from the automated data if available
         $totalStockIn = 0;
         $totalStockOut = 0;
@@ -537,13 +572,20 @@ class InventoryController extends Controller
         $formattedContent .= str_repeat("-", 80) . "\n";
 
         if ($request->report_type === 'inventory_start') {
-            $formattedContent .= sprintf("%-30s | %-15s | %-15s\n", "Item Name", "Start Qty", "Adjustments");
-            $formattedContent .= str_repeat("-", 80) . "\n";
-            if ($reportItems) {
-                foreach ($reportItems as $item) {
-                    if ($item['start_count'] > 0 || $item['stock_in'] > 0) {
+            foreach ($reportItemsGrouped as $category => $items) {
+                $formattedContent .= "\nCATEGORY: " . strtoupper($category) . "\n";
+                $formattedContent .= sprintf("%-30s | %-15s | %-15s\n", "Item Name", "Start Qty", "Adjustments");
+                $formattedContent .= str_repeat("-", 80) . "\n";
+                foreach ($items as $item) {
+                    if ($item['start_count'] > 0 || $item['stock_in'] != 0) {
                         $startStr = $item['start_count'] . ' ' . substr($item['unit'], 0, 4);
-                        $adjStr = $item['stock_in'] > 0 ? '+' . $item['stock_in'] : '-';
+                        if ($item['stock_in'] > 0) {
+                            $adjStr = '+' . $item['stock_in'];
+                        } elseif ($item['stock_in'] < 0) {
+                            $adjStr = $item['stock_in'];
+                        } else {
+                            $adjStr = '-';
+                        }
                         $formattedContent .= sprintf(
                             "%-30s | %-15s | %-15s\n",
                             substr($item['name'], 0, 30),
@@ -554,14 +596,21 @@ class InventoryController extends Controller
                 }
             }
         } else {
-            $formattedContent .= sprintf("%-25s | %-10s | %-10s | %-10s\n", "Item Name", "Added", "Sold", "End");
-            $formattedContent .= str_repeat("-", 80) . "\n";
-            if ($reportItems) {
-                foreach ($reportItems as $item) {
-                    if ($item['stock_in'] > 0 || $item['stock_out'] > 0 || $item['end_count'] > 0) {
-                        $addedStr = $item['stock_in'] > 0 ? '+' . $item['stock_in'] : '-';
+            foreach ($reportItemsGrouped as $category => $items) {
+                $formattedContent .= "\nCATEGORY: " . strtoupper($category) . "\n";
+                $formattedContent .= sprintf("%-25s | %-10s | %-10s | %-10s\n", "Item Name", "Added", "Sold", "End");
+                $formattedContent .= str_repeat("-", 80) . "\n";
+                foreach ($items as $item) {
+                    if ($item['stock_in'] != 0 || $item['stock_out'] > 0 || $item['end_count'] > 0) {
+                        if ($item['stock_in'] > 0) {
+                            $addedStr = '+' . $item['stock_in'];
+                        } elseif ($item['stock_in'] < 0) {
+                            $addedStr = $item['stock_in'];
+                        } else {
+                            $addedStr = '-';
+                        }
                         $soldStr = $item['stock_out'] > 0 ? '-' . $item['stock_out'] : '-';
-                        $endStr = $item['end_count'] . ' ' . substr($item['unit'], 0, 4);
+                        $endStr = $item['end_count'] . ' ' . $item['unit'];
 
                         $formattedContent .= sprintf(
                             "%-25s | %-10s | %-10s | %-10s\n",

@@ -61,10 +61,10 @@
                                 <td class="py-2 px-4">{{ $user->email }}</td>
                                 <td class="py-2 px-4 text-center">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded
-                                                                            @if($user->role == 'admin') bg-red-100 text-red-800
-                                                                            @elseif($user->role == 'manager') bg-yellow-100 text-yellow-800
-                                                                            @else bg-blue-100 text-blue-800
-                                                                            @endif">
+                                                                                            @if($user->role == 'admin') bg-red-100 text-red-800
+                                                                                            @elseif($user->role == 'manager') bg-yellow-100 text-yellow-800
+                                                                                            @else bg-blue-100 text-blue-800
+                                                                                            @endif">
                                         {{ ucfirst($user->role) }}
                                     </span>
                                 </td>
@@ -142,12 +142,12 @@
                                 <td class="py-2 px-4 text-center">
                                     <a href="{{ route('staff.show', $user) }}"
                                         class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-100 rounded mr-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                            stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <circle cx="11.5" cy="15.5" r="2.5"></circle>
+                                            <path d="M16 20l-2-2"></path>
                                         </svg>
                                         <span>View</span>
                                     </a>
@@ -160,10 +160,13 @@
                                             <button type="button"
                                                 class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded"
                                                 onclick="confirmArchiveStaff({{ $user->id }})">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                    viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2"
+                                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                    <path d="M4 10h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10Z"></path>
+                                                    <path d="M6 10V7h12v3"></path>
+                                                    <path d="M8 7V5h8v2"></path>
+                                                    <rect x="9" y="14" width="6" height="2" rx="0.5"></rect>
+                                                    <path d="M4 10l2-4h12l2 4"></path>
                                                 </svg>
                                                 <span>Archive</span>
                                             </button>

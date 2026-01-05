@@ -21,6 +21,13 @@ class User extends Authenticatable
         'password',
         'phone',
         'is_admin',
+<<<<<<< Updated upstream
+=======
+        'google_id',
+        'avatar',
+        'role',
+        'is_active',
+>>>>>>> Stashed changes
     ];
 
     /**

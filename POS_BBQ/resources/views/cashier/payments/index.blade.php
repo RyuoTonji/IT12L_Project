@@ -95,7 +95,7 @@
     <script>
         const paymentsData = {
             @foreach($payments as $payment)
-                {{ $payment->id }}: {
+                        {{ $payment->id }}: {
                     id: {{ $payment->id }},
                     order_id: {{ $payment->order_id }},
                     payment_method: "{{ ucfirst($payment->payment_method) }}",
@@ -113,7 +113,7 @@
                         created_at: "{{ $payment->order->created_at->format('M d, Y H:i') }}",
                         items: [
                             @foreach($payment->order->orderItems as $item)
-                                {
+                                            {
                                     name: "{{ $item->menuItem->name }}",
                                     quantity: {{ $item->quantity }},
                                     unit_price: "{{ number_format($item->unit_price, 2) }}",
@@ -121,10 +121,10 @@
                                     notes: "{{ $item->notes ?? '' }}"
                                 }{{ !$loop->last ? ',' : '' }}
                             @endforeach
-                        ],
+                                ],
                         void_requests: [
                             @foreach($payment->order->voidRequests as $request)
-                                {
+                                            {
                                     status: "{{ ucfirst($request->status) }}",
                                     reason: "{{ $request->reason ?? '' }}",
                                     reason_tags: @json(is_array($request->reason_tags) ? $request->reason_tags : json_decode($request->reason_tags, true)),
@@ -132,11 +132,11 @@
                                     created_at: "{{ $request->created_at->format('M d, Y H:i') }}"
                                 }{{ !$loop->last ? ',' : '' }}
                             @endforeach
-                        ]
+                                ]
                     }
                 }{{ !$loop->last ? ',' : '' }}
             @endforeach
-        };
+            };
 
         function showPaymentDetails(paymentId) {
             const payment = paymentsData[paymentId];
@@ -147,14 +147,14 @@
             let itemsHtml = '';
             order.items.forEach(item => {
                 itemsHtml += `
-                        <tr>
-                            <td class="py-2 px-4">${item.name}</td>
-                            <td class="py-2 px-4 text-right">₱${item.unit_price}</td>
-                            <td class="py-2 px-4 text-center">${item.quantity}</td>
-                            <td class="py-2 px-4">${item.notes || '-'}</td>
-                            <td class="py-2 px-4 text-right">₱${item.subtotal}</td>
-                        </tr>
-                    `;
+                            <tr>
+                                <td class="py-2 px-4">${item.name}</td>
+                                <td class="py-2 px-4 text-right">₱${item.unit_price}</td>
+                                <td class="py-2 px-4 text-center">${item.quantity}</td>
+                                <td class="py-2 px-4">${item.notes || '-'}</td>
+                                <td class="py-2 px-4 text-right">₱${item.subtotal}</td>
+                            </tr>
+                        `;
             });
 
             let voidRequestHtml = '';
@@ -172,111 +172,113 @@
                     }
 
                     voidRequestHtml += `
-                            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-4">
-                                <div class="flex justify-between items-start mb-2">
-                                    <h4 class="font-semibold text-gray-900">Void/Refund Request</h4>
-                                    <span class="font-semibold ${statusColor}">${request.status}</span>
+                                <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg mb-4">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-semibold text-gray-900">Void/Refund Request</h4>
+                                        <span class="font-semibold ${statusColor}">${request.status}</span>
+                                    </div>
+                                    <div class="text-sm text-gray-700 space-y-1">
+                                        <p><strong>Requested by:</strong> ${request.requester}</p>
+                                        <p><strong>Date:</strong> ${request.created_at}</p>
+                                        ${reasonTagsHtml ? `<p><strong>Reason Tags:</strong><br>${reasonTagsHtml}</p>` : ''}
+                                        ${request.reason ? `<p><strong>Additional Notes:</strong> ${request.reason}</p>` : ''}
+                                    </div>
                                 </div>
-                                <div class="text-sm text-gray-700 space-y-1">
-                                    <p><strong>Requested by:</strong> ${request.requester}</p>
-                                    <p><strong>Date:</strong> ${request.created_at}</p>
-                                    ${reasonTagsHtml ? `<p><strong>Reason Tags:</strong><br>${reasonTagsHtml}</p>` : ''}
-                                    ${request.reason ? `<p><strong>Additional Notes:</strong> ${request.reason}</p>` : ''}
-                                </div>
-                            </div>
-                        `;
+                            `;
                 });
             }
 
             const modalContent = `
-                    ${voidRequestHtml}
+                        ${voidRequestHtml}
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <h4 class="text-md font-medium mb-3">Payment Information</h4>
-                            <div class="bg-gray-50 p-4 rounded-lg space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Payment ID:</span>
-                                    <span class="font-medium">${payment.id}</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <h4 class="text-md font-medium mb-3">Payment Information</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Payment ID:</span>
+                                        <span class="font-medium">${payment.id}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Method:</span>
+                                        <span class="font-medium">${payment.payment_method}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Amount:</span>
+                                        <span class="font-medium">₱${payment.amount}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Date:</span>
+                                        <span class="font-medium">${payment.date}</span>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Method:</span>
-                                    <span class="font-medium">${payment.payment_method}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Amount:</span>
-                                    <span class="font-medium">₱${payment.amount}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Date:</span>
-                                    <span class="font-medium">${payment.date}</span>
+                            </div>
+
+                            <div>
+                                <h4 class="text-md font-medium mb-3">Order Information</h4>
+                                <div class="bg-gray-50 p-4 rounded-lg space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Order #:</span>
+                                        <span class="font-medium">${order.id}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Type:</span>
+                                        <span class="font-medium">${order.order_type}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">${order.order_type === 'Dine-in' ? 'Table' : 'Customer'}:</span>
+                                        <span class="font-medium">${order.table_name || order.customer_name || 'Takeout'}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Status:</span>
+                                        <span class="font-medium">${order.status}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Created By:</span>
+                                        <span class="font-medium">${order.created_by}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
-                            <h4 class="text-md font-medium mb-3">Order Information</h4>
-                            <div class="bg-gray-50 p-4 rounded-lg space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Order #:</span>
-                                    <span class="font-medium">${order.id}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Type:</span>
-                                    <span class="font-medium">${order.order_type}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">${order.order_type === 'Dine-in' ? 'Table' : 'Customer'}:</span>
-                                    <span class="font-medium">${order.table_name || order.customer_name || 'Takeout'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Status:</span>
-                                    <span class="font-medium">${order.status}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Created By:</span>
-                                    <span class="font-medium">${order.created_by}</span>
-                                </div>
+                        <div class="mb-6">
+                            <h4 class="text-md font-medium mb-3">Order Items</h4>
+                            <div class="bg-white rounded-lg border overflow-hidden">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
+                                            <th class="py-2 px-4 text-right text-xs font-medium text-gray-500 uppercase">Price</th>
+                                            <th class="py-2 px-4 text-center text-xs font-medium text-gray-500 uppercase">Qty</th>
+                                            <th class="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                                            <th class="py-2 px-4 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        ${itemsHtml}
+                                    </tbody>
+                                    <tfoot class="bg-gray-50">
+                                        <tr>
+                                            <td colspan="4" class="py-2 px-4 text-right font-bold">Total:</td>
+                                            <td class="py-2 px-4 text-right font-bold">₱${order.total_amount}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="mb-6">
-                        <h4 class="text-md font-medium mb-3">Order Items</h4>
-                        <div class="bg-white rounded-lg border overflow-hidden">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase">Item</th>
-                                        <th class="py-2 px-4 text-right text-xs font-medium text-gray-500 uppercase">Price</th>
-                                        <th class="py-2 px-4 text-center text-xs font-medium text-gray-500 uppercase">Qty</th>
-                                        <th class="py-2 px-4 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
-                                        <th class="py-2 px-4 text-right text-xs font-medium text-gray-500 uppercase">Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                    ${itemsHtml}
-                                </tbody>
-                                <tfoot class="bg-gray-50">
-                                    <tr>
-                                        <td colspan="4" class="py-2 px-4 text-right font-bold">Total:</td>
-                                        <td class="py-2 px-4 text-right font-bold">₱${order.total_amount}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                        <div class="flex justify-end">
+                            <a href="/cashier/orders/${order.id}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center">
+                                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <circle cx="11.5" cy="15.5" r="2.5"></circle>
+                                    <path d="M16 20l-2-2"></path>
+                                </svg>
+                                View Full Order
+                            </a>
                         </div>
-                    </div>
-
-                    <div class="flex justify-end">
-                        <a href="/cashier/orders/${order.id}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                            View Full Order
-                        </a>
-                    </div>
-                `;
+                    `;
 
             document.getElementById('modal-content').innerHTML = modalContent;
             document.getElementById('payment-details-modal').classList.remove('hidden');

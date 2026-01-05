@@ -155,7 +155,8 @@
                                     </select>
                                 </div>
                                 <div>
-                                    <label for="reference_number" class="block text-xs text-gray-500 mb-1">Reference Number / Transaction ID</label>
+                                    <label for="reference_number" class="block text-xs text-gray-500 mb-1">Reference Number
+                                        / Transaction ID</label>
                                     <input type="text" name="payment_details[reference_number]" id="reference_number"
                                         class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                 </div>
@@ -204,12 +205,12 @@
                 }
             });
 
-            //            paymentForm.addEventListener('submit', function (e) {
-            //                e.preventDefault();
-            //                showConfirm('Are you sure you want to process this payment?', function () {
-            //                    paymentForm.submit();
-            //                });
-            //            });
+            paymentForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                showConfirm('Are you sure you want to process this payment?', function () {
+                    paymentForm.submit();
+                });
+            });
         });
     </script>
 @endsection

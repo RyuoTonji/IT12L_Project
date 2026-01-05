@@ -10,6 +10,7 @@ class Product extends Model
         'branch_id',
         'category_id',
         'name',
+        'description',
         'price',
         'image',
         'is_available',
