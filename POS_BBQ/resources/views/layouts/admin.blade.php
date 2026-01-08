@@ -78,7 +78,8 @@
                                 </svg>
                                 Menu
                             </x-nav-link>
-                            <x-nav-link :href="route('admin.inventory.index')" :active="request()->routeIs('inventory.*')">
+                            <x-nav-link :href="route('admin.inventory.index')"
+                                :active="request()->routeIs('inventory.*')">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -189,7 +190,8 @@
                     <x-responsive-nav-link :href="route('menu.index')" :active="request()->routeIs('menu.*')">
                         {{ __('Menu') }}
                     </x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('admin.inventory.index')" :active="request()->routeIs('admin.inventory.*')">
+                    <x-responsive-nav-link :href="route('admin.inventory.index')"
+                        :active="request()->routeIs('admin.inventory.*')">
                         {{ __('Inventory') }}
                     </x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('staff.index')" :active="request()->routeIs('staff.*')">

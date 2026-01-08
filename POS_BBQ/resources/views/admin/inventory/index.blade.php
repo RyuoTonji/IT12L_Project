@@ -1,7 +1,111 @@
 @extends('layouts.admin')
 
 @section('content')
-    <!-- Alpine.js is already included in layout via Vite -->
+    <!-- Forecasting Summary Div -->
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
+        <div class="p-6 text-gray-900 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-black" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+                Forecasting Summary (Tomorrow)
+            </h3>
+            <a href="{{ route('admin.forecasting.index') }}"
+                class="text-sm font-semibold text-black hover:text-gray-700 transition-colors flex items-center">
+                View Detailed Forecast
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Summary Stats -->
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predicted Sales</p>
+                        <p class="text-3xl font-black text-gray-900 line-height-tight text-right">
+                            ₱{{ number_format($nextDayForecast['total_predicted_sales'], 2) }}</p>
+                    </div>
+                    <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Stock Shortfalls</p>
+                        <p class="text-3xl font-black text-gray-900 line-height-tight text-right">
+                            {{ collect($nextDayForecast['ingredients'])->where('to_buy', '>', 0)->count() }} Items</p>
+                    </div>
+                </div>
+
+                <!-- Mini Ingredient Alert -->
+                <div class="overflow-hidden rounded-xl border border-gray-100">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Top Shortfall Ingredients</th>
+                                <th class="px-4 py-2 text-right">To Buy</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-50">
+                            @forelse(collect($nextDayForecast['ingredients'])->where('to_buy', '>', 0)->take(3) as $ing)
+                                <tr>
+                                    <td class="px-4 py-2 text-sm text-gray-700 font-medium">{{ $ing['name'] }}</td>
+                                    <td class="px-4 py-2 text-sm text-black font-bold text-right">+{{ $ing['to_buy'] }}
+                                        {{ $ing['unit'] }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="2" class="px-4 py-6 text-center text-sm text-green-600 font-medium">All stocks
+                                        sufficient for tomorrow's forecast!</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mini Trend Graph -->
+            <div class="h-full min-h-[150px]">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">14-Day Sales Trend</p>
+                <div class="h-40">
+                    <canvas id="miniTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('miniTrendChart').getContext('2d');
+            const salesData = @json($dailyTrends);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: salesData.map(d => d.date),
+                    datasets: [{
+                        data: salesData.map(d => d.total),
+                        borderColor: '#111827',
+                        backgroundColor: 'rgba(17, 24, 39, 0.05)',
+                        borderWidth: 2,
+                        label: 'Sales'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false, beginAtZero: true },
+                        x: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+
+    <hr class="mb-8 border-gray-200" />
 
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" x-data="{ activeTab: 0 }">
         <div class="p-6 text-gray-900">
@@ -68,7 +172,7 @@
                     <div>
                         <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Date Added</label>
                         <input type="date" name="date" id="date" value="{{ request('date') }}"
-                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                            class="rounded-md border-gray-300 shadow-sm focus:border-black focus:ring focus:ring-gray-200 focus:ring-opacity-50"
                             onchange="document.getElementById('filterForm').submit()">
                     </div>
                     <div class="flex items-center pb-1">
@@ -133,7 +237,7 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
                                     @foreach($items as $item)
-                                        <tr class="hover:bg-blue-50 transition-colors cursor-pointer"
+                                        <tr class="hover:bg-gray-50 transition-colors cursor-pointer"
                                             onclick="window.location='{{ route('admin.inventory.show', $item) }}'">
                                             <td class="py-4 px-6 text-sm font-medium text-gray-900">{{ $item->name }}</td>
                                             <td class="py-4 px-6 text-sm text-gray-500">{{ $item->supplier ?: '-' }}</td>
@@ -160,7 +264,7 @@
                                             <td class="py-4 px-6 text-center text-sm" onclick="event.stopPropagation();">
                                                 <div class="flex justify-center space-x-2">
                                                     <a href="{{ route('admin.inventory.show', $item) }}"
-                                                        class="text-blue-600 hover:text-blue-900 inline-flex items-center transition-colors">
+                                                        class="text-black hover:text-gray-700 inline-flex items-center transition-colors">
                                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
                                                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -328,7 +432,7 @@
                 <div class="mb-4">
                     <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                     <select name="category_id" id="category_id" required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
                         onchange="loadMenuItems()">
                         <option value="">Select Category</option>
                         @php
@@ -342,20 +446,19 @@
                 <div class="mb-4">
                     <label for="menu_item_id" class="block text-sm font-medium text-gray-700 mb-1">Menu Item</label>
                     <select name="menu_item_id" id="menu_item_id" required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        disabled>
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black" disabled>
                         <option value="">Select category first</option>
                     </select>
                 </div>
                 <div class="mb-4">
                     <label for="stock_quantity" class="block text-sm font-medium text-gray-700 mb-1">Quantity to Add</label>
                     <input type="number" name="quantity" id="stock_quantity" step="0.01" min="0.01" required
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black">
                 </div>
                 <div class="mb-4">
                     <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Reason / Notes</label>
                     <textarea name="reason" id="reason" rows="2"
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-black focus:ring-black"
                         placeholder="e.g. Daily delivery, New stock"></textarea>
                 </div>
 
@@ -429,7 +532,7 @@
             @else
                 paginateTable('table-filtered-result', 10);
             @endif
-                                            });
+                                                                });
 
         function paginateTable(tableId, rowsPerPage) {
             const table = document.getElementById(tableId);
@@ -488,10 +591,10 @@
 
                 // Previous Button
                 html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
-                                                                class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                                ${page === 1 ? 'disabled' : ''}>
-                                                                ${prevIcon}
-                                                             </button>`;
+                                                                                    class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                                    ${page === 1 ? 'disabled' : ''}>
+                                                                                    ${prevIcon}
+                                                                                 </button>`;
 
                 // Generate Page Numbers
                 let range = [];
@@ -516,18 +619,18 @@
                             ? 'bg-gray-800 text-white font-bold'
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
-                                                                         class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                                                         ${item}
-                                                                      </button>`;
+                                                                                             class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                                                             ${item}
+                                                                                          </button>`;
                     }
                 });
 
                 // Next Button
                 html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
-                                                                class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                                ${page === pCount ? 'disabled' : ''}>
-                                                                ${nextIcon}
-                                                             </button>`;
+                                                                                    class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                                    ${page === pCount ? 'disabled' : ''}>
+                                                                                    ${nextIcon}
+                                                                                 </button>`;
 
                 pDiv.innerHTML = html;
             };

@@ -15,7 +15,8 @@ class OrderFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'table_id' => null, // or Table::factory() if you have one
+            'branch_id' => \App\Models\Branch::factory(),
+            'table_id' => null,
             'customer_name' => $this->faker->name,
             'order_type' => 'dine-in',
             'status' => 'new',

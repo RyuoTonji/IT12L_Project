@@ -63,7 +63,7 @@ class PaymentController extends Controller
         \Log::info('Payment Store Method hit', $request->all());
 
         $request->validate([
-            'order_id' => 'required|exists:orders,id',
+            'order_id' => 'required|exists:pos_orders,id',
             'amount' => 'required|numeric|min:0.01',
             'payment_method' => 'required|string', // Allow any string now, UI will restrict
             'payment_details' => 'nullable|array',

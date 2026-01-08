@@ -8,11 +8,35 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\LogsDeletes;
 use App\Traits\SyncsToSupabase;
 
+/**
+ * App\Models\MenuItem
+ *
+ * @property int $id
+ * @property int $category_id
+ * @property int|null $branch_id
+ * @property string $name
+ * @property string|null $description
+ * @property float $price
+ * @property string|null $image
+ * @property bool $is_available
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * 
+ * @property-read \App\Models\Category $category
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\OrderItem[] $orderItems
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\MenuItemIngredient[] $ingredients
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Inventory[] $inventoryItems
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Branch[] $branches
+ * @property-read float $max_quantity
+ */
 class MenuItem extends Model
 {
     use HasFactory, SoftDeletes, LogsDeletes, SyncsToSupabase;
 
-    protected $fillable = ['category_id', 'name', 'description', 'price', 'image', 'availability'];
+    protected $table = 'pos_menu_items';
+
+    protected $fillable = ['category_id', 'branch_id', 'name', 'description', 'price', 'image', 'is_available'];
 
     public function category()
     {
@@ -40,7 +64,7 @@ class MenuItem extends Model
      */
     public function inventoryItems()
     {
-        return $this->belongsToMany(Inventory::class, 'menu_item_ingredients')
+        return $this->belongsToMany(Inventory::class, 'pos_menu_item_ingredients')
             ->withPivot('quantity_needed', 'unit')
             ->withTimestamps();
     }
@@ -50,7 +74,7 @@ class MenuItem extends Model
      */
     public function branches()
     {
-        return $this->belongsToMany(Branch::class, 'menu_item_branch')
+        return $this->belongsToMany(Branch::class, 'pos_menu_item_branch')
             ->withPivot('is_available')
             ->withTimestamps();
     }

@@ -25,10 +25,14 @@ class OrderSeeder extends Seeder
         }
 
         // Seed Branch 1 Orders
-        $this->seedBranchOrders($cashier1, 1, 50, 'paid');
+        if ($cashier1) {
+            $this->seedBranchOrders($cashier1, 1, 50, 'paid');
+        }
 
         // Seed Branch 2 Orders
-        $this->seedBranchOrders($cashier2, 2, 50, 'paid');
+        if ($cashier2) {
+            $this->seedBranchOrders($cashier2, 2, 50, 'paid');
+        }
     }
 
     private function seedBranchOrders($user, $branchId, $count, $paymentStatus)
@@ -38,6 +42,11 @@ class OrderSeeder extends Seeder
 
         if ($tables->isEmpty()) {
             $this->command->warn("No tables found for Branch {$branchId}. Skipping.");
+            return;
+        }
+
+        if (Order::where('branch_id', $branchId)->exists()) {
+            $this->command->info("Branch {$branchId} already has orders. Skipping seeding.");
             return;
         }
 

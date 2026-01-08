@@ -83,7 +83,16 @@ class TableSeeder extends Seeder
         ];
 
         foreach ($tables as $table) {
-            Table::create($table);
+            Table::updateOrCreate(
+                [
+                    'name' => $table['name'],
+                    'branch_id' => $table['branch_id'] ?? null,
+                ],
+                [
+                    'capacity' => $table['capacity'],
+                    'status' => $table['status'],
+                ]
+            );
         }
     }
 }

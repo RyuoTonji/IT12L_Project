@@ -7,18 +7,20 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('carts', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->string('session_id', 100)->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('crm_carts')) {
+            Schema::create('crm_carts', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->nullable()->constrained('crm_users')->cascadeOnDelete();
+                $table->string('session_id', 100)->nullable();
+                $table->timestamps();
 
-            $table->index(['user_id', 'session_id']);
-        });
+                $table->index(['user_id', 'session_id']);
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('carts');
+        Schema::dropIfExists('crm_carts');
     }
 };

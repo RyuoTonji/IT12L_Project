@@ -14,6 +14,7 @@ class MenuItemSeeder extends Seeder
         $lunchDinnerCategory = Category::where('name', 'Lunch & Dinner')->first()->id;
         $drinksCategory = Category::where('name', 'Drinks')->first()->id;
         $filipinoDessertCategory = Category::where('name', 'Desserts')->first()->id;
+        $sidesCategory = Category::where('name', 'Sides')->first()->id;
 
         $menuItems = [
             // Skewers
@@ -115,6 +116,38 @@ class MenuItemSeeder extends Seeder
                 'inventory_name' => 'Sisig Portion',
                 'unit' => 'serving',
             ],
+            [
+                'category_id' => $lunchDinnerCategory,
+                'name' => 'Chicken BBQ with Rice',
+                'description' => 'Grilled chicken BBQ served with steamed rice',
+                'price' => 99.00,
+                'inventory_name' => 'Raw Chicken BBQ',
+                'unit' => 'pcs',
+            ],
+            [
+                'category_id' => $lunchDinnerCategory,
+                'name' => 'Pork BBQ with Rice',
+                'description' => 'Classic pork BBQ skewers served with steamed rice',
+                'price' => 99.00,
+                'inventory_name' => 'Raw Pork BBQ Skewer',
+                'unit' => 'pcs',
+            ],
+            [
+                'category_id' => $lunchDinnerCategory,
+                'name' => 'Beef Tapa with Rice',
+                'description' => 'Cured beef tapa served with rice and egg',
+                'price' => 120.00,
+                'inventory_name' => 'Raw Beef Tapa',
+                'unit' => 'serving',
+            ],
+            [
+                'category_id' => $lunchDinnerCategory,
+                'name' => 'Beef Pares',
+                'description' => 'Braised beef stew served with clear soup and garlic fried rice',
+                'price' => 95.00,
+                'inventory_name' => 'Beef Pares Portion',
+                'unit' => 'serving',
+            ],
 
             // Drinks
             [
@@ -143,6 +176,14 @@ class MenuItemSeeder extends Seeder
             ],
             [
                 'category_id' => $drinksCategory,
+                'name' => 'Sprite',
+                'description' => 'Lemon-lime soda drink',
+                'price' => 20.00,
+                'inventory_name' => 'Sprite Can/Bottle',
+                'unit' => 'can/bottle',
+            ],
+            [
+                'category_id' => $drinksCategory,
                 'name' => 'Mountain Dew',
                 'description' => 'Citrus soda drink',
                 'price' => 20.00,
@@ -162,7 +203,7 @@ class MenuItemSeeder extends Seeder
                 'name' => 'Iced Tea',
                 'description' => 'House-blend iced tea',
                 'price' => 20.00,
-                'inventory_name' => 'Iced Tea Powder Mix', // Simplified
+                'inventory_name' => 'Iced Tea Powder Mix',
                 'unit' => 'serving',
             ],
             [
@@ -215,7 +256,43 @@ class MenuItemSeeder extends Seeder
                 'inventory_name' => 'Uncooked Turon',
                 'unit' => 'pcs',
             ],
+            [
+                'category_id' => $filipinoDessertCategory,
+                'name' => 'Ice Cream Sundae',
+                'description' => 'Creamy velvet vanilla ice cream',
+                'price' => 70.00,
+                'inventory_name' => 'Sundae Mix',
+                'unit' => 'serving',
+            ],
+
+            // Sides
+            [
+                'category_id' => $sidesCategory,
+                'name' => 'French Fries',
+                'description' => 'Crispy golden potato fries',
+                'price' => 50.00,
+                'inventory_name' => 'Frozen Fries Bag',
+                'unit' => 'serving',
+            ],
+            [
+                'category_id' => $sidesCategory,
+                'name' => 'Onion Rings',
+                'description' => 'Breaded and fried onion rings',
+                'price' => 60.00,
+                'inventory_name' => 'Frozen Onion Rings Bag',
+                'unit' => 'serving',
+            ],
+            [
+                'category_id' => $sidesCategory,
+                'name' => 'Coleslaw',
+                'description' => 'Fresh and creamy cabbage salad',
+                'price' => 40.00,
+                'inventory_name' => 'Coleslaw Mix',
+                'unit' => 'serving',
+            ],
         ];
+
+        $branches = \App\Models\Branch::all();
 
         foreach ($menuItems as $item) {
             // 1. Create or Update Menu Item
@@ -225,32 +302,36 @@ class MenuItemSeeder extends Seeder
                     'category_id' => $item['category_id'],
                     'description' => $item['description'],
                     'price' => $item['price'],
-                    'availability' => true, // This is just the boolean flag, actual availability depends on stock
+                    'is_available' => true,
                 ]
             );
 
-            // 2. Create corresponding Inventory Item if it doesn't exist
-            // Giving them 100 Initial Stock so they are sellable
-            $inventory = \App\Models\Inventory::firstOrCreate(
-                ['name' => $item['inventory_name']],
-                [
-                    'category' => 'Ingredients',
-                    'quantity' => 100, // Initial stock
-                    'unit' => $item['unit'],
-                    'sold' => 0,
-                    'spoilage' => 0,
-                    'stock_in' => 100,
-                    'stock_out' => 0,
-                    'reorder_level' => 10,
-                ]
-            );
+            // 2. Create corresponding Inventory Item for EACH branch
+            foreach ($branches as $branch) {
+                $inventory = \App\Models\Inventory::firstOrCreate(
+                    [
+                        'name' => $item['inventory_name'],
+                        'branch_id' => $branch->id
+                    ],
+                    [
+                        'category' => (isset($item['unit']) && $item['unit'] === 'can/bottle') ? 'Others' : 'Ingredients',
+                        'quantity' => 100, // Initial stock
+                        'unit' => $item['unit'] ?? 'pcs',
+                        'sold' => 0,
+                        'spoilage' => 0,
+                        'stock_in' => 100,
+                        'stock_out' => 0,
+                        'reorder_level' => 10,
+                    ]
+                );
 
-            // 3. Link Menu Item to Inventory Item
-            if (!$menuItem->inventoryItems()->where('inventory_id', $inventory->id)->exists()) {
-                $menuItem->inventoryItems()->attach($inventory->id, [
-                    'quantity_needed' => 1,
-                    'unit' => $item['unit']
-                ]);
+                // 3. Link Menu Item to Inventory Item for this branch
+                if (!$menuItem->inventoryItems()->where('inventory_id', $inventory->id)->exists()) {
+                    $menuItem->inventoryItems()->attach($inventory->id, [
+                        'quantity_needed' => 1,
+                        'unit' => $item['unit'] ?? 'pcs'
+                    ]);
+                }
             }
         }
     }

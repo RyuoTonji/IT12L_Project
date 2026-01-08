@@ -10,6 +10,17 @@ class ShiftReport extends Model
 {
     use HasFactory, SyncsToSupabase;
 
+    protected $table = 'pos_shift_reports';
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new \App\Scopes\BranchScope);
+    }
+
+
     protected $fillable = [
         'user_id',
         'report_type',

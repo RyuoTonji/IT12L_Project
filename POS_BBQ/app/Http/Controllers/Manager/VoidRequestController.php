@@ -44,15 +44,15 @@ class VoidRequestController extends Controller
 
         $pendingQuery = VoidRequest::with($relationships)
             ->where('status', 'pending');
-        
+
         $queryCallback($pendingQuery);
-        
+
         $voidRequests = $pendingQuery->latest()
             ->paginate(10, ['*'], 'pending_page');
 
         $historyQuery = VoidRequest::with(array_merge($relationships, ['approver']))
             ->whereIn('status', ['approved', 'rejected']);
-            
+
         $queryCallback($historyQuery);
 
         $voidRequestHistory = $historyQuery->latest('updated_at')
@@ -106,7 +106,7 @@ class VoidRequestController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Void request approved. Order cancelled.');
+            return redirect()->route('manager.void-requests.index')->with('success', 'Void request approved. Order cancelled.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -126,7 +126,7 @@ class VoidRequestController extends Controller
         ]);
 
 
-        return back()->with('success', 'Void request rejected.');
+        return redirect()->route('manager.void-requests.index')->with('success', 'Void request rejected.');
     }
 
     public function exportPdf()

@@ -10,15 +10,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('tables', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('branch_id')->nullable();
-            $table->string('name');
-            $table->integer('capacity');
-            $table->enum('status', ['available', 'occupied', 'reserved'])->default('available');
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (!Schema::hasTable('pos_tables')) {
+            Schema::create('pos_tables', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('branch_id')->nullable()->constrained('pos_branches')->onDelete('cascade');
+                $table->string('name');
+                $table->integer('capacity');
+                $table->enum('status', ['available', 'occupied', 'reserved'])->default('available');
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**
@@ -26,6 +28,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('tables');
+        Schema::dropIfExists('pos_tables');
     }
 };

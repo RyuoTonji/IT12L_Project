@@ -75,7 +75,7 @@
                                         <span class="font-bold text-lg">Order #{{ $order->id }}</span>
                                         <span
                                             class="inline-flex text-xs leading-5 font-semibold items-center 
-                                                                                                                                                                                    {{ $order->status === 'pending' ? 'text-yellow-600' : 'text-blue-600' }}">
+                                                                                                                                                                                                            {{ $order->status === 'pending' ? 'text-yellow-600' : 'text-blue-600' }}">
                                             {{ ucfirst($order->status) }}
                                         </span>
                                     </div>
@@ -227,10 +227,10 @@
 
                     // Previous Button
                     html += `<button onclick="window['render_' + '${containerId}'](${page - 1})" 
-                                    class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                    ${page === 1 ? 'disabled' : ''}>
-                                    ${prevIcon}
-                                 </button>`;
+                                            class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                            ${page === 1 ? 'disabled' : ''}>
+                                            ${prevIcon}
+                                         </button>`;
 
                     // Generate Page Numbers
                     let range = [];
@@ -255,18 +255,18 @@
                                 ? 'bg-gray-800 text-white font-bold'
                                 : 'text-black hover:bg-gray-100';
                             html += `<button onclick="window['render_' + '${containerId}'](${item})" 
-                                            class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                            ${item}
-                                         </button>`;
+                                                    class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                    ${item}
+                                                 </button>`;
                         }
                     });
 
                     // Next Button
                     html += `<button onclick="window['render_' + '${containerId}'](${page + 1})" 
-                                    class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pageCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                    ${page === pageCount ? 'disabled' : ''}>
-                                    ${nextIcon}
-                                 </button>`;
+                                            class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pageCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                            ${page === pageCount ? 'disabled' : ''}>
+                                            ${nextIcon}
+                                         </button>`;
 
                     paginationDiv.innerHTML = html;
                 };

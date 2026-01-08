@@ -10,10 +10,31 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\LogsDeletes;
 use App\Traits\SyncsToSupabase;
 
+/**
+ * App\Models\User
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property string $role
+ * @property int|null $branch_id
+ * @property string $status
+ * @property \Illuminate\Support\Carbon|null $last_login_at
+ * @property string|null $remember_token
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * 
+ * @property-read \App\Models\Branch|null $branch
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Order[] $orders
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, SoftDeletes, LogsDeletes, SyncsToSupabase;
+
+    protected $table = 'pos_users';
 
     /**
      * The attributes that are mass assignable.

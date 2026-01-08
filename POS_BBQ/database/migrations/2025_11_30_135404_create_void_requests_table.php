@@ -10,16 +10,18 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('void_requests', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')->constrained()->onDelete('cascade');
-            $table->foreignId('requester_id')->constrained('users');
-            $table->foreignId('approver_id')->nullable()->constrained('users');
-            $table->string('reason')->nullable();
-            $table->json('reason_tags')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('pos_void_requests')) {
+            Schema::create('pos_void_requests', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('order_id')->constrained('pos_orders')->onDelete('cascade');
+                $table->foreignId('requester_id')->constrained('pos_users');
+                $table->foreignId('approver_id')->nullable()->constrained('pos_users');
+                $table->string('reason')->nullable();
+                $table->json('reason_tags')->nullable();
+                $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -27,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('void_requests');
+        Schema::dropIfExists('pos_void_requests');
     }
 };

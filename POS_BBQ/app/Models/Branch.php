@@ -7,9 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\SyncsToSupabase;
 
+/**
+ * App\Models\Branch
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $code
+ * @property string|null $address
+ * @property string|null $phone
+ * @property bool $is_active
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $deleted_at
+ * 
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Order[] $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Payment[] $payments
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Inventory[] $inventories
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ShiftReport[] $shiftReports
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\MenuItem[] $menuItems
+ */
 class Branch extends Model
 {
     use HasFactory, SoftDeletes, SyncsToSupabase;
+    protected $table = 'pos_branches';
 
     protected $fillable = [
         'name',
@@ -60,7 +80,7 @@ class Branch extends Model
      */
     public function menuItems()
     {
-        return $this->belongsToMany(MenuItem::class, 'menu_item_branch')
+        return $this->belongsToMany(MenuItem::class, 'pos_menu_item_branch')
             ->withPivot('is_available')
             ->withTimestamps();
     }

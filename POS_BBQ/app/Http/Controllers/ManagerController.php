@@ -86,15 +86,15 @@ class ManagerController extends Controller
         $endDateCarbon = Carbon::parse($endDate)->endOfDay();
 
         $staffPerformance = \App\Models\User::select(
-            'users.id',
-            'users.name',
+            'pos_users.id',
+            'pos_users.name',
             \Illuminate\Support\Facades\DB::raw('COUNT(orders.id) as total_orders'),
             \Illuminate\Support\Facades\DB::raw('SUM(orders.total_amount) as total_sales')
         )
-            ->join('orders', 'users.id', '=', 'orders.user_id')
-            ->whereBetween('orders.created_at', [$startDateCarbon, $endDateCarbon])
+            ->join('pos_orders as orders', 'pos_users.id', '=', 'orders.user_id')
+            ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->where('orders.payment_status', 'paid')
-            ->groupBy('users.id', 'users.name')
+            ->groupBy('pos_users.id', 'pos_users.name')
             ->orderByDesc('total_sales')
             ->get();
 
@@ -123,8 +123,8 @@ class ManagerController extends Controller
         $totalSales = $sales->sum('total_sales');
         $totalOrders = $sales->sum('order_count');
 
-        $paymentMethods = \Illuminate\Support\Facades\DB::table('payments')
-            ->join('orders', 'payments.order_id', '=', 'orders.id')
+        $paymentMethods = \Illuminate\Support\Facades\DB::table('pos_payments as payments')
+            ->join('pos_orders as orders', 'payments.order_id', '=', 'orders.id')
             ->whereBetween('payments.created_at', [$startDateCarbon, $endDateCarbon])
             ->select('payment_method', \Illuminate\Support\Facades\DB::raw('SUM(amount) as total'), \Illuminate\Support\Facades\DB::raw('COUNT(*) as count'))
             ->groupBy('payment_method')

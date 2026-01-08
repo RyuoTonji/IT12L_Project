@@ -10,16 +10,18 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('reports', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('action'); // e.g., 'add_stock', 'void_order'
-            $table->text('details')->nullable();
-            $table->string('status')->default('info'); // info, pending, approved, rejected
-            $table->unsignedBigInteger('related_id')->nullable();
-            $table->string('related_model')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('pos_activities')) {
+            Schema::create('pos_activities', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained('pos_users')->onDelete('cascade');
+                $table->string('action'); // e.g., 'add_stock', 'void_order'
+                $table->text('details')->nullable();
+                $table->string('status')->default('info'); // info, pending, approved, rejected
+                $table->unsignedBigInteger('related_id')->nullable();
+                $table->string('related_model')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -27,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('reports');
+        Schema::dropIfExists('pos_activities');
     }
 };

@@ -10,15 +10,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('deleted_data', function (Blueprint $table) {
-            $table->id();
-            $table->string('table_name');
-            $table->unsignedBigInteger('record_id');
-            $table->json('data');
-            $table->timestamp('deleted_at');
-            $table->unsignedBigInteger('deleted_by')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('pos_deleted_data')) {
+            Schema::create('pos_deleted_data', function (Blueprint $table) {
+                $table->id();
+                $table->string('table_name');
+                $table->unsignedBigInteger('record_id');
+                $table->json('data');
+                $table->timestamp('deleted_at');
+                $table->unsignedBigInteger('deleted_by')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -26,6 +28,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('deleted_data');
+        Schema::dropIfExists('pos_deleted_data');
     }
 };

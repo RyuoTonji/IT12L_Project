@@ -12,7 +12,7 @@ class BranchSeeder extends Seeder
      */
     public function run(): void
     {
-        Branch::firstOrCreate(
+        Branch::updateOrCreate(
             ['code' => 'BR1'],
             [
                 'name' => 'Branch 1',
@@ -22,7 +22,7 @@ class BranchSeeder extends Seeder
             ]
         );
 
-        Branch::firstOrCreate(
+        Branch::updateOrCreate(
             ['code' => 'BR2'],
             [
                 'name' => 'Branch 2',

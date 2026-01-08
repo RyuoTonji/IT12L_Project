@@ -9,8 +9,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Feedback extends Model
 {
     use SoftDeletes;
-    
-    protected $table = 'feedbacks';
+
+    protected $table = 'crm_feedbacks';
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new \App\Scopes\OwnerScope);
+    }
 
     protected $fillable = [
         'user_id',

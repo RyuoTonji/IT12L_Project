@@ -8,25 +8,13 @@ use App\Models\Branch;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-<<<<<<< Updated upstream
-        $products = DB::table('products')
-            ->join('branches', 'products.branch_id', '=', 'branches.id')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->select(
-                'products.*',
-                'branches.name as branch_name',
-                'categories.name as category_name'
-            )
-            ->orderBy('products.id', 'desc')
-            ->paginate(20);
-
-        return view('admin.products.index', compact('products'));
-=======
         $query = Product::with(['branch', 'category']);
 
         // Search filter
@@ -41,12 +29,12 @@ class ProductController extends Controller
 
         // Branch filter
         if ($request->filled('branch_id')) {
-            $query->where('branch_id', $request->branch_id);
+            $query->byBranch($request->branch_id);
         }
 
         // Availability filter
         if ($request->filled('is_available')) {
-            $query->where('is_available', $request->is_available);
+            $query->where('availability', $request->is_available);
         }
 
         // Price range filter
@@ -76,20 +64,13 @@ class ProductController extends Controller
         $branches = Branch::all();
 
         return view('admin.products.index', compact('products', 'categories', 'branches'));
->>>>>>> Stashed changes
     }
 
     public function create()
     {
-<<<<<<< Updated upstream
-        $branches = DB::table('branches')->get();
-        $categories = DB::table('categories')->get();
-        
-=======
         $branches = Branch::all();
         $categories = Category::all();
 
->>>>>>> Stashed changes
         return view('admin.products.create', compact('branches', 'categories'));
     }
 
@@ -106,9 +87,6 @@ class ProductController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('image')) {
-<<<<<<< Updated upstream
-            $imagePath = $request->file('image')->store('products', 'public');
-=======
             try {
                 $image = $request->file('image');
                 $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
@@ -121,43 +99,39 @@ class ProductController extends Controller
                 Log::error('Image upload failed', ['error' => $e->getMessage()]);
                 return back()->withInput()->with('error', 'Failed to upload image. Please try again.');
             }
->>>>>>> Stashed changes
         }
 
-        Product::create([
-            'branch_id' => $request->branch_id,
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'price' => $request->price,
-            'image' => $imagePath,
-            'is_available' => $request->has('is_available') ? 1 : 0,
-        ]);
+        DB::beginTransaction();
+        try {
+            $product = Product::create([
+                'branch_id' => $request->branch_id,
+                'category_id' => $request->category_id,
+                'name' => $request->name,
+                'price' => $request->price,
+                'image' => $imagePath,
+                'is_available' => $request->has('is_available') ? 1 : 0,
+            ]);
 
-        return redirect('/admin/products')->with('success', 'Product created successfully!');
+            DB::commit();
+            return redirect('/admin/products')->with('success', 'Product created successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Product creation failed', ['error' => $e->getMessage()]);
+            return back()->withInput()->with('error', 'Failed to create product.');
+        }
     }
 
     public function edit($id)
     {
-<<<<<<< Updated upstream
-        $product = DB::table('products')->where('id', $id)->first();
-        
-=======
-        $product = Product::find($id);
+        $product = Product::with('branch')->find($id);
 
->>>>>>> Stashed changes
         if (!$product) {
             return redirect('/admin/products')->with('error', 'Product not found!');
         }
 
-<<<<<<< Updated upstream
-        $branches = DB::table('branches')->get();
-        $categories = DB::table('categories')->get();
-        
-=======
         $branches = Branch::all();
         $categories = Category::all();
 
->>>>>>> Stashed changes
         return view('admin.products.edit', compact('product', 'branches', 'categories'));
     }
 
@@ -172,24 +146,14 @@ class ProductController extends Controller
             'is_available' => 'boolean',
         ]);
 
-<<<<<<< Updated upstream
-        $product = DB::table('products')->where('id', $id)->first();
-        
-=======
         $product = Product::find($id);
 
->>>>>>> Stashed changes
         if (!$product) {
             return redirect('/admin/products')->with('error', 'Product not found!');
         }
 
         $imagePath = $product->image;
         if ($request->hasFile('image')) {
-<<<<<<< Updated upstream
-            // Delete old image
-            if ($imagePath) {
-                Storage::disk('public')->delete($imagePath);
-=======
             try {
                 // Delete old image if exists
                 if ($imagePath && Storage::disk('public')->exists($imagePath)) {
@@ -206,41 +170,37 @@ class ProductController extends Controller
             } catch (\Exception $e) {
                 Log::error('Image update failed', ['error' => $e->getMessage()]);
                 return back()->withInput()->with('error', 'Failed to update image. Please try again.');
->>>>>>> Stashed changes
             }
-            $imagePath = $request->file('image')->store('products', 'public');
         }
 
-        $product->update([
-            'branch_id' => $request->branch_id,
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'price' => $request->price,
-            'image' => $imagePath,
-            'is_available' => $request->has('is_available') ? 1 : 0,
-        ]);
+        DB::beginTransaction();
+        try {
+            $product->update([
+                'branch_id' => $request->branch_id,
+                'category_id' => $request->category_id,
+                'name' => $request->name,
+                'price' => $request->price,
+                'image' => $imagePath,
+                'is_available' => $request->has('is_available') ? 1 : 0,
+            ]);
 
-        return redirect('/admin/products')->with('success', 'Product updated successfully!');
+            DB::commit();
+            return redirect('/admin/products')->with('success', 'Product updated successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Product update failed', ['error' => $e->getMessage()]);
+            return back()->withInput()->with('error', 'Failed to update product.');
+        }
     }
 
     public function destroy($id)
     {
-<<<<<<< Updated upstream
-        $product = DB::table('products')->where('id', $id)->first();
-        
-=======
         $product = Product::find($id);
 
->>>>>>> Stashed changes
         if (!$product) {
             return redirect('/admin/products')->with('error', 'Product not found!');
         }
 
-<<<<<<< Updated upstream
-        // Delete image if exists
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-=======
         $product->delete();
 
         return redirect()->route('admin.products.index')->with('success', 'Product archived successfully!');
@@ -299,11 +259,6 @@ class ProductController extends Controller
                 'success' => false,
                 'error' => 'An error occurred while updating availability'
             ], 500);
->>>>>>> Stashed changes
         }
-
-        DB::table('products')->where('id', $id)->delete();
-
-        return redirect('/admin/products')->with('success', 'Product deleted successfully!');
     }
 }

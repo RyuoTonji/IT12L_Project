@@ -5,11 +5,12 @@
 /* ============================================================================
    GLOBAL STYLES
    ============================================================================ */
-    /* Main theme color */
+/* Main theme color */
 /* ============================================================================
    PAGE RESET (FIX WHITE GAP ISSUE)
    ============================================================================ */
-html, body {
+html,
+body {
     height: 100%;
     margin: 0;
     padding: 0;
@@ -18,9 +19,8 @@ html, body {
     background-color: #f8f9fa;
 }
 
-
 :root {
-    --primary-color: #A52A2A;
+    --primary-color: #a52a2a;
     --primary-color-dark: #822222;
     --success-color: #198754;
     --danger-color: #dc3545;
@@ -31,7 +31,7 @@ html, body {
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .content {
@@ -39,10 +39,6 @@ body {
     background-color: #f8f9fa;
 }
 
-
-/* ============================================================================
-   NAVIGATION
-   ============================================================================ */
 /* ============================================================================
    NAVIGATION
    ============================================================================ */
@@ -51,9 +47,8 @@ body {
     top: 0;
     z-index: 1050;
     background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-
 
 .navbar-brand {
     font-size: 1.5rem;
@@ -83,7 +78,7 @@ body {
 }
 
 .hero-section .display-4 {
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* ============================================================================
@@ -98,8 +93,7 @@ body {
 
 .branch-card:hover,
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important;
 }
 
 .order-card {
@@ -107,7 +101,7 @@ body {
 }
 
 .hover-shadow:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 
 /* ============================================================================
@@ -119,9 +113,6 @@ body {
     transition: transform 0.3s ease;
 }
 
-.product-card:hover .product-image {
-    transform: scale(1.05);
-}
 
 .product-card .card-body {
     display: flex;
@@ -135,68 +126,65 @@ body {
     min-height: 2.5rem;
 }
 .btn-maroon-outline {
-    border: 1px solid #A52A2A !important;
-    color: #A52A2A !important;
+    border: 1px solid #a52a2a !important;
+    color: #a52a2a !important;
     background-color: transparent !important;
 }
 
 .btn-maroon-outline:hover {
-    background-color: #A52A2A !important;
+    background-color: #a52a2a !important;
     color: white !important;
 }
 
 .btn-maroon-active {
-    background-color: #A52A2A !important;
+    background-color: #a52a2a !important;
     color: white !important;
-    border: 1px solid #A52A2A !important;
+    border: 1px solid #a52a2a !important;
 }
 /* Base maroon button */
 .btn-maroon {
-    background-color: #A52A2A !important;
+    background-color: #a52a2a !important;
     color: white !important;
-    border: 1px solid #A52A2A !important;
+    border: 1px solid #a52a2a !important;
 }
 
 /* Maroon on hover */
 .btn-maroon:hover {
-    background-color: #8B0000 !important;
+    background-color: #8b0000 !important;
     color: white !important;
 }
 
 /* Outline button */
 .btn-maroon-outline {
     background-color: white !important;
-    color: #A52A2A !important;
-    border: 1px solid #A52A2A !important;
+    color: #a52a2a !important;
+    border: 1px solid #a52a2a !important;
 }
 
 .btn-maroon-outline:hover {
-    background-color: #A52A2A !important;
+    background-color: #a52a2a !important;
     color: white !important;
 }
 
 /* Active button (selected category) */
 .btn-maroon-active {
-    background-color: #A52A2A !important;
+    background-color: #a52a2a !important;
     color: white !important;
-    border: 1px solid #A52A2A !important;
+    border: 1px solid #a52a2a !important;
 }
 
 /* Keep active state even on hover */
 .btn-maroon-active:hover {
-    background-color: #8B0000 !important;
+    background-color: #8b0000 !important;
     color: white !important;
 }
 .text-maroon {
-    color: #A52A2A !important;
+    color: #a52a2a !important;
 }
-
-
 
 /* ============================================================================
    CATEGORY FILTERS
    ============================================================================ */
-
 
 /* ============================================================================
    CART STYLES
@@ -228,14 +216,13 @@ body {
 .cart-total,
 .cart-total-final,
 .price-maroon {
-    color: #A52A2A !important;
+    color: #a52a2a !important;
     font-weight: bold;
 }
 .subtotal {
     color: #000 !important;
     font-weight: bold;
 }
-
 
 /* ============================================================================
    ORDER STATUS BADGES
@@ -268,8 +255,7 @@ body {
 }
 
 .btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn:active {
@@ -300,7 +286,7 @@ footer a:hover {
 .alert {
     border-radius: 8px;
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* ============================================================================
@@ -316,7 +302,7 @@ footer a:hover {
    SEARCH BAR
    ============================================================================ */
 .search-input-group {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border-radius: 50px;
 }
 
@@ -380,16 +366,16 @@ footer a:hover {
     .hero-section .display-4 {
         font-size: 2rem;
     }
-    
+
     .cart-item-image {
         width: 60px;
         height: 60px;
     }
-    
+
     .table {
         font-size: 0.875rem;
     }
-    
+
     .btn-lg {
         padding: 0.5rem 1rem;
         font-size: 1rem;
@@ -400,13 +386,14 @@ footer a:hover {
     .navbar-brand {
         font-size: 1.2rem;
     }
-    
+
     .product-card .card-title {
         font-size: 0.95rem;
         min-height: auto;
     }
-    
-    .btn-group-sm > .btn, .btn-sm {
+
+    .btn-group-sm > .btn,
+    .btn-sm {
         padding: 0.25rem 0.5rem;
         font-size: 0.875rem;
     }
@@ -447,7 +434,7 @@ footer a:hover {
    UTILITIES
    ============================================================================ */
 .text-shadow {
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cursor-pointer {
@@ -472,7 +459,7 @@ footer a:hover {
     .no-print {
         display: none !important;
     }
-    
+
     .card {
         border: 1px solid #dee2e6;
         page-break-inside: avoid;

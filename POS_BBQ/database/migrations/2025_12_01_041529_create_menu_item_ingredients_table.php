@@ -10,17 +10,19 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('menu_item_ingredients', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('menu_item_id')->constrained('menu_items')->onDelete('cascade');
-            $table->foreignId('inventory_id')->constrained('inventories')->onDelete('cascade');
-            $table->decimal('quantity_needed', 10, 2); // Amount of ingredient needed per menu item
-            $table->string('unit')->nullable(); // Unit of measurement (e.g., grams, pieces)
-            $table->timestamps();
+        if (!Schema::hasTable('pos_menu_item_ingredients')) {
+            Schema::create('pos_menu_item_ingredients', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('menu_item_id')->constrained('pos_menu_items')->onDelete('cascade');
+                $table->foreignId('inventory_id')->constrained('pos_inventory')->onDelete('cascade');
+                $table->decimal('quantity_needed', 10, 2); // Amount of ingredient needed per menu item
+                $table->string('unit')->nullable(); // Unit of measurement (e.g., grams, pieces)
+                $table->timestamps();
 
-            // Ensure unique combination
-            $table->unique(['menu_item_id', 'inventory_id']);
-        });
+                // Ensure unique combination
+                $table->unique(['menu_item_id', 'inventory_id']);
+            });
+        }
     }
 
     /**
@@ -28,6 +30,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('menu_item_ingredients');
+        Schema::dropIfExists('pos_menu_item_ingredients');
     }
 };

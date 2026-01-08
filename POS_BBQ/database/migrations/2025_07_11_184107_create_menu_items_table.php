@@ -10,16 +10,19 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('menu_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->boolean('availability')->default(true);
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (!Schema::hasTable('pos_menu_items')) {
+            Schema::create('pos_menu_items', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('branch_id')->nullable()->constrained('pos_branches')->onDelete('cascade');
+                $table->foreignId('category_id')->constrained('pos_categories')->onDelete('cascade');
+                $table->string('name', 200);
+                $table->text('description')->nullable();
+                $table->decimal('price', 10, 2);
+                $table->boolean('is_available')->default(true);
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**
@@ -27,6 +30,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('menu_items');
+        Schema::dropIfExists('products');
     }
 };

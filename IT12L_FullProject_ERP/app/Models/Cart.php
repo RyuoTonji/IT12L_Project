@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class Cart extends Model
 {
+    protected $table = 'crm_carts';
     protected $fillable = [
         'user_id',
         'session_id',
@@ -61,7 +62,7 @@ class Cart extends Model
         }
 
         $item = $this->items()->where('product_id', $productId)->first();
-        
+
         if ($item) {
             $item->update(['quantity' => $quantity]);
             return $item;
@@ -141,14 +142,14 @@ class Cart extends Model
 
                 // Link current cart to user
                 $cart->update(['user_id' => $userId]);
-                
+
                 Log::info('Cart linked to user after login', [
                     'cart_id' => $cart->id,
                     'user_id' => $userId,
                     'session_id' => $sessionId
                 ]);
             }
-            
+
             return $cart;
         }
 
@@ -159,7 +160,7 @@ class Cart extends Model
             if ($userCart) {
                 // Update session_id to current session
                 $userCart->update(['session_id' => $sessionId]);
-                
+
                 Log::info('Found existing user cart, updated session_id', [
                     'cart_id' => $userCart->id,
                     'user_id' => $userId,
@@ -261,7 +262,7 @@ class Cart extends Model
             'sessionId' => $sessionId,
             'userId' => $userId
         ]);
-        
+
         // With session-based cart, no merge is needed
         // The cart automatically persists through login
         return static::getOrCreate($userId, $sessionId);

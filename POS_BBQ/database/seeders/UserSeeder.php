@@ -11,96 +11,116 @@ class UserSeeder extends Seeder
     public function run()
     {
         // Admin User
-        User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'status' => 'active',
+            ]
+        );
 
         //Manager User
-        User::create([
-            'name' => 'Manager User',
-            'email' => 'manager@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'manager',
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'manager@example.com'],
+            [
+                'name' => 'Manager User',
+                'password' => Hash::make('password'),
+                'role' => 'manager',
+                'status' => 'active',
+            ]
+        );
 
         // Cashier User
-        User::create([
-            'name' => 'Cashier User',
-            'email' => 'cashier@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'cashier',
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'cashier@example.com'],
+            [
+                'name' => 'Cashier User',
+                'password' => Hash::make('password'),
+                'role' => 'cashier',
+                'status' => 'active',
+            ]
+        );
 
         //Inventory User
-        User::create([
-            'name' => 'Inventory User',
-            'email' => 'inventory@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'inventory',
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'inventory@example.com'],
+            [
+                'name' => 'Inventory User',
+                'password' => Hash::make('password'),
+                'role' => 'inventory',
+                'status' => 'active',
+            ]
+        );
 
         // Branch 1 Users
-        User::create([
-            'name' => 'Branch 1 Manager',
-            'email' => 'manager1@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'manager',
-            'branch_id' => 1,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'manager1@example.com'],
+            [
+                'name' => 'Branch 1 Manager',
+                'password' => Hash::make('password'),
+                'role' => 'manager',
+                'branch_id' => 1,
+                'status' => 'active',
+            ]
+        );
 
 
-        User::create([
-            'name' => 'Branch 1 Cashier',
-            'email' => 'cashier1@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'cashier',
-            'branch_id' => 1,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'cashier1@example.com'],
+            [
+                'name' => 'Branch 1 Cashier',
+                'password' => Hash::make('password'),
+                'role' => 'cashier',
+                'branch_id' => 1,
+                'status' => 'active',
+            ]
+        );
 
-        User::create([
-            'name' => 'Branch 1 Inventory',
-            'email' => 'inventory1@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'inventory',
-            'branch_id' => 1,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'inventory1@example.com'],
+            [
+                'name' => 'Branch 1 Inventory',
+                'password' => Hash::make('password'),
+                'role' => 'inventory',
+                'branch_id' => 1,
+                'status' => 'active',
+            ]
+        );
 
         // Branch 2 Users
-        User::create([
-            'name' => 'Branch 2 Manager',
-            'email' => 'manager2@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'manager',
-            'branch_id' => 2,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'manager2@example.com'],
+            [
+                'name' => 'Branch 2 Manager',
+                'password' => Hash::make('password'),
+                'role' => 'manager',
+                'branch_id' => 2,
+                'status' => 'active',
+            ]
+        );
 
-        User::create([
-            'name' => 'Branch 2 Cashier',
-            'email' => 'cashier2@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'cashier',
-            'branch_id' => 2,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'cashier2@example.com'],
+            [
+                'name' => 'Branch 2 Cashier',
+                'password' => Hash::make('password'),
+                'role' => 'cashier',
+                'branch_id' => 2,
+                'status' => 'active',
+            ]
+        );
 
-        User::create([
-            'name' => 'Branch 2 Inventory',
-            'email' => 'inventory2@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'inventory',
-            'branch_id' => 2,
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'inventory2@example.com'],
+            [
+                'name' => 'Branch 2 Inventory',
+                'password' => Hash::make('password'),
+                'role' => 'inventory',
+                'branch_id' => 2,
+                'status' => 'active',
+            ]
+        );
     }
 }

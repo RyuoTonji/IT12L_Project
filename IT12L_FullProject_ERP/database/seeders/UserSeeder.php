@@ -54,8 +54,8 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($usersToSeed as $userData) {
-            if (!DB::table('users')->where('email', $userData['email'])->exists()) {
-                DB::table('users')->insert($userData);
+            if (!DB::table('crm_users')->where('email', $userData['email'])->exists()) {
+                DB::table('crm_users')->insert($userData);
                 $this->command->info("✓ User {$userData['email']} created");
             } else {
                 $this->command->info("⊘ User {$userData['email']} already exists, skipping...");

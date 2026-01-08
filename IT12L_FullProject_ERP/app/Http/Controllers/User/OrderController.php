@@ -20,7 +20,7 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $order = Order::with(['branch', 'items'])
+        $order = Order::with(['branch', 'items.product'])
             ->where('id', $id)
             ->where('user_id', auth()->id())
             ->firstOrFail();

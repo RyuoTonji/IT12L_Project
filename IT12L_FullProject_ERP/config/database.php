@@ -41,7 +41,7 @@ return [
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
-            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'collation' => env('DB_COLLATION', null),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
@@ -89,7 +89,7 @@ return [
     */
 
     'migrations' => [
-        'table' => 'migrations',
+        'table' => 'crm_migrations',
         'update_date_on_publish' => true,
     ],
 
@@ -105,7 +105,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_') . '_database_'),
         ],
 
         'default' => [

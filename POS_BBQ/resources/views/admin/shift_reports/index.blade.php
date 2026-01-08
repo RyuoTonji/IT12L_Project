@@ -21,7 +21,7 @@
                         <!-- Search Input -->
                         <div class="relative rounded-md shadow-sm w-full md:w-48">
                             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search..."
-                                class="w-full border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm pl-8">
+                                class="w-full border-gray-300 rounded-md focus:ring-black focus:border-black text-sm pl-8">
                             <div class="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                                 <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -33,14 +33,14 @@
                         <!-- Date Filter -->
                         <div class="w-full md:w-auto">
                             <input type="date" name="date" id="date" value="{{ request('date') }}"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-sm"
                                 onchange="this.form.submit()">
                         </div>
 
                         <!-- Staff Filter -->
                         <div class="w-full md:w-auto">
                             <select name="user_id" onchange="this.form.submit()"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                class="w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black text-sm">
                                 <option value="">All Staff</option>
                                 @foreach($users as $user)
                                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
@@ -77,7 +77,7 @@
                     @foreach(['cashier' => 'Cashier', 'inventory' => 'Inventory', 'manager' => 'Manager'] as $key => $label)
                         <a href="{{ route('admin.shift-reports.index', ['tab' => $key]) }}"
                             class="{{ $activeTab === $key ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} 
-                                                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
+                                                            whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200">
                             {{ $label }}
                         </a>
                     @endforeach
@@ -129,7 +129,8 @@
                                             @if(in_array($report->report_type, ['inventory', 'inventory_start', 'inventory_end']))
                                                 <span class="text-gray-600 italic">Detailed inventory report - Click to view</span>
                                             @else
-                                                <span class="truncate" title="{{ $report->content }}">{{ Str::limit($report->content, 50) }}</span>
+                                                <span class="truncate"
+                                                    title="{{ $report->content }}">{{ Str::limit($report->content, 50) }}</span>
                                             @endif
                                         </div>
                                     </td>
@@ -141,7 +142,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-orange-600 font-medium">
                                             {{ number_format($report->stock_out, 2) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-blue-600 font-medium">
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-black font-medium">
                                             {{ number_format($report->remaining_stock, 2) }}
                                         </td>
                                     @else

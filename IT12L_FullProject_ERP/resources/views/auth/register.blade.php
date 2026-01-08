@@ -19,7 +19,7 @@
                                 <div>
                                     {{-- Placeholder for Logo/Icon --}}
                                     <div style="max-width: 250px; margin: 0 auto;">
-                                        <img src="{{ asset('images/logo1.png') }}" alt="BBQ-Lagao Logo"
+                                        <img src="{{ asset('images/logo2.jpg') }}" alt="BBQ-Lagao Logo"
                                             style="max-width: 160px; height: auto !important;">
                                     </div>
                                     <h3 class="fw-bold mt-3">BBQ Lagao & Pares</h3>
@@ -29,25 +29,25 @@
 
                             {{-- Right Side: Registration Form (Enhanced Dark Thematic Background) --}}
                             <div class="col-md-7 p-4 p-md-5 text-white position-relative" style="background: linear-gradient(135deg, #8B1A1A 0%, #A52A2A 50%, #C84B31 100%); 
-                                        background-size: cover; 
-                                        background-position: center; 
-                                        border-radius: 0 0.75rem 0.75rem 0;
-                                        overflow: hidden;">
+                                            background-size: cover; 
+                                            background-position: center; 
+                                            border-radius: 0 0.75rem 0.75rem 0;
+                                            overflow: hidden;">
 
                                 {{-- Decorative Background Elements --}}
                                 <div class="position-absolute top-0 start-0 w-100 h-100"
                                     style="opacity: 0.1; pointer-events: none;">
                                     <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; 
-                                                background: white; border-radius: 50%; filter: blur(60px);"></div>
+                                                    background: white; border-radius: 50%; filter: blur(60px);"></div>
                                     <div style="position: absolute; bottom: -80px; left: -80px; width: 250px; height: 250px; 
-                                                background: white; border-radius: 50%; filter: blur(80px);"></div>
+                                                    background: white; border-radius: 50%; filter: blur(80px);"></div>
                                 </div>
 
                                 {{-- Content Container --}}
                                 <div class="position-relative" style="z-index: 1;">
                                     <h2 class="fw-bold mb-4 text-center text-uppercase pb-3" style="border-bottom: 2px solid rgba(255,255,255,0.3); 
-                                               letter-spacing: 1px;
-                                               text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                                                   letter-spacing: 1px;
+                                                   text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
                                         Register Account
                                     </h2>
 
@@ -175,9 +175,9 @@
                                         <div class="d-grid gap-2 mt-4">
                                             <button type="submit"
                                                 class="btn btn-light btn-lg fw-bold py-3 register-submit-btn" style="color: #A52A2A; 
-                                                           border-radius: 0.5rem;
-                                                           box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-                                                           transition: all 0.3s ease;">
+                                                               border-radius: 0.5rem;
+                                                               box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                                                               transition: all 0.3s ease;">
                                                 <i class="fas fa-user-plus me-2"></i> Register Account
                                             </button>
                                         </div>
@@ -188,8 +188,8 @@
                                         <p class="mb-3 text-white-50">Already have an account?</p>
                                         <a href="{{ route('login') }}"
                                             class="btn btn-outline-light w-100 fw-bold py-2 login-link-btn" style="border-radius: 0.5rem; 
-                                                  border-width: 2px;
-                                                  transition: all 0.3s ease;">
+                                                      border-width: 2px;
+                                                      transition: all 0.3s ease;">
                                             <i class="fas fa-sign-in-alt me-2"></i> Login Here
                                         </a>
                                     </div>

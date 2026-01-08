@@ -19,12 +19,15 @@
                 <form action="" method="GET" class="w-80 mx-4">
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
                             </svg>
                         </div>
                         <input type="text" name="search" value="{{ $search ?? '' }}"
-                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-black focus:border-black sm:text-sm"
                             placeholder="Search Order ID, Branch, or Customer">
                     </div>
                 </form>
@@ -88,9 +91,11 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($voidRequests as $request)
-                                        <tr onclick="openOrderDetails({{ $request->order_id }})" class="hover:bg-gray-50 cursor-pointer transition-colors duration-150">
+                                        <tr onclick="openOrderDetails({{ $request->order_id }})"
+                                            class="hover:bg-gray-50 cursor-pointer transition-colors duration-150">
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="text-blue-600 font-medium hover:text-blue-900">#{{ $request->order_id }}</span>
+                                                <span
+                                                    class="text-black font-medium hover:text-gray-700">#{{ $request->order_id }}</span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $request->requester->name }}</td>
                                             <td class="px-6 py-4">
@@ -101,7 +106,7 @@
                                                     <div class="flex flex-wrap gap-2">
                                                         @foreach($request->reason_tags as $tag)
                                                             <span
-                                                                class="text-xs font-medium text-blue-600">{{ str_replace('_', ' ', $tag) }}</span>
+                                                                class="text-xs font-medium text-black">{{ str_replace('_', ' ', $tag) }}</span>
                                                         @endforeach
                                                     </div>
                                                 @endif
@@ -184,9 +189,11 @@
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
                                     @foreach($voidRequestHistory as $request)
-                                        <tr onclick="openOrderDetails({{ $request->order_id }})" class="hover:bg-gray-50 cursor-pointer transition-colors duration-150">
+                                        <tr onclick="openOrderDetails({{ $request->order_id }})"
+                                            class="hover:bg-gray-50 cursor-pointer transition-colors duration-150">
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="text-blue-600 font-medium hover:text-blue-900">#{{ $request->order_id }}</span>
+                                                <span
+                                                    class="text-black font-medium hover:text-gray-700">#{{ $request->order_id }}</span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $request->requester->name }}</td>
                                             <td class="px-6 py-4">
@@ -197,7 +204,7 @@
                                                     <div class="flex flex-wrap gap-2">
                                                         @foreach($request->reason_tags as $tag)
                                                             <span
-                                                                class="text-xs font-medium text-blue-600">{{ str_replace('_', ' ', $tag) }}</span>
+                                                                class="text-xs font-medium text-black">{{ str_replace('_', ' ', $tag) }}</span>
                                                         @endforeach
                                                     </div>
                                                 @endif
@@ -209,7 +216,8 @@
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                {{ $request->approver ? $request->approver->name : '-' }}</td>
+                                                {{ $request->approver ? $request->approver->name : '-' }}
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap">{{ $request->updated_at->format('M d, Y H:i') }}
                                             </td>
                                         </tr>
@@ -242,23 +250,28 @@
     @endforeach
 
     <!-- Order Details Modal -->
-    <div id="orderDetailsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="orderDetailsModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 text-center">
             <!-- Background overlay -->
-            <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" aria-hidden="true" onclick="closeOrderModal()"></div>
+            <div class="fixed inset-0 bg-gray-900 bg-opacity-50 transition-opacity" aria-hidden="true"
+                onclick="closeOrderModal()"></div>
 
             <!-- Modal panel -->
             <div class="relative bg-white rounded-lg shadow-xl transform transition-all max-w-md w-full z-10 text-left">
                 <!-- Close Button (Absolute Top Right) -->
                 <div class="absolute top-0 right-0 pt-4 pr-4 z-20">
-                    <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none" onclick="closeOrderModal()">
+                    <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none"
+                        onclick="closeOrderModal()">
                         <span class="sr-only">Close</span>
-                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-                
+
                 <div class="bg-white px-6 py-6 rounded-lg">
                     <div id="modalContent">
                         <!-- Content will be loaded here -->
@@ -273,7 +286,7 @@
             const modal = document.getElementById('orderDetailsModal');
             const content = document.getElementById('modalContent');
             const source = document.getElementById('details-' + orderId);
-            
+
             if (source) {
                 content.innerHTML = source.innerHTML;
                 modal.classList.remove('hidden');

@@ -16,7 +16,7 @@
                     @if($voidRequest->reason_tags)
                         <div class="mt-2 flex flex-wrap gap-1">
                             @foreach($voidRequest->reason_tags as $tag)
-                                <span class="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded">{{ $tag }}</span>
+                                <span class="text-xs text-red-700 font-semibold">{{ $tag }}</span>
                             @endforeach
                         </div>
                     @endif
@@ -104,7 +104,7 @@
                 <div>
                     <span class="text-gray-600">Status:</span>
                     <span class="inline-flex items-center text-xs leading-5 font-semibold
-                                                        {{ $order->payment_status == 'paid' ? 'text-green-600' :
+                                                            {{ $order->payment_status == 'paid' ? 'text-green-600' :
             ($order->payment_status == 'refunded' ? 'text-red-600' : 'text-yellow-600') }}">
                         @if($order->payment_status == 'paid')
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"
@@ -141,7 +141,7 @@
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' : ($request->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                    class="inline-flex items-center text-xs font-semibold {{ $request->status === 'approved' ? 'text-green-600' : ($request->status === 'rejected' ? 'text-red-600' : 'text-yellow-600') }}">
                                     {{ ucfirst($request->status) }}
                                 </span>
                                 <span
@@ -157,7 +157,7 @@
                         @if($request->reason_tags)
                             <div class="flex flex-wrap gap-1 mb-2">
                                 @foreach($request->reason_tags as $tag)
-                                    <span class="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded">{{ $tag }}</span>
+                                    <span class="text-xs text-gray-600 font-semibold">{{ $tag }}</span>
                                 @endforeach
                             </div>
                         @endif

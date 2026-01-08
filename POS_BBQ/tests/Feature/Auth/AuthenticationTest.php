@@ -27,7 +27,9 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $redirectUrl = $user->role === 'admin' ? '/dashboard' : '/' . $user->role . '/dashboard';
+        $response->assertRedirect($redirectUrl);
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

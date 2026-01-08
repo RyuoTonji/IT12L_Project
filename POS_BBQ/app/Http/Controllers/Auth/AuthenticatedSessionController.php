@@ -45,13 +45,13 @@ class AuthenticatedSessionController extends Controller
         $user = Auth::user();
 
         // Check if user role requires shift report
+        // Check if user role requires shift report
         if (in_array($user->role, ['cashier', 'inventory', 'manager'])) {
-            $hasReport = \App\Models\ShiftReport::where('user_id', $user->id)
-                ->whereDate('shift_date', today())
-                ->exists();
-
-            if (!$hasReport) {
-                return back()->with('error', 'You must submit your shift report before logging out.');
+            // Use the centralized logic to check if a report is actually needed
+            // (i.e. if there was activity today and no report yet)
+            if (\App\Http\Controllers\ShiftReportController::needsReport($user)) {
+                $route = ($user->role === 'inventory') ? 'inventory.daily-report' : 'shift-reports.create';
+                return redirect()->route($route)->with('error', 'You must submit your shift report before logging out.');
             }
         }
 

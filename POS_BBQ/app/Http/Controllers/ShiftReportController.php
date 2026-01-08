@@ -13,6 +13,115 @@ use Carbon\Carbon;
 class ShiftReportController extends Controller
 {
     /**
+     * Determine if a user needs to submit a shift report.
+     * Returns true if a report is required, false otherwise.
+     */
+    public static function needsReport($user)
+    {
+        // Admin role doesn't need reports
+        if ($user->role === 'admin') {
+            return false;
+        }
+
+        $today = Carbon::today();
+
+        // 1. Check Role-Specific Requirements
+        if ($user->role === 'inventory') {
+            // Inventory needs BOTH start and end reports.
+            // If end report exists, they are done for the day.
+            $hasEndReport = ShiftReport::where('user_id', $user->id)
+                ->where('report_type', 'inventory_end')
+                ->whereDate('shift_date', $today)
+                ->exists();
+
+            if ($hasEndReport) {
+                return false;
+            }
+
+            // If no end report, check if they have a start report.
+            $startReport = ShiftReport::where('user_id', $user->id)
+                ->where('report_type', 'inventory_start')
+                ->whereDate('shift_date', $today)
+                ->latest()
+                ->first();
+
+            if (!$startReport) {
+                // If no start report, do they have ANY activity today?
+                return self::hasActivitySince($user, $today);
+            } else {
+                // They have a start report. They need an end report if they have activity SINCE the start report.
+                // Or if it's logout time, we typically expect an end report regardless if they are active.
+                // But to be consistent with "no activity = no report", we check activity since start report.
+                return self::hasActivitySince($user, $startReport->created_at);
+            }
+        } elseif (in_array($user->role, ['cashier', 'manager'])) {
+            // Cashier/Manager needs one 'sales' report.
+            $hasSalesReport = ShiftReport::where('user_id', $user->id)
+                ->where('report_type', 'sales')
+                ->whereDate('shift_date', $today)
+                ->exists();
+
+            if ($hasSalesReport) {
+                return false;
+            }
+
+            // Check if they have ANY activity today.
+            return self::hasActivitySince($user, $today);
+        }
+
+        return false;
+    }
+
+    /**
+     * Check for any relevant activity since a given time.
+     */
+    public static function hasActivitySince($user, $sinceTime)
+    {
+        // Check Orders (created or updated)
+        $hasNewOrders = Order::withTrashed()
+            ->where('branch_id', $user->branch_id)
+            ->where('user_id', $user->id)
+            ->where('updated_at', '>', $sinceTime)
+            ->exists();
+
+        if ($hasNewOrders)
+            return true;
+
+        // Check Inventory Logs
+        $hasNewInventory = DB::table('pos_inventory_adjustments')
+            ->where('recorded_by', $user->id)
+            ->where('created_at', '>', $sinceTime)
+            ->exists();
+
+        if ($hasNewInventory)
+            return true;
+
+        // Check Void Requests
+        $hasNewVoids = DB::table('pos_void_requests')
+            ->where(function ($q) use ($user) {
+                $q->where('requester_id', $user->id)
+                    ->orWhere('approver_id', $user->id);
+            })
+            ->where('updated_at', '>', $sinceTime)
+            ->exists();
+
+        if ($hasNewVoids)
+            return true;
+
+        /*
+        // Check Activities
+        $hasNewActivities = DB::table('pos_activities')
+            ->where('user_id', $user->id)
+            ->where('created_at', '>', $sinceTime)
+            ->exists();
+
+        if ($hasNewActivities)
+            return true;
+        */
+
+        return false;
+    }
+    /**
      * Show the form for creating a new shift report.
      */
     public function create()
@@ -42,8 +151,9 @@ class ShiftReportController extends Controller
 
             return view('reports.create', compact('totalOrders', 'totalSales', 'totalRefunds', 'today', 'reportType', 'reportHistory', 'orders'));
         } else {
-            // For inventory role
-            return view('reports.create', compact('today', 'reportType', 'reportHistory'));
+            // For inventory role, they should generally use the inventory-specific dashboard report,
+            // but if they come here, we redirect them to the correct route or show a basic unified view.
+            return redirect()->route('inventory.daily-report');
         }
     }
 
@@ -58,72 +168,18 @@ class ShiftReportController extends Controller
     {
         $user = Auth::user();
 
-        // Admin role doesn't need reports
-        if ($user->role === 'admin') {
-            return response()->json(['has_report' => true]);
+        if (self::needsReport($user)) {
+            // If needsReport returns true, it means they rely have activity and NO report today.
+            // We can optionally determine specific reason if we want to modify needsReport checks,
+            // but for now, simple boolean is enough to say "Activity detected, please report".
+            // To match old response format:
+            return response()->json(['has_report' => false, 'reason' => 'daily_activity_detected']);
         }
 
-        // 1. Get the latest report for this user
-        $lastReport = ShiftReport::where('user_id', $user->id)
-            ->latest()
-            ->first();
-
-        // If no report ever, or last report is too old (e.g., > 12 hours), assume new shift
-        // We use 12 hours as a safe buffer for a single shift. 
-        if (!$lastReport || $lastReport->created_at->diffInHours(now()) > 12) {
-            // If no report recent, we check if there's any activity TODAY.
-            // If they logged in but did nothing, maybe we don't force it?
-            // But to be safe and consistent with previous behavior (always require), we return false.
-            // However, strictly:
-            return response()->json(['has_report' => false]);
-        }
-
-        // 2. If report exists and is recent (< 12 hours), check for Pending Activities SINCE that report
-        $reportTime = $lastReport->created_at;
-
-        // Check Orders (created or updated after report) - for Cashier/Manager
-        $hasNewOrders = Order::withTrashed()
-            ->where('branch_id', $user->branch_id) // Assuming orders are branch-scoped
-            // Ideally filter by user_id if strict, but manager might oversee all. 
-            // The constraint says "if the USER... has transactions".
-            ->where('user_id', $user->id)
-            ->where('updated_at', '>', $reportTime)
-            ->exists();
-
-        if ($hasNewOrders) {
-            return response()->json(['has_report' => false, 'reason' => 'new_orders']);
-        }
-
-        // Check Inventory Logs (for Inventory/Manager)
-        $hasNewInventory = DB::table('inventory_adjustments')
-            ->where('recorded_by', $user->id)
-            ->where('created_at', '>', $reportTime)
-            ->exists();
-
-        if ($hasNewInventory) {
-            return response()->json(['has_report' => false, 'reason' => 'new_inventory']);
-        }
-
-        // Check Void Requests (for Manager/Cashier)
-        // Requester
-        $hasNewVoidRequests = DB::table('void_requests')
-            ->where('requester_id', $user->id)
-            ->where('created_at', '>', $reportTime)
-            ->exists();
-
-        // Approver (Manager)
-        $hasApprovedVoids = DB::table('void_requests')
-            ->where('approver_id', $user->id)
-            ->where('updated_at', '>', $reportTime)
-            ->exists();
-
-        if ($hasNewVoidRequests || $hasApprovedVoids) {
-            return response()->json(['has_report' => false, 'reason' => 'new_voids']);
-        }
-
-        // If we get here: Report exists, is recent, and NO new activities found.
         return response()->json(['has_report' => true]);
     }
+
+
 
     /**
      * Store a newly created shift report.
@@ -132,6 +188,19 @@ class ShiftReportController extends Controller
     {
         $user = Auth::user();
         $reportType = in_array($user->role, ['manager', 'cashier']) ? 'sales' : 'inventory';
+
+        // Check if report is needed just in case (optional, but good for validation)
+        if (!self::needsReport($user)) {
+            // If they are submitting but don't need to...
+            // If there is already a report, we handle duplicates below.
+            // If there is NO activity, they shouldn't be submitting a report?
+            // Actually, user might WANT to submit an empty report manually?
+            // The user requirement: "if the user log in and no changes happens ... don't persist"
+            // This can be interpreted as "Don't AUTOSAVE empty reports" or "Don't allow manual save if empty".
+            // Given "Shift report persists to submit...", I'll assume preventing duplicate is the main key. 
+            // If they manually explicitly fill the form and submit, we generally trust them, UNLESS it's a duplicate.
+        }
+
 
         if ($reportType === 'sales') {
             $request->validate([
@@ -153,6 +222,19 @@ class ShiftReportController extends Controller
                 ->where('payment_status', 'refunded')
                 ->sum('total_amount');
 
+            // Prevent duplicate sales reports for the same day
+            $existingReport = ShiftReport::where('user_id', $user->id)
+                ->where('report_type', 'sales')
+                ->whereDate('shift_date', $shiftDate)
+                ->first();
+
+            if ($existingReport) {
+                // Return success immediately or update? 
+                // User asked: "persists to submit a report even if the report is already submitted... don't persist"
+                // So we stick with the existing one.
+                return redirect()->route('dashboard')->with('success', 'Shift report already submitted for today. You can now log out.');
+            }
+
             ShiftReport::create([
                 'user_id' => $user->id,
                 'report_type' => 'sales',
@@ -162,6 +244,7 @@ class ShiftReportController extends Controller
                 'total_orders' => $totalOrders,
                 'content' => $request->input('content'),
                 'status' => 'submitted',
+                'branch_id' => $user->branch_id,
             ]);
         } else {
             $request->validate([
@@ -177,9 +260,18 @@ class ShiftReportController extends Controller
 
             $shiftDate = Carbon::parse($request->shift_date);
 
+            $existingReport = ShiftReport::where('user_id', $user->id)
+                ->whereIn('report_type', ['inventory', 'inventory_end'])
+                ->whereDate('shift_date', $shiftDate)
+                ->first();
+
+            if ($existingReport) {
+                return redirect()->route('dashboard')->with('success', 'Inventory report already submitted for today. You can now log out.');
+            }
+
             ShiftReport::create([
                 'user_id' => $user->id,
-                'report_type' => 'inventory',
+                'report_type' => 'inventory_end', // Standardization
                 'shift_date' => $shiftDate,
                 'stock_in' => $request->stock_in,
                 'stock_out' => $request->stock_out,
@@ -189,10 +281,11 @@ class ShiftReportController extends Controller
                 'return_reason' => $request->return_reason,
                 'content' => $request->input('content'),
                 'status' => 'submitted',
+                'branch_id' => $user->branch_id,
             ]);
         }
 
-        return redirect()->route('dashboard')->with('success', 'Shift report submitted successfully.');
+        return redirect()->route('dashboard')->with('success', 'Shift report submitted successfully. You can now log out.');
     }
 
     /**

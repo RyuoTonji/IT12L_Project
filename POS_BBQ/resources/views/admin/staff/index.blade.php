@@ -60,11 +60,12 @@
                                 <td class="py-2 px-4">{{ $user->name }}</td>
                                 <td class="py-2 px-4">{{ $user->email }}</td>
                                 <td class="py-2 px-4 text-center">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded
-                                                                                            @if($user->role == 'admin') bg-red-100 text-red-800
-                                                                                            @elseif($user->role == 'manager') bg-yellow-100 text-yellow-800
-                                                                                            @else bg-blue-100 text-blue-800
-                                                                                            @endif">
+                                    <span class="inline-flex text-xs leading-5 font-semibold
+                                                                                                    @if($user->role == 'admin') text-red-600
+                                                                                                    @elseif($user->role == 'manager') text-yellow-600
+                                                                                                    @elseif($user->role == 'cashier' || $user->role == 'cashier_user') text-blue-600
+                                                                                                    @else text-indigo-600
+                                                                                                    @endif">
                                         {{ ucfirst($user->role) }}
                                     </span>
                                 </td>
@@ -72,7 +73,7 @@
                                     @if($computedStatus === 'inactive')
                                         {{-- Display inactive as badge (cannot be changed via dropdown) --}}
                                         <span
-                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded bg-yellow-100 text-yellow-800 items-center"
+                                            class="inline-flex text-xs leading-5 font-semibold text-yellow-600 items-center"
                                             title="{{ $statusLabel }}">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none"
                                                 viewBox="0 0 24 24" stroke="currentColor">
@@ -102,7 +103,7 @@
                                                 @endif
                                             </span>
                                             <button onclick="showStatusEdit({{ $user->id }})"
-                                                class="text-gray-500 hover:text-blue-600">
+                                                class="text-gray-500 hover:text-gray-700">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -112,7 +113,7 @@
                                         </div>
                                         <div id="status-edit-{{ $user->id }}" class="hidden inline-flex items-center gap-2">
                                             <select id="status-select-{{ $user->id }}"
-                                                class="rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm">
+                                                class="rounded-md border-gray-300 shadow-sm focus:border-black focus:ring focus:ring-gray-200 focus:ring-opacity-50 text-sm">
                                                 <option value="active" {{ $user->status == 'active' ? 'selected' : '' }}>Active
                                                 </option>
                                                 <option value="disabled" {{ $user->status == 'disabled' ? 'selected' : '' }}>Disabled
@@ -141,7 +142,7 @@
                                 </td>
                                 <td class="py-2 px-4 text-center">
                                     <a href="{{ route('staff.show', $user) }}"
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-100 rounded mr-1">
+                                        class="inline-flex items-center gap-1 px-3 py-1.5 text-sm text-black hover:bg-gray-100 rounded mr-1">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
                                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>

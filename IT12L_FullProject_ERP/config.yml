@@ -1,7 +1,7 @@
-tunnel: 
-credentials-file: C:\Users\User\.cloudflared\
+tunnel: be31131b-19fe-4bc7-bb3f-ecf690f36a79
+credentials-file: C:\Users\User\.cloudflared\be31131b-19fe-4bc7-bb3f-ecf690f36a79.json
 
 ingress:
-  - hostname: ulasbbqecommerce.dpdns.org
+  - hostname: crm.ulasbbqlagao.dpdns.org
     service: http://127.0.0.1:8000
   - service: http_status:404

@@ -6,9 +6,28 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * App\Models\User
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property string|null $phone
+ * @property int $is_admin
+ * @property string|null $google_id
+ * @property string|null $avatar
+ * @property string $role
+ * @property int $is_active
+ * @property string|null $remember_token
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
+
+    protected $table = 'crm_users';
 
     /**
      * The attributes that are mass assignable.
@@ -21,13 +40,10 @@ class User extends Authenticatable
         'password',
         'phone',
         'is_admin',
-<<<<<<< Updated upstream
-=======
         'google_id',
         'avatar',
         'role',
         'is_active',
->>>>>>> Stashed changes
     ];
 
     /**

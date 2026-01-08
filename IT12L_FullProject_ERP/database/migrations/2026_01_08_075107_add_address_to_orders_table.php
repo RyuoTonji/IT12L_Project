@@ -10,8 +10,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->nullable()->change();
+        Schema::table('crm_orders', function (Blueprint $table) {
+            if (!Schema::hasColumn('crm_orders', 'address')) {
+                $table->string('address')->nullable()->after('status');
+            }
         });
     }
 
@@ -20,8 +22,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->unsignedBigInteger('user_id')->nullable(false)->change();
+        Schema::table('crm_orders', function (Blueprint $table) {
+            $table->dropColumn('address');
         });
     }
 };

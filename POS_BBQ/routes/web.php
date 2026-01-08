@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\ForecastingController;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -65,6 +66,7 @@ Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
     Route::post('inventory/stock-in', [InventoryController::class, 'stockIn'])->name('admin.inventory.stock-in');
     Route::get('inventory/stock-in-history', [InventoryController::class, 'stockInHistory'])->name('admin.inventory.stock-in-history');
     Route::resource('inventory', InventoryController::class)->names('admin.inventory');
+    Route::get('/forecasting', [ForecastingController::class, 'index'])->name('admin.forecasting.index');
     Route::resource('staff', StaffController::class);
 
     Route::post('/staff/{staff}/update-status', [StaffController::class, 'updateStatus'])->name('staff.update-status');
@@ -115,12 +117,14 @@ Route::prefix('inventory')->middleware(['auth', 'role:inventory'])->group(functi
     // Daily Inventory Reports
     Route::get('/daily-report', [\App\Http\Controllers\InventoryController::class, 'createDailyReport'])->name('inventory.daily-report');
     Route::post('/daily-report', [\App\Http\Controllers\InventoryController::class, 'storeDailyReport'])->name('inventory.daily-report.store');
+
+    Route::get('/forecasting', [ForecastingController::class, 'index'])->name('inventory.forecasting.index');
 });
 
 // API Route for menu items by category (used by Stock In modal)
 Route::get('/api/menu-items/{category}', function ($categoryId) {
     return \App\Models\MenuItem::where('category_id', $categoryId)
-        ->where('availability', true)
+        ->where('is_available', true)
         ->select('id', 'name')
         ->orderBy('name')
         ->get();

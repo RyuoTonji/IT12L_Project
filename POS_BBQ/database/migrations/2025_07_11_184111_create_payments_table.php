@@ -10,16 +10,18 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('branch_id')->nullable();
-            $table->foreignId('order_id')->constrained();
-            $table->decimal('amount', 10, 2);
-            $table->string('payment_method');
-            $table->json('payment_details')->nullable();
-            $table->timestamps();
-            $table->softDeletes();
-        });
+        if (!Schema::hasTable('pos_payments')) {
+            Schema::create('pos_payments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('branch_id')->nullable()->constrained('pos_branches')->onDelete('cascade');
+                $table->foreignId('order_id')->constrained('pos_orders');
+                $table->decimal('amount', 10, 2);
+                $table->string('payment_method');
+                $table->json('payment_details')->nullable();
+                $table->timestamps();
+                $table->softDeletes();
+            });
+        }
     }
 
     /**
@@ -27,6 +29,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('pos_payments');
     }
 };

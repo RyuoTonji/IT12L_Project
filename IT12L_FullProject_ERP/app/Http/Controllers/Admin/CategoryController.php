@@ -45,7 +45,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'        => 'required|string|max:100|unique:categories,name',
+            'name' => 'required|string|max:100|unique:crm_categories,name',
             'description' => 'nullable|string'
         ]);
 
@@ -68,7 +68,7 @@ class CategoryController extends Controller
         $category = Category::withTrashed()->findOrFail($id);
 
         $request->validate([
-            'name'        => 'required|string|max:100|unique:categories,name,' . $id,
+            'name' => 'required|string|max:100|unique:crm_categories,name,' . $id,
             'description' => 'nullable|string'
         ]);
 

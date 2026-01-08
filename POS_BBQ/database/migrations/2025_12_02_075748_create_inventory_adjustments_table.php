@@ -10,16 +10,20 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('inventory_adjustments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('inventory_id')->constrained('inventories')->onDelete('cascade');
-            $table->enum('adjustment_type', ['stock_in', 'return', 'spoilage', 'damaged', 'other']);
-            $table->decimal('quantity', 10, 2);
-            $table->text('reason')->nullable();
-            $table->foreignId('order_id')->nullable()->constrained('orders')->onDelete('set null');
-            $table->foreignId('recorded_by')->constrained('users');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('pos_inventory_adjustments')) {
+            Schema::create('pos_inventory_adjustments', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('inventory_id')->constrained('pos_inventory')->onDelete('cascade');
+                $table->enum('adjustment_type', ['stock_in', 'return', 'spoilage', 'damaged', 'other']);
+                $table->decimal('quantity', 10, 2);
+                $table->decimal('quantity_before', 10, 2)->nullable();
+                $table->decimal('quantity_after', 10, 2)->nullable();
+                $table->text('reason')->nullable();
+                $table->unsignedBigInteger('order_id')->nullable();
+                $table->unsignedBigInteger('recorded_by');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -27,6 +31,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('inventory_adjustments');
+        Schema::dropIfExists('pos_inventory_adjustments');
     }
 };

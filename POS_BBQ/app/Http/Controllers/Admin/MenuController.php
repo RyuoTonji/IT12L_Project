@@ -13,10 +13,10 @@ class MenuController extends Controller
 {
     public function index()
     {
-        $menuItems = MenuItem::select('menu_items.*')
-            ->join('categories', 'menu_items.category_id', '=', 'categories.id')
+        $menuItems = MenuItem::select('pos_menu_items.*')
+            ->join('pos_categories as categories', 'pos_menu_items.category_id', '=', 'categories.id')
             ->orderBy('categories.sort_order')
-            ->orderBy('menu_items.name')
+            ->orderBy('pos_menu_items.name')
             ->with(['category', 'branches'])
             ->get();
 
@@ -38,7 +38,7 @@ class MenuController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:pos_categories,id',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -46,8 +46,8 @@ class MenuController extends Controller
         ]);
 
         $data = $request->except('image');
-        $data['availability'] = $request->boolean('is_available');
-        unset($data['is_available']);
+        $data['is_available'] = $request->boolean('is_available');
+        unset($data['is_available']); // This line is now redundant as we're setting 'is_available' directly.
 
         if ($request->hasFile('image')) {
             $image = $request->file('image');
@@ -70,10 +70,10 @@ class MenuController extends Controller
 
         $menuItem = MenuItem::create($data);
 
-        // Attach to both branches by default with availability matching the menu item's global availability
+        // Attach to both branches by default with is_available matching the menu item's global is_available
         $menuItem->branches()->attach([
-            1 => ['is_available' => $data['availability']],
-            2 => ['is_available' => $data['availability']],
+            1 => ['is_available' => $data['is_available']],
+            2 => ['is_available' => $data['is_available']],
         ]);
 
         return redirect()->route('menu.index')->with('success', 'Menu item created successfully');
@@ -117,7 +117,7 @@ class MenuController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'required|exists:pos_categories,id',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -128,8 +128,8 @@ class MenuController extends Controller
         // Checkbox usually sends 'on' or nothing, but validate rule says boolean, assuming frontend sends 1/0 or true/false
         // $request->has() checks if key exists. Standard HTML checkbox: missing if unchecked.
         // Let's stick to boolean conversion helper for safety if strictly validated, or use logic:
-        $data['availability'] = $request->has('is_available');
-        unset($data['is_available']);
+        $data['is_available'] = $request->has('is_available');
+        unset($data['is_available']); // This line is now redundant as we're setting 'is_available' directly.
 
         if ($request->hasFile('image')) {
             // Delete old image if it exists
@@ -163,11 +163,11 @@ class MenuController extends Controller
 
         $menu->update($data);
 
-        // Sync branch availability based on global availability
+        // Sync branch is_available based on global is_available
         // If global is false, all branches become false. If true, we set all to true (simplest logic for sync)
         $menu->branches()->sync([
-             1 => ['is_available' => $data['availability']],
-             2 => ['is_available' => $data['availability']],
+            1 => ['is_available' => $data['is_available']],
+            2 => ['is_available' => $data['is_available']],
         ]);
 
         return redirect()->route('menu.index')->with('success', 'Menu item updated successfully');
@@ -181,12 +181,12 @@ class MenuController extends Controller
 
         $isAvailable = $request->is_available;
 
-        // Update the menu item's global availability
+        // Update the menu item's global is_available
         $menu->update([
-            'availability' => $isAvailable,
+            'is_available' => $isAvailable,
         ]);
 
-        // Sync branch availability - update all branches to match global availability
+        // Sync branch is_available - update all branches to match global is_available
         // Get existing branch associations
         $branches = $menu->branches()->pluck('branches.id')->toArray();
 
@@ -233,6 +233,11 @@ class MenuController extends Controller
             ]);
         }
 
-        return redirect()->route('menu.index')->with('success', 'Branch availability updated successfully');
+    }
+    public function destroy(MenuItem $menu)
+    {
+        $menu->delete();
+
+        return redirect()->route('menu.index')->with('success', 'Menu item archived successfully');
     }
 }

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" href="{{ asset('images/logo2.jpg') }}" type="image/png">
 
     {{-- ✅ CRITICAL: Session ID meta tag --}}
     <meta name="session-id" content="{{ session()->getId() }}">
@@ -558,7 +559,6 @@
 
         .table tbody tr:hover {
             background-color: var(--red-hover);
-            transform: scale(1.01);
         }
 
         .table tbody td {
@@ -603,7 +603,6 @@
             color: white;
             background-color: var(--primary-red);
             border-color: var(--primary-red);
-            transform: translateY(-2px);
         }
 
         .page-item.active .page-link {
@@ -703,7 +702,7 @@
     <nav class="navbar navbar-expand-lg">
         <div class="{{ $containerClass }}">
             <a class="navbar-brand" href="{{ $brandRoute }}">
-                <img src="{{ asset('images/logo3.png') }}" alt="BBQ-Lagao Logo"
+                <img src="{{ asset('images/logo2.jpg') }}" alt="BBQ-Lagao Logo"
                     style="width: 40px; height: 40px; object-fit: cover;">
                 {{ $brandText }}
             </a>

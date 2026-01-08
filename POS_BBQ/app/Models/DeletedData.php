@@ -9,7 +9,7 @@ class DeletedData extends Model
 {
     use HasFactory;
 
-    protected $table = 'deleted_data';
+    protected $table = 'pos_deleted_data';
 
     protected $fillable = [
         'table_name',

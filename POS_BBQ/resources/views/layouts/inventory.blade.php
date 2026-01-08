@@ -50,13 +50,22 @@
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <a href="{{ route('inventory.dashboard') }}"
-                                class="inline-flex items-center px-1 pt-1 border-b-2 border-indigo-400 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-indigo-700 transition duration-150 ease-in-out">
+                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('inventory.dashboard') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
                                     viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
                                 Inventory
+                            </a>
+                            <a href="{{ route('inventory.forecasting.index') }}"
+                                class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('inventory.forecasting.*') ? 'border-indigo-400 text-gray-900' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }} text-sm font-medium leading-5 transition duration-150 ease-in-out">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                                </svg>
+                                Forecasting
                             </a>
                         </div>
                     </div>
@@ -184,13 +193,14 @@
                     <p class="mb-6 text-gray-700">You must submit a daily report before logging out. This ensures
                         proper end-of-day accountability.</p>
                     <a href="{{ route('inventory.daily-report') }}"
-                        class="block w-full text-center bg-purple-600 text-white px-6 py-3 rounded hover:bg-purple-700 transition">
+                        class="block w-full text-center bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition">
                         Submit Report Now
                     </a>
                 </div>
             </div>
         </div>
 
+        /*
         <script>
             // Logout interception for shift report check
             document.addEventListener('DOMContentLoaded', function () {
@@ -203,7 +213,7 @@
                         e.preventDefault();
 
                         // Check if shift report exists
-                        fetch('{{ route('shift-report.check') }}')
+                        fetch('{{ route('shift-report.check') }}?_t=' + new Date().getTime())
                             .then(response => response.json())
                             .then(data => {
                                 if (data.has_report) {
@@ -219,6 +229,19 @@
                                 // If error, show modal to be safe
                                 modal.classList.remove('hidden');
                             });
+                    });
+                }
+            });
+        </script>
+        */
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const logoutBtn = document.getElementById('logout-btn-inventory');
+                const logoutForm = document.getElementById('logout-form-inventory');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        logoutForm.submit();
                     });
                 }
             });

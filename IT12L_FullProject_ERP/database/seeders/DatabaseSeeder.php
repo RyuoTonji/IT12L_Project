@@ -44,11 +44,11 @@ class DatabaseSeeder extends Seeder
         $this->command->info('  Password: password123');
         $this->command->info('');
         $this->command->info('Database Summary:');
-        $this->command->info('  Branches: ' . DB::table('branches')->count());
-        $this->command->info('  Categories: ' . DB::table('categories')->count());
-        $this->command->info('  Products: ' . DB::table('products')->count());
-        $this->command->info('  Users: ' . DB::table('users')->count());
-        $this->command->info('  Orders: ' . DB::table('orders')->count());
+        $this->command->info('  Branches: ' . DB::table('crm_branches')->count());
+        $this->command->info('  Categories: ' . DB::table('crm_categories')->count());
+        $this->command->info('  Products: ' . DB::table('crm_products')->count());
+        $this->command->info('  Users: ' . DB::table('crm_users')->count());
+        $this->command->info('  Orders: ' . DB::table('crm_orders')->count());
         $this->command->info('');
         $this->command->info('NOTE: Make sure your product images exist in public/storage/products/');
         $this->command->info('Run: php artisan storage:link (if not already done)');

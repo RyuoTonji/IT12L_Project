@@ -23,10 +23,10 @@ class ManagerInterfaceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Disable middleware that might interfere (like authentication redirects if we handle actingAs)
         // actually actingAs handles auth middleware.
-        
+
         // Create Branch manually
         $this->branch = Branch::create([
             'name' => 'Test Branch',
@@ -35,7 +35,7 @@ class ManagerInterfaceTest extends TestCase
             'phone' => '1234567890',
             'is_active' => true,
         ]);
-        
+
         // Create manager
         $this->manager = User::factory()->create([
             'role' => 'manager',
@@ -49,26 +49,26 @@ class ManagerInterfaceTest extends TestCase
             ->get(route('manager.dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('Overview'); 
+        $response->assertSee('Overview');
     }
 
     public function test_manager_can_view_void_requests_with_search()
     {
         // Setup dependencies
-        $table = Table::create(['branch_id' => $this->branch->id, 'number' => '1', 'capacity' => 4, 'status' => 'available']);
-        
+        $table = Table::create(['branch_id' => $this->branch->id, 'name' => 'UniqueTableOne', 'capacity' => 4, 'status' => 'available']);
+
         // Create an order
         $order = Order::create([
             'table_id' => $table->id,
             'user_id' => $this->manager->id,
             'branch_id' => $this->branch->id,
-            'customer_name' => 'Searchable Customer',
+            'customer_name' => 'UniqueSearchableCustomer',
             'order_type' => 'dine-in',
             'status' => 'completed',
             'total_amount' => 100.00,
             'payment_status' => 'paid'
         ]);
-        
+
         // Create void request
         $voidRequest = VoidRequest::create([
             'order_id' => $order->id,
@@ -85,20 +85,20 @@ class ManagerInterfaceTest extends TestCase
 
         // Test search matches
         $response = $this->actingAs($this->manager)
-            ->get(route('manager.void-requests.index', ['search' => 'Searchable Customer']));
+            ->get(route('manager.void-requests.index', ['search' => 'UniqueSearchableCustomer']));
         $response->assertStatus(200);
-        $response->assertSee($order->id);
-        
+        $response->assertSee('UniqueSearchableCustomer');
+
         // Test search filters out mismatch
         $response = $this->actingAs($this->manager)
-            ->get(route('manager.void-requests.index', ['search' => 'NonExistent']));
+            ->get(route('manager.void-requests.index', ['search' => 'NonExistentString']));
         $response->assertStatus(200);
-        $response->assertDontSee($order->id);
+        $response->assertDontSee('UniqueSearchableCustomer');
     }
 
     public function test_manager_can_approve_void_request()
     {
-        $table = Table::create(['branch_id' => $this->branch->id, 'number' => '2', 'capacity' => 4, 'status' => 'available']);
+        $table = Table::create(['branch_id' => $this->branch->id, 'name' => 'Table 2', 'capacity' => 4, 'status' => 'available']);
 
         $order = Order::create([
             'table_id' => $table->id,
@@ -122,15 +122,15 @@ class ManagerInterfaceTest extends TestCase
             ->post(route('manager.void-requests.approve', $voidRequest));
 
         $response->assertRedirect();
-        
-        $this->assertDatabaseHas('void_requests', [
+
+        $this->assertDatabaseHas('pos_void_requests', [
             'id' => $voidRequest->id,
             'status' => 'approved',
             'approver_id' => $this->manager->id
         ]);
-        
+
         // Order should be cancelled
-        $this->assertDatabaseHas('orders', [
+        $this->assertDatabaseHas('pos_orders', [
             'id' => $order->id,
             'status' => 'cancelled'
         ]);
@@ -162,7 +162,7 @@ class ManagerInterfaceTest extends TestCase
     {
         $response = $this->actingAs($this->manager)
             ->get(route('manager.reports.daily'));
-            
+
         $response->assertStatus(200);
         $response->assertSee('Daily Consolidated Report');
     }

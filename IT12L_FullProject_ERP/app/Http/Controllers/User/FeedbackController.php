@@ -22,7 +22,7 @@ class FeedbackController extends Controller
             'feedback_type' => 'required|in:feedback,complaint,suggestion',
             'customer_type' => 'required|in:dine-in,pick-up,take-out',
             'customer_name' => 'required|string|max:255',
-            'order_id' => 'nullable|exists:orders,id',
+            'order_id' => 'nullable|exists:crm_orders,id',
             'message' => 'required|string|min:10',
         ]);
 

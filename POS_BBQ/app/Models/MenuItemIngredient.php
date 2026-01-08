@@ -9,6 +9,7 @@ use App\Traits\SyncsToSupabase;
 class MenuItemIngredient extends Model
 {
     use HasFactory, SyncsToSupabase;
+    protected $table = 'pos_menu_item_ingredients';
 
     protected $fillable = [
         'menu_item_id',

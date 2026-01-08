@@ -40,7 +40,7 @@ class SyncOrderToSupabase implements ShouldQueue
         try {
             DB::connection('supabase')->transaction(function () use ($order) {
                 // Upsert Order
-                DB::connection('supabase')->table('orders')->updateOrInsert(
+                DB::connection('supabase')->table('crm_orders')->updateOrInsert(
                     ['id' => $order->id],
                     [
                         'user_id' => $order->user_id,
@@ -55,15 +55,17 @@ class SyncOrderToSupabase implements ShouldQueue
                     ]
                 );
 
-                // Upsert Items
                 foreach ($order->items as $item) {
-                    DB::connection('supabase')->table('order_items')->updateOrInsert(
-                        ['id' => $item->id],
+                    DB::connection('supabase')->table('crm_order_items')->updateOrInsert(
+                        ['id' => $item->id, 'order_id' => $item->order_id],
                         [
-                            'order_id' => $item->order_id,
+                            'product_id' => $item->product_id,
                             'product_name' => $item->product_name,
+                            'product_image' => $item->product_image,
                             'quantity' => $item->quantity,
-                            'price' => $item->price,
+                            'unit_price' => $item->unit_price,
+                            'menu_item_id' => $item->menu_item_id,
+                            'subtotal' => $item->subtotal,
                             'created_at' => $item->created_at,
                             'updated_at' => $item->updated_at,
                         ]

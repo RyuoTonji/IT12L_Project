@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        if (!Schema::hasTable('categories')) {
-            Schema::create('categories', function (Blueprint $table) {
+        if (!Schema::hasTable('crm_categories')) {
+            Schema::create('crm_categories', function (Blueprint $table) {
                 $table->id();
                 $table->string('name', 100);
                 $table->text('description')->nullable();
@@ -20,6 +20,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('crm_categories');
     }
 };

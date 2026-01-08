@@ -11,17 +11,17 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = DB::table('users')
+        $query = DB::table('crm_users')
             ->where('role', 'customer')
             ->whereNull('deleted_at');
 
         // Search filter
         if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -44,14 +44,14 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|unique:crm_users,email',
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'password' => 'required|min:8|confirmed',
             'is_active' => 'nullable|boolean'
         ]);
 
-        DB::table('users')->insert([
+        DB::table('crm_users')->insert([
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
@@ -69,7 +69,7 @@ class CustomerController extends Controller
 
     public function show($id)
     {
-        $customer = DB::table('users')
+        $customer = DB::table('crm_users')
             ->where('id', $id)
             ->where('role', 'customer')
             ->whereNull('deleted_at')
@@ -80,24 +80,24 @@ class CustomerController extends Controller
         }
 
         // Get customer's orders
-        $orders = DB::table('orders')
-            ->join('branches', 'orders.branch_id', '=', 'branches.id')
-            ->whereNull('orders.deleted_at')
-            ->where('orders.user_id', $id)
+        $orders = DB::table('crm_orders')
+            ->join('crm_branches', 'crm_orders.branch_id', '=', 'crm_branches.id')
+            ->whereNull('crm_orders.deleted_at')
+            ->where('crm_orders.user_id', $id)
             ->select(
-                'orders.*',
-                'branches.name as branch_name'
+                'crm_orders.*',
+                'crm_branches.name as branch_name'
             )
             ->orderBy('orders.created_at', 'desc')
             ->paginate(10);
 
         // Get order statistics
-        $totalOrders = DB::table('orders')
+        $totalOrders = DB::table('crm_orders')
             ->whereNull('deleted_at')
             ->where('user_id', $id)
             ->count();
 
-        $totalSpent = DB::table('orders')
+        $totalSpent = DB::table('crm_orders')
             ->whereNull('deleted_at')
             ->where('user_id', $id)
             ->whereIn('status', ['confirmed', 'picked up'])
@@ -108,7 +108,7 @@ class CustomerController extends Controller
 
     public function edit($id)
     {
-        $customer = DB::table('users')
+        $customer = DB::table('crm_users')
             ->where('id', $id)
             ->where('role', 'customer')
             ->whereNull('deleted_at')
@@ -125,7 +125,7 @@ class CustomerController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
+            'email' => 'required|email|unique:crm_users,email,' . $id,
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'password' => 'nullable|min:8|confirmed',
@@ -145,14 +145,14 @@ class CustomerController extends Controller
             $updateData['password'] = Hash::make($request->password);
         }
 
-        DB::table('users')->where('id', $id)->update($updateData);
+        DB::table('crm_users')->where('id', $id)->update($updateData);
 
         return redirect()->route('admin.customers.show', $id)->with('success', 'Customer updated successfully!');
     }
 
     public function toggleStatus($id)
     {
-        $customer = DB::table('users')
+        $customer = DB::table('crm_users')
             ->where('id', $id)
             ->where('role', 'customer')
             ->whereNull('deleted_at')
@@ -165,14 +165,14 @@ class CustomerController extends Controller
 
         // Toggle the status
         $newStatus = $customer->is_active ? 0 : 1;
-        
-        DB::table('users')->where('id', $id)->update([
+
+        DB::table('crm_users')->where('id', $id)->update([
             'is_active' => $newStatus,
             'updated_at' => now()
         ]);
 
         $statusText = $newStatus ? 'enabled' : 'disabled';
-        
+
         return redirect()->route('admin.customers.index')
             ->with('success', "Customer status updated successfully! Account is now {$statusText}.");
     }

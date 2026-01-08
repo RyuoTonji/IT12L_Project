@@ -10,7 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::rename('reports', 'activities');
+        Schema::table('pos_categories', function (Blueprint $table) {
+            $table->integer('sort_order')->nullable()->after('description');
+        });
     }
 
     /**
@@ -18,6 +20,8 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::rename('activities', 'reports');
+        Schema::table('pos_categories', function (Blueprint $table) {
+            $table->dropColumn('sort_order');
+        });
     }
 };

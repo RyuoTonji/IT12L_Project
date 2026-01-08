@@ -10,29 +10,31 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('shift_reports', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('branch_id')->nullable();
-            $table->foreignId('user_id')->constrained();
-            $table->enum('report_type', ['sales', 'inventory'])->default('sales');
-            $table->date('shift_date');
-            $table->timestamp('clock_in_time')->nullable();
-            $table->timestamp('clock_out_time')->nullable();
-            $table->decimal('total_hours', 8, 2)->nullable();
-            $table->decimal('total_sales', 10, 2)->nullable();
-            $table->decimal('total_refunds', 10, 2)->nullable();
-            $table->integer('total_orders')->nullable();
-            $table->decimal('stock_in', 10, 2)->nullable();
-            $table->decimal('stock_out', 10, 2)->nullable();
-            $table->decimal('remaining_stock', 10, 2)->nullable();
-            $table->decimal('spoilage', 10, 2)->nullable();
-            $table->decimal('returns', 10, 2)->nullable();
-            $table->text('return_reason')->nullable();
-            $table->text('content'); // The written report
-            $table->text('admin_reply')->nullable();
-            $table->enum('status', ['submitted', 'reviewed'])->default('submitted');
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('pos_shift_reports')) {
+            Schema::create('pos_shift_reports', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('branch_id')->nullable()->constrained('pos_branches')->onDelete('set null');
+                $table->foreignId('user_id')->constrained('pos_users');
+                $table->enum('report_type', ['sales', 'inventory', 'inventory_start', 'inventory_end'])->default('sales');
+                $table->date('shift_date');
+                $table->timestamp('clock_in_time')->nullable();
+                $table->timestamp('clock_out_time')->nullable();
+                $table->decimal('total_hours', 8, 2)->nullable();
+                $table->decimal('total_sales', 10, 2)->nullable();
+                $table->decimal('total_refunds', 10, 2)->nullable();
+                $table->integer('total_orders')->nullable();
+                $table->decimal('stock_in', 10, 2)->nullable();
+                $table->decimal('stock_out', 10, 2)->nullable();
+                $table->decimal('remaining_stock', 10, 2)->nullable();
+                $table->decimal('spoilage', 10, 2)->nullable();
+                $table->decimal('returns', 10, 2)->nullable();
+                $table->text('return_reason')->nullable();
+                $table->text('content'); // The written report
+                $table->text('admin_reply')->nullable();
+                $table->enum('status', ['submitted', 'reviewed'])->default('submitted');
+                $table->timestamps();
+            });
+        }
     }
 
     /**
@@ -40,6 +42,6 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('shift_reports');
+        Schema::dropIfExists('pos_shift_reports');
     }
 };

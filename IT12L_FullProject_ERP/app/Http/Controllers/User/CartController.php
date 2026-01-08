@@ -2,7 +2,7 @@
 
 /**
  * File: app/Http/Controllers/User/CartController.php
- * COMPLETE WORKING VERSION - Copy this entire file
+ * COMPLETE WORKING VERSION
  */
 
 namespace App\Http\Controllers\User;
@@ -10,14 +10,14 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use App\Models\Cart;
+use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
     /**
-<<<<<<< Updated upstream
-     * Display the cart page
-     * Works for both guests and authenticated users
-=======
      * ✅ SIMPLIFIED: localStorage-based cart (no database needed for cart storage)
      * Database Cart model is kept only for backward compatibility
      */
@@ -26,12 +26,12 @@ class CartController extends Controller
         $sessionId = session()->getId();
 
         // ALWAYS use session_id as primary identifier
-        $cart = Cart::getOrCreate(auth()->id(), $sessionId);
+        $cart = Cart::getOrCreate(Auth::id(), $sessionId);
 
         Log::info('Cart accessed', [
             'cart_id' => $cart ? $cart->id : null,
             'session_id' => $sessionId,
-            'user_id' => auth()->id() ?? 'guest'
+            'user_id' => Auth::id() ?? 'guest'
         ]);
 
         return $cart;
@@ -39,7 +39,6 @@ class CartController extends Controller
 
     /**
      * Display cart page
->>>>>>> Stashed changes
      */
     public function index()
     {
@@ -47,68 +46,18 @@ class CartController extends Controller
     }
 
     /**
-     * Get cart count (not used since localStorage handles it)
+     * Get cart count
      */
     public function count()
     {
-        return response()->json(['count' => 0]);
+        $cart = $this->getCart();
+        return response()->json(['count' => $cart ? $cart->getItemCount() : 0]);
     }
 
     /**
      * Get product details for items in cart
      * This is called by the cart page to display full product info
      */
-    public function getProducts(Request $request)
-    {
-        $productIds = $request->input('product_ids', []);
-        
-        if (empty($productIds)) {
-            return response()->json([]);
-        }
-        
-        $products = DB::table('products')
-            ->join('branches', 'products.branch_id', '=', 'branches.id')
-            ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->whereIn('products.id', $productIds)
-            ->select(
-                'products.id',
-                'products.name',
-                'products.price',
-                'products.image',
-                'products.is_available',
-                'products.branch_id',
-                'branches.name as branch_name',
-                'categories.name as category_name'
-            )
-            ->get();
-            
-        return response()->json($products);
-    }
-
-    /**
-     * Add item to cart
-     * Just returns success - actual cart is handled by JavaScript/localStorage
-     */
-    public function add(Request $request)
-    {
-        return response()->json([
-            'success' => true,
-            'message' => 'Item added to cart'
-        ]);
-    }
-
-    /**
-     * Update cart item quantity
-     * Just returns success - actual cart is handled by JavaScript/localStorage
-     */
-<<<<<<< Updated upstream
-    public function update(Request $request)
-    {
-        return response()->json([
-            'success' => true,
-            'message' => 'Cart updated'
-        ]);
-=======
     public function getProducts(Request $request)
     {
         try {
@@ -149,10 +98,8 @@ class CartController extends Controller
     }
 
     /**
-     * ✅ SIMPLIFIED: These methods are kept for API compatibility
-     * But the actual cart logic is handled by localStorage (cart.js)
+     * Add item to cart
      */
-
     public function add(Request $request)
     {
         try {
@@ -179,7 +126,7 @@ class CartController extends Controller
                 'session_id' => $cart->session_id,
                 'product_id' => $request->product_id,
                 'quantity' => $quantity,
-                'user_id' => auth()->id() ?? 'guest'
+                'user_id' => Auth::id() ?? 'guest'
             ]);
 
             return response()->json([
@@ -200,6 +147,9 @@ class CartController extends Controller
         }
     }
 
+    /**
+     * Update cart item quantity
+     */
     public function update(Request $request)
     {
         try {
@@ -235,21 +185,13 @@ class CartController extends Controller
                 'message' => 'Failed to update cart'
             ], 500);
         }
->>>>>>> Stashed changes
     }
 
     /**
      * Remove item from cart
-     * Just returns success - actual cart is handled by JavaScript/localStorage
      */
     public function remove(Request $request)
     {
-<<<<<<< Updated upstream
-        return response()->json([
-            'success' => true,
-            'message' => 'Item removed from cart'
-        ]);
-=======
         try {
             $request->validate([
                 'product_id' => 'required|integer'
@@ -278,21 +220,13 @@ class CartController extends Controller
                 'message' => 'Failed to remove item'
             ], 500);
         }
->>>>>>> Stashed changes
     }
 
     /**
      * Clear entire cart
-     * Just returns success - actual cart is handled by JavaScript/localStorage
      */
     public function clear(Request $request)
     {
-<<<<<<< Updated upstream
-        return response()->json([
-            'success' => true,
-            'message' => 'Cart cleared'
-        ]);
-=======
         try {
             $cart = $this->getCart();
 
@@ -308,7 +242,7 @@ class CartController extends Controller
             Log::info('Cart cleared', [
                 'cart_id' => $cart->id,
                 'session_id' => $cart->session_id,
-                'user_id' => auth()->id() ?? 'guest'
+                'user_id' => Auth::id() ?? 'guest'
             ]);
 
             return response()->json([
@@ -322,28 +256,20 @@ class CartController extends Controller
                 'message' => 'Failed to clear cart'
             ], 500);
         }
->>>>>>> Stashed changes
     }
 
     /**
      * Sync cart (for when guest logs in)
-     * Just returns success - actual cart is handled by JavaScript/localStorage
      */
     public function sync(Request $request)
     {
-<<<<<<< Updated upstream
-        return response()->json([
-            'success' => true,
-            'message' => 'Cart synced'
-        ]);
-=======
         try {
             $localCart = $request->input('items', []);
 
             Log::info('Cart sync request received', [
                 'items_count' => count($localCart),
                 'current_session_id' => session()->getId(),
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'items' => $localCart
             ]);
 
@@ -356,7 +282,6 @@ class CartController extends Controller
                 ]);
             }
 
-            // Get current cart (will create if doesn't exist)
             $cart = $this->getCart();
 
             if (!$cart) {
@@ -367,10 +292,8 @@ class CartController extends Controller
                 ], 500);
             }
 
-            // Clear existing items (fresh sync)
             $cart->clear();
 
-            // Add items from localStorage
             $syncedCount = 0;
             foreach ($localCart as $item) {
                 $productId = $item['id'] ?? $item['product_id'] ?? null;
@@ -381,29 +304,15 @@ class CartController extends Controller
                     continue;
                 }
 
-                // Verify product exists and is available
                 $product = Product::find($productId);
                 if (!$product || !$product->is_available) {
-                    Log::warning('Product not found or unavailable during sync', [
-                        'product_id' => $productId
-                    ]);
                     continue;
                 }
 
-                // Add item to database cart
                 $cart->addItem($productId, $quantity);
                 $syncedCount++;
             }
 
-            Log::info('Cart synced successfully', [
-                'cart_id' => $cart->id,
-                'session_id' => $cart->session_id,
-                'items_synced' => $syncedCount,
-                'total_items' => $cart->getItemCount(),
-                'user_id' => auth()->id()
-            ]);
-
-            // Return updated cart data
             $cartItems = $cart->items()->with('product')->get()->map(function ($item) {
                 return [
                     'id' => $item->product_id,
@@ -433,6 +342,5 @@ class CartController extends Controller
                 'message' => 'Failed to sync cart: ' . $e->getMessage()
             ], 500);
         }
->>>>>>> Stashed changes
     }
 }

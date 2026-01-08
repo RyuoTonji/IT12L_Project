@@ -51,7 +51,9 @@ class ReportController extends Controller
         // Fetch all users for filter
         $users = \App\Models\User::orderBy('name')->get();
 
-        return view('admin.reports.activities', compact('activities', 'users'));
+        $activeTab = $request->query('role', 'cashier');
+
+        return view('admin.reports.activities', compact('activities', 'users', 'activeTab'));
     }
 
     public function sales(Request $request)
@@ -90,8 +92,8 @@ class ReportController extends Controller
             ->appends($request->all());
 
         // Get payment method breakdown
-        $paymentQuery = DB::table('payments')
-            ->join('orders', 'payments.order_id', '=', 'orders.id')
+        $paymentQuery = DB::table('pos_payments as payments')
+            ->join('pos_orders as orders', 'payments.order_id', '=', 'orders.id')
             ->whereBetween('payments.created_at', [$startDateCarbon, $endDateCarbon]);
 
         if ($userId) {
@@ -119,39 +121,40 @@ class ReportController extends Controller
 
         // Get top selling items query
         $query = MenuItem::select(
-            'menu_items.id',
-            'menu_items.name',
+            'pos_menu_items.id',
+            'pos_menu_items.name',
             'categories.name as category_name',
             DB::raw('SUM(order_items.quantity) as total_quantity'),
             DB::raw('SUM(order_items.quantity * order_items.unit_price) as total_sales')
         )
-            ->join('order_items', 'menu_items.id', '=', 'order_items.menu_item_id')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->join('categories', 'menu_items.category_id', '=', 'categories.id')
+            ->join('pos_order_items as order_items', 'pos_menu_items.id', '=', 'order_items.menu_item_id')
+            ->join('pos_orders as orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('pos_categories as categories', 'pos_menu_items.category_id', '=', 'categories.id')
             ->whereBetween('orders.created_at', [$startDateCarbon, $endDateCarbon])
             ->where('orders.payment_status', 'paid');
 
         // Apply category filter if selected
         if ($categoryId && $categoryId !== 'all') {
-            $query->where('menu_items.category_id', $categoryId);
+            $query->where('pos_menu_items.category_id', $categoryId);
         }
 
-        $topItems = $query->groupBy('menu_items.id', 'menu_items.name', 'categories.name')
+        $topItems = $query->groupBy('pos_menu_items.id', 'pos_menu_items.name', 'pos_categories.name')
             ->orderByDesc('total_quantity')
             ->paginate(10)
             ->appends($request->all());
 
         // Get category breakdown
-        $categories = DB::table('categories')
+        $hasData = DB::table('pos_categories')->count() > 0;
+        $categories = DB::table('pos_categories as categories')
             ->select(
                 'categories.id',
                 'categories.name',
                 DB::raw('SUM(order_items.quantity) as total_quantity'),
                 DB::raw('SUM(order_items.quantity * order_items.unit_price) as total_sales')
             )
-            ->join('menu_items', 'categories.id', '=', 'menu_items.category_id')
-            ->join('order_items', 'menu_items.id', '=', 'order_items.menu_item_id')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('pos_menu_items as menu_items', 'categories.id', '=', 'menu_items.category_id')
+            ->join('pos_order_items as order_items', 'menu_items.id', '=', 'order_items.menu_item_id')
+            ->join('pos_orders as orders', 'order_items.order_id', '=', 'orders.id')
             ->whereBetween('orders.created_at', [$startDateCarbon, $endDateCarbon])
             ->where('orders.payment_status', 'paid')
             ->groupBy('categories.id', 'categories.name')
@@ -175,15 +178,15 @@ class ReportController extends Controller
 
         // Get staff performance
         $staffPerformance = User::select(
-            'users.id',
-            'users.name',
+            'pos_users.id',
+            'pos_users.name',
             DB::raw('COUNT(orders.id) as total_orders'),
             DB::raw('SUM(orders.total_amount) as total_sales')
         )
-            ->join('orders', 'users.id', '=', 'orders.user_id')
+            ->join('pos_orders as orders', 'pos_users.id', '=', 'orders.user_id')
             ->whereBetween('orders.created_at', [$startDateCarbon, $endDateCarbon])
             ->where('orders.payment_status', 'paid')
-            ->groupBy('users.id', 'users.name')
+            ->groupBy('pos_users.id', 'pos_users.name')
             ->orderByDesc('total_sales')
             ->get();
 

@@ -1,6 +1,110 @@
 @extends('layouts.inventory')
 
 @section('content')
+    <!-- Forecasting Summary Div -->
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
+        <div class="p-6 text-gray-900 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-black" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+                Forecasting Summary (Tomorrow)
+            </h3>
+            <a href="{{ route('inventory.forecasting.index') }}"
+                class="text-sm font-semibold text-black hover:text-gray-700 transition-colors flex items-center">
+                View Detailed Forecast
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </a>
+        </div>
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Summary Stats -->
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predicted Sales</p>
+                        <p class="text-3xl font-black text-gray-900 line-height-tight">₱{{ number_format($nextDayForecast['total_predicted_sales'], 2) }}</p>
+                    </div>
+                    <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-gray-100">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Stock Shortfalls</p>
+                        <p class="text-3xl font-black text-gray-900 line-height-tight">{{ collect($nextDayForecast['ingredients'])->where('to_buy', '>', 0)->count() }} Items</p>
+                    </div>
+                </div>
+
+                <!-- Mini Ingredient Alert -->
+                <div class="overflow-hidden rounded-xl border border-gray-100">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Top Shortfall Ingredients</th>
+                                <th class="px-4 py-2 text-right">To Buy</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-50">
+                            @forelse(collect($nextDayForecast['ingredients'])->where('to_buy', '>', 0)->take(3) as $ing)
+                                <tr>
+                                    <td class="px-4 py-2 text-sm text-gray-700 font-medium">{{ $ing['name'] }}</td>
+                                    <td class="px-4 py-2 text-sm text-black font-bold text-right">+{{ $ing['to_buy'] }}
+                                        {{ $ing['unit'] }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="2" class="px-4 py-6 text-center text-sm text-green-600 font-medium">All stocks
+                                        sufficient for tomorrow's forecast!</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Mini Trend Graph -->
+            <div class="h-full min-h-[150px]">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">14-Day Sales Trend</p>
+                <div class="h-40">
+                    <canvas id="miniTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const ctx = document.getElementById('miniTrendChart').getContext('2d');
+            const salesData = @json($dailyTrends);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: salesData.map(d => d.date),
+                    datasets: [{
+                        data: salesData.map(d => d.total),
+                        borderColor: '#111827',
+                        backgroundColor: 'rgba(17, 24, 39, 0.05)',
+                        borderWidth: 2,
+                        label: 'Sales'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false, beginAtZero: true },
+                        x: { display: false }
+                    }
+                }
+            });
+        });
+    </script>
+
+    <hr class="mb-8 border-gray-200" />
+
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" x-data="{ activeTab: 0 }">
         <div class="p-6 text-gray-900">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 md:gap-0">
@@ -77,41 +181,74 @@
                         <table class="min-w-full divide-y divide-gray-200" id="table-cat-{{ $loop->index }}">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Sold</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Stock-In</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Stock-Out</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Spoilage</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Remaining</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Unit</th>
-                                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Item Name</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Supplier</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Sold</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Stock-In</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Stock-Out</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Spoilage</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Remaining</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Unit</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @foreach($items as $inventory)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ $inventory->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inventory->supplier ?: '-' }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ number_format($inventory->sold, 2) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ number_format($inventory->stock_in, 2) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ number_format($inventory->stock_out, 2) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600 font-medium {{ $inventory->spoilage > 0 ? 'text-orange-600' : 'text-gray-400' }}">{{ number_format($inventory->spoilage, 2) }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= ($inventory->reorder_level ?? 0) ? 'text-red-600' : 'text-green-600' }}">
+                                        <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{{ $inventory->name }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ $inventory->supplier ?: '-' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                                            {{ number_format($inventory->sold, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                                            {{ number_format($inventory->stock_in, 2) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                                            {{ number_format($inventory->stock_out, 2) }}</td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600 font-medium {{ $inventory->spoilage > 0 ? 'text-orange-600' : 'text-gray-400' }}">
+                                            {{ number_format($inventory->spoilage, 2) }}</td>
+                                        <td
+                                            class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold {{ $inventory->quantity <= ($inventory->reorder_level ?? 0) ? 'text-red-600' : 'text-green-600' }}">
                                             {{ number_format($inventory->quantity, 2) }}
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">{{ $inventory->unit }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-600">
+                                            {{ $inventory->unit }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             <div class="flex items-center justify-center space-x-3">
-                                                <a href="{{ route('inventory.edit', $inventory->id) }}" class="text-indigo-600 hover:text-indigo-900 flex items-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                <a href="{{ route('inventory.edit', $inventory->id) }}"
+                                                    class="text-indigo-600 hover:text-indigo-900 flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                     </svg>
                                                     Edit
                                                 </a>
-                                                <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')" class="text-blue-600 hover:text-blue-900 flex items-center">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                                <button onclick="openUpdateModal('{{ $inventory->id }}', '{{ $inventory->name }}')"
+                                                    class="text-blue-600 hover:text-blue-900 flex items-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                                        viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                                                     </svg>
                                                     Stock In
                                                 </button>
@@ -122,7 +259,8 @@
                                                     <button type="button"
                                                         onclick="showConfirm('Are you sure you want to archive this item?', () => this.closest('form').submit())"
                                                         class="text-gray-600 hover:text-gray-900 flex items-center transition-colors duration-200">
-                                                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                                        <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                                                             <path d="M4 10h16v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V10Z"></path>
                                                             <path d="M6 10V7h12v3"></path>
                                                             <path d="M8 7V5h8v2"></path>
@@ -303,7 +441,7 @@
             @foreach($inventoriesByCategory as $categoryName => $items)
                 paginateTable('table-cat-{{ $loop->index }}', 10);
             @endforeach
-                                            });
+                                                });
 
         function paginateTable(tableId, rowsPerPage) {
             const table = document.getElementById(tableId);
@@ -346,10 +484,10 @@
 
                 // Previous Button
                 html += `<button onclick="renderPagination('${tId}', ${page - 1}, ${pCount}, ${rPP})" 
-                                                                        class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                                        ${page === 1 ? 'disabled' : ''}>
-                                                                        ${prevIcon}
-                                                                     </button>`;
+                                                                            class="w-8 h-8 flex items-center justify-center mr-2 rounded hover:bg-gray-100 ${page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                            ${page === 1 ? 'disabled' : ''}>
+                                                                            ${prevIcon}
+                                                                         </button>`;
 
                 // Generate Page Numbers
                 let range = [];
@@ -371,21 +509,21 @@
                     } else {
                         const isActive = item === page;
                         const classes = isActive
-                            ? 'bg-gray-800 text-white font-bold'
+                            ? 'bg-black text-white font-bold'
                             : 'text-black hover:bg-gray-100';
                         html += `<button onclick="renderPagination('${tId}', ${item}, ${pCount}, ${rPP})" 
-                                                                                class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
-                                                                                ${item}
-                                                                             </button>`;
+                                                                                    class="w-8 h-8 flex items-center justify-center rounded mx-1 ${classes}">
+                                                                                    ${item}
+                                                                                 </button>`;
                     }
                 });
 
                 // Next Button
                 html += `<button onclick="renderPagination('${tId}', ${page + 1}, ${pCount}, ${rPP})" 
-                                                                        class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
-                                                                        ${page === pCount ? 'disabled' : ''}>
-                                                                        ${nextIcon}
-                                                                     </button>`;
+                                                                            class="w-8 h-8 flex items-center justify-center ml-2 rounded hover:bg-gray-100 ${page === pCount ? 'text-gray-300 cursor-not-allowed' : 'text-black'}" 
+                                                                            ${page === pCount ? 'disabled' : ''}>
+                                                                            ${nextIcon}
+                                                                         </button>`;
 
                 // Add flex styling
                 html = '<div class="flex justify-end items-center space-x-2 w-full">' + html + '</div>';

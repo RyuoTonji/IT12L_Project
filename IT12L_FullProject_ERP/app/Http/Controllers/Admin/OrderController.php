@@ -40,7 +40,7 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $order = Order::with(['user', 'branch', 'items'])->find($id);
+        $order = Order::with(['user', 'branch', 'items.product'])->find($id);
 
         if (!$order) {
             return redirect()->route('admin.orders.index')->with('error', 'Order not found!');
@@ -50,41 +50,57 @@ class OrderController extends Controller
     }
 
     public function updateStatus(Request $request, $id)
-{
-    $request->validate([
-        'status' => 'required|in:pending,confirmed,preparing,ready,picked up,cancelled'
-    ]);
+    {
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,preparing,ready,picked up,cancelled'
+        ]);
 
-    $order = Order::findOrFail($id);
+        $order = Order::findOrFail($id);
 
-    // FINAL states
-    if (in_array($order->status, ['picked up', 'cancelled'])) {
-        return back()->with('error', 'This order is already final.');
-    }
+        // FINAL states
+        if (in_array($order->status, ['picked up', 'cancelled'])) {
+            return back()->with('error', 'This order is already final.');
+        }
 
-    // Allowed forward flow
-    $flow = ['pending', 'confirmed', 'preparing', 'ready', 'picked up'];
+        // Allowed forward flow
+        $flow = ['pending', 'confirmed', 'preparing', 'ready', 'picked up'];
 
-    $currentIndex = array_search($order->status, $flow);
-    $newIndex = array_search($request->status, $flow);
+        $currentIndex = array_search($order->status, $flow);
+        $newIndex = array_search($request->status, $flow);
 
-    // Cancel allowed ONLY before picked up
-    if ($request->status === 'cancelled') {
-        $order->status = 'cancelled';
+        // Cancel allowed ONLY before picked up
+        if ($request->status === 'cancelled') {
+            $order->status = 'cancelled';
+            $order->save();
+            return back()->with('success', 'Order cancelled.');
+        }
+
+        // Block backward or invalid transitions
+        if ($newIndex === false || $newIndex <= $currentIndex) {
+            return back()->with('error', 'Invalid status change.');
+        }
+
+        if ($request->status === 'confirmed' && $order->status !== 'confirmed' && is_null($order->approved_by)) {
+            $order->approved_by = auth()->id();
+            $order->approved_at = now();
+        }
+
+        // Set timestamps for other statuses
+        if ($request->status === 'preparing' && $order->status !== 'preparing') {
+            $order->preparing_at = now();
+        }
+        if ($request->status === 'ready' && $order->status !== 'ready') {
+            $order->ready_at = now();
+        }
+        if ($request->status === 'picked up' && $order->status !== 'picked up') {
+            $order->picked_up_at = now();
+        }
+
+        $order->status = $request->status;
         $order->save();
-        return back()->with('success', 'Order cancelled.');
+
+        return back()->with('success', 'Order status updated.');
     }
-
-    // Block backward or invalid transitions
-    if ($newIndex === false || $newIndex <= $currentIndex) {
-        return back()->with('error', 'Invalid status change.');
-    }
-
-    $order->status = $request->status;
-    $order->save();
-
-    return back()->with('success', 'Order status updated.');
-}
 
 
     public function destroy($id)

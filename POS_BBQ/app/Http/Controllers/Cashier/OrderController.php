@@ -63,7 +63,7 @@ class OrderController extends Controller
 
         $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('availability', true)
+                $query->where('is_available', true)
                     ->orderBy('name');
             }
         ])->get();
@@ -81,11 +81,11 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'table_id' => 'nullable|exists:tables,id',
+            'table_id' => 'nullable|exists:pos_tables,id',
             'customer_name' => 'nullable|string|max:255',
             'order_type' => 'required|in:dine-in,takeout',
             'items' => 'required|array|min:1',
-            'items.*.menu_item_id' => 'required|exists:menu_items,id',
+            'items.*.menu_item_id' => 'required|exists:pos_menu_items,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.notes' => 'nullable|string',
         ]);
@@ -223,7 +223,7 @@ class OrderController extends Controller
 
         $categories = Category::orderBy('sort_order', 'asc')->with([
             'menuItems' => function ($query) {
-                $query->where('availability', true)
+                $query->where('is_available', true)
                     ->orderBy('name');
             }
         ])->get();
@@ -247,11 +247,11 @@ class OrderController extends Controller
         $request->validate([
             'status' => 'required|in:' . $allowedStatuses,
             'order_type' => 'required|in:dine-in,takeout',
-            'table_id' => 'nullable|exists:tables,id|required_if:order_type,dine-in',
+            'table_id' => 'nullable|exists:pos_tables,id|required_if:order_type,dine-in',
             'customer_name' => 'nullable|string',
             'items' => 'required|array|min:1',
-            'items.*.id' => 'nullable|exists:order_items,id',
-            'items.*.menu_item_id' => 'required|exists:menu_items,id',
+            'items.*.id' => 'nullable|exists:pos_order_items,id',
+            'items.*.menu_item_id' => 'required|exists:pos_menu_items,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.notes' => 'nullable|string',
         ]);

@@ -7,14 +7,12 @@ use App\Models\Branch;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BranchController extends Controller
 {
     public function index()
     {
-<<<<<<< Updated upstream
-        $branches = DB::table('branches')
-=======
         $branches = Branch::withCount([
             'orders' => function ($query) {
                 $query->whereNull('deleted_at');
@@ -26,14 +24,8 @@ class BranchController extends Controller
                 $query->where('is_available', 1)->whereNull('deleted_at');
             }
         ])
->>>>>>> Stashed changes
             ->orderBy('id', 'desc')
             ->paginate(20);
-
-        // Rename withCount attributes for view compatibility if needed, 
-        // but index view uses $branch->orders_count, $branch->available_menu_items_count, $branch->inventories_count
-        // we can alias in withCount or just rename them in the collection if needed.
-        // Actually inventories_count is products_count in our withCount.
 
         $branches->getCollection()->transform(function ($branch) {
             $branch->inventories_count = $branch->products_count;
@@ -61,20 +53,12 @@ class BranchController extends Controller
             'name' => $request->name,
             'address' => $request->address,
             'phone' => $request->phone,
-<<<<<<< Updated upstream
-            'is_active' => $request->has('is_active') ? 1 : 0,
-            'created_at' => now(),
-            'updated_at' => now()
-=======
             'is_active' => $request->is_active ? 1 : 0
->>>>>>> Stashed changes
         ]);
 
         return redirect()->route('admin.branches.index')->with('success', 'Branch created successfully!');
     }
 
-<<<<<<< Updated upstream
-=======
     /**
      * Display the specified branch with operations.
      */
@@ -115,7 +99,7 @@ class BranchController extends Controller
         $menuItemsRaw = Product::with('category')
             ->where('branch_id', $id)
             ->where('is_available', 1)
-            ->orderBy('category_id') // We'll group by category name below
+            ->orderBy('category_id')
             ->orderBy('name')
             ->get();
 
@@ -134,7 +118,6 @@ class BranchController extends Controller
         ));
     }
 
->>>>>>> Stashed changes
     public function edit($id)
     {
         $branch = Branch::find($id);
@@ -165,12 +148,7 @@ class BranchController extends Controller
             'name' => $request->name,
             'address' => $request->address,
             'phone' => $request->phone,
-<<<<<<< Updated upstream
-            'is_active' => $request->has('is_active') ? 1 : 0,
-            'updated_at' => now()
-=======
             'is_active' => $request->is_active ? 1 : 0
->>>>>>> Stashed changes
         ]);
 
         return redirect()->route('admin.branches.index')->with('success', 'Branch updated successfully!');
@@ -178,27 +156,12 @@ class BranchController extends Controller
 
     public function destroy($id)
     {
-<<<<<<< Updated upstream
-        $branch = DB::table('branches')->where('id', $id)->first();
-=======
         $branch = Branch::find($id);
->>>>>>> Stashed changes
 
         if (!$branch) {
             return redirect()->route('admin.branches.index')->with('error', 'Branch not found!');
         }
 
-<<<<<<< Updated upstream
-        // Check if branch has products
-        $productCount = DB::table('products')->where('branch_id', $id)->count();
-        if ($productCount > 0) {
-            return redirect()->route('admin.branches.index')->with('error', 'Cannot delete branch with existing products!');
-        }
-
-        DB::table('branches')->where('id', $id)->delete();
-
-        return redirect()->route('admin.branches.index')->with('success', 'Branch deleted successfully!');
-=======
         $branch->delete();
 
         return redirect()->route('admin.branches.index')->with('success', 'Branch archived successfully!');
@@ -246,6 +209,5 @@ class BranchController extends Controller
         $branch->restore();
 
         return redirect()->route('admin.branches.archived')->with('success', 'Branch restored successfully!');
->>>>>>> Stashed changes
     }
 }

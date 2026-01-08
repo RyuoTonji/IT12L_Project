@@ -27,7 +27,7 @@ class HomeController extends Controller
 
         $categories = Category::all();
 
-        $products = Product::where('branch_id', $id)
+        $products = Product::byBranch($id)
             ->with('category')
             ->paginate(12);
 
@@ -44,7 +44,7 @@ class HomeController extends Controller
 
         $categories = Category::all();
 
-        $products = Product::where('branch_id', $branchId)
+        $products = Product::byBranch($branchId)
             ->where('category_id', $categoryId)
             ->with('category')
             ->paginate(12);

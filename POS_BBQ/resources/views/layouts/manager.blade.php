@@ -167,6 +167,7 @@
             </div>
         </div>
 
+        /*
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const logoutBtn = document.getElementById('logout-btn-manager');
@@ -190,6 +191,19 @@
                                 console.error('Error checking shift report:', error);
                                 modal.classList.remove('hidden');
                             });
+                    });
+                }
+            });
+        </script>
+        */
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const logoutBtn = document.getElementById('logout-btn-manager');
+                const logoutForm = document.getElementById('logout-form-manager');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        logoutForm.submit();
                     });
                 }
             });

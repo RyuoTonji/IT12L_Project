@@ -42,7 +42,13 @@ class InventoryController extends Controller
             $inventoriesByCategory[$categoryName]->push($inventory);
         }
 
-        return view('inventory.dashboard', compact('inventories', 'inventoriesByCategory'));
+        // Fetch forecasting data for the top div
+        $forecastingController = app(\App\Http\Controllers\Admin\ForecastingController::class);
+        $forecastingData = $forecastingController->index(request());
+        $nextDayForecast = $forecastingData->getData()['nextDayForecast'];
+        $dailyTrends = $forecastingData->getData()['dailyTrends'];
+
+        return view('inventory.dashboard', compact('inventories', 'inventoriesByCategory', 'nextDayForecast', 'dailyTrends'));
     }
 
     public function create()
@@ -428,7 +434,7 @@ class InventoryController extends Controller
     public function stockIn(Request $request)
     {
         $request->validate([
-            'menu_item_id' => 'required|exists:menu_items,id',
+            'menu_item_id' => 'required|exists:pos_menu_items,id',
             'quantity' => 'required|numeric|min:0.01',
             'reason' => 'nullable|string',
         ]);

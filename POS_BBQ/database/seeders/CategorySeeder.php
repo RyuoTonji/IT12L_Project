@@ -14,6 +14,7 @@ class CategorySeeder extends Seeder
             ['name' => 'Lunch & Dinner', 'description' => 'Rice meals and main dishes'],
             ['name' => 'Drinks', 'description' => 'Refreshments and beverages'],
             ['name' => 'Desserts', 'description' => 'Sweet treats'],
+            ['name' => 'Sides', 'description' => 'Side dishes and appetizers'],
         ];
 
         foreach ($categories as $category) {

@@ -77,7 +77,7 @@ class DashboardController extends Controller
             ->count();
 
         $branch1MenuCount = MenuItem::whereHas('branches', function ($q) {
-            $q->where('branches.id', 1)->where('is_available', true);
+            $q->where('pos_branches.id', 1)->where('is_available', true);
         })->count();
 
         $branch1LowStock = Inventory::where('branch_id', 1)
@@ -99,7 +99,7 @@ class DashboardController extends Controller
             ->count();
 
         $branch2MenuCount = MenuItem::whereHas('branches', function ($q) {
-            $q->where('branches.id', 2)->where('is_available', true);
+            $q->where('pos_branches.id', 2)->where('is_available', true);
         })->count();
 
         $branch2LowStock = Inventory::where('branch_id', 2)
@@ -154,12 +154,13 @@ class DashboardController extends Controller
             ->get()
             ->map(function ($item) use ($start, $end) {
                 // Get breakdown per branch (Filtered by Range)
-                $breakdown = OrderItem::where('menu_item_id', $item->menu_item_id)
-                    ->join('orders', 'order_items.order_id', '=', 'orders.id')
-                    ->join('branches', 'orders.branch_id', '=', 'branches.id')
+                $breakdown = DB::table('pos_order_items as items')
+                    ->join('pos_orders as orders', 'items.order_id', '=', 'orders.id')
+                    ->join('pos_branches as branches', 'orders.branch_id', '=', 'branches.id')
+                    ->where('items.menu_item_id', $item->menu_item_id)
                     ->whereBetween('orders.created_at', [$start, $end])
                     ->where('orders.payment_status', 'paid')
-                    ->select('branches.name as branch_name', DB::raw('sum(order_items.quantity) as quantity'))
+                    ->select('branches.name as branch_name', DB::raw('sum(items.quantity) as quantity'))
                     ->groupBy('branches.name')
                     ->get();
 

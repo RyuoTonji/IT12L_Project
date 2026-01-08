@@ -30,7 +30,7 @@ class TableController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:tables,name',
+            'name' => 'required|string|max:255|unique:pos_tables,name',
             'capacity' => 'required|integer|min:1',
             'status' => 'required|in:available,occupied,reserved',
         ]);
@@ -62,7 +62,7 @@ class TableController extends Controller
         // Get menu categories and items for creating new orders
         $categories = Category::with([
             'menuItems' => function ($query) {
-                $query->where('availability', true);
+                $query->where('is_available', true);
             }
         ])->get();
 
@@ -77,7 +77,7 @@ class TableController extends Controller
     public function update(Request $request, Table $table)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:tables,name,' . $table->id,
+            'name' => 'required|string|max:255|unique:pos_tables,name,' . $table->id,
             'capacity' => 'required|integer|min:1',
             'status' => 'required|in:available,occupied,reserved',
         ]);

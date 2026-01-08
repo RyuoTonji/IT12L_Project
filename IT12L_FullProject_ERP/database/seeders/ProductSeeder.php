@@ -44,7 +44,7 @@ class ProductSeeder extends Seeder
             $this->command->warn("! Source images directory not found at: $sourceDir");
         }
 
-        if (DB::table('products')->count() == 0) {
+        if (DB::table('crm_products')->count() == 0) {
             $products = [
                 // Branch 1 - Rice Meals (category_id: 1)
                 [
@@ -471,7 +471,7 @@ class ProductSeeder extends Seeder
                 ]
             ];
 
-            DB::table('products')->insert($products);
+            DB::table('crm_products')->insert($products);
             $this->command->info('✓ Products seeded successfully with images');
         } else {
             $this->command->info('⊘ Products already exist, skipping...');

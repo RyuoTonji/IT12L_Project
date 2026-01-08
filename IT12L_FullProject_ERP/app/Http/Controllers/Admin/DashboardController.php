@@ -9,42 +9,12 @@ use App\Models\Branch;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-<<<<<<< Updated upstream
-        // Get statistics
-        $totalOrders = DB::table('orders')->count();
-        
-        $totalRevenue = DB::table('orders')
-            ->whereIn('status', ['confirmed', 'delivered'])
-            ->sum('total_amount');
-        
-        $pendingOrders = DB::table('orders')
-            ->where('status', 'pending')
-            ->count();
-        
-        $totalProducts = DB::table('products')->count();
-
-        // Get recent orders
-        $recentOrders = DB::table('orders')
-            ->join('users', 'orders.user_id', '=', 'users.id')
-            ->join('branches', 'orders.branch_id', '=', 'branches.id')
-            ->select(
-                'orders.id',
-                'orders.total_amount',
-                'orders.status',
-                'orders.created_at as ordered_at',
-                'users.name as user_name',
-                'branches.name as branch_name'
-            )
-            ->orderBy('orders.created_at', 'desc')
-            ->limit(10)
-            ->get();
-
-=======
         // Check if this is an AJAX request for live count
         if ($request->ajax() && $request->has('live_count')) {
             return $this->getLiveOrderCount($request);
@@ -189,7 +159,9 @@ class DashboardController extends Controller
         // ============================================================================
         // CONFIRMED SALES BY BRANCH (NEVER FILTERED - ALL TIME)
         // ============================================================================
-        $salesByBranch = Order::join('branches', 'orders.branch_id', '=', 'branches.id')
+        $salesByBranch = DB::table('crm_orders as orders')
+            ->join('crm_branches as branches', 'orders.branch_id', '=', 'branches.id')
+            ->whereNull('orders.deleted_at')
             ->whereNull('branches.deleted_at')
             ->where('orders.status', 'picked up')
             ->select(
@@ -205,7 +177,9 @@ class DashboardController extends Controller
         // ============================================================================
         // TOP SELLING PRODUCTS (NEVER FILTERED - ALL TIME)
         // ============================================================================
-        $topProducts = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
+        $topProducts = DB::table('crm_order_items as order_items')
+            ->join('crm_orders as orders', 'order_items.order_id', '=', 'orders.id')
+            ->whereNull('orders.deleted_at')
             ->where('orders.status', 'picked up')
             ->select(
                 'order_items.product_name as name',
@@ -233,17 +207,25 @@ class DashboardController extends Controller
             ->orderBy('name')
             ->get();
 
->>>>>>> Stashed changes
         return view('admin.dashboard', compact(
-            'totalOrders',
-            'totalRevenue',
+            'totalRevenueAllTime',
+            'totalOrdersAllTime',
+            'todayRevenue',
+            'todayOrders',
             'pendingOrders',
             'totalProducts',
-            'recentOrders'
+            'salesByBranch',
+            'topProducts',
+            'recentOrders',
+            'orderStatusData',
+            'salesPerformance',
+            'branches',
+            'recentOrderCount',
+            'orderTrend',
+            'filteredTotalOrders',
+            'filteredRevenue'
         ));
     }
-<<<<<<< Updated upstream
-=======
 
     /**
      * Get live order count for AJAX requests
@@ -428,5 +410,4 @@ class DashboardController extends Controller
 
         return response()->json($response);
     }
->>>>>>> Stashed changes
 }

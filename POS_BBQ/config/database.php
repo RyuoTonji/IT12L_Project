@@ -52,7 +52,7 @@ return [
             'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => env('DB_CHARSET', 'utf8mb4'),
-            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'collation' => env('DB_COLLATION', null),
             'prefix' => '',
             'prefix_indexes' => true,
             'strict' => true,
@@ -141,7 +141,7 @@ return [
     */
 
     'migrations' => [
-        'table' => 'migrations',
+        'table' => 'pos_migrations',
         'update_date_on_publish' => true,
     ],
 

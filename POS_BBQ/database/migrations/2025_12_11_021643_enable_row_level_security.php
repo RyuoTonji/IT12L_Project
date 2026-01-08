@@ -15,22 +15,22 @@ return new class extends Migration {
 
         // List of tables to enable RLS on (excluding Laravel system tables)
         $tables = [
-            'users',
-            'branches',
-            'categories',
-            'menu_items',
-            'menu_item_ingredients',
-            'menu_item_branch',
-            'tables',
-            'orders',
-            'order_items',
-            'payments',
-            'inventories',
-            'inventory_adjustments',
-            'activities',
-            'void_requests',
-            'shift_reports',
-            'deleted_data',
+            'pos_users',
+            'pos_branches',
+            'pos_categories',
+            'pos_menu_items',
+            'pos_menu_item_ingredients',
+            'pos_menu_item_branch',
+            'pos_tables',
+            'pos_orders',
+            'pos_order_items',
+            'pos_payments',
+            'pos_inventory',
+            'pos_inventory_adjustments',
+            'pos_activities',
+            'pos_void_requests',
+            'pos_shift_reports',
+            'pos_deleted_data',
         ];
 
         // Enable RLS on all tables
@@ -42,17 +42,17 @@ return new class extends Migration {
         // USERS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY users_select_policy ON users
+            CREATE POLICY pos_users_select_policy ON pos_users
             FOR SELECT
             USING (true);
         ");
 
         DB::statement("
-            CREATE POLICY users_insert_policy ON users
+            CREATE POLICY pos_users_insert_policy ON pos_users
             FOR INSERT
             WITH CHECK (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -60,11 +60,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY users_update_policy ON users
+            CREATE POLICY pos_users_update_policy ON pos_users
             FOR UPDATE
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -72,11 +72,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY users_delete_policy ON users
+            CREATE POLICY pos_users_delete_policy ON pos_users
             FOR DELETE
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -87,17 +87,17 @@ return new class extends Migration {
         // BRANCHES TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY branches_select_policy ON branches
+            CREATE POLICY pos_branches_select_policy ON pos_branches
             FOR SELECT
             USING (true);
         ");
 
         DB::statement("
-            CREATE POLICY branches_modify_policy ON branches
+            CREATE POLICY pos_branches_modify_policy ON pos_branches
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -108,17 +108,17 @@ return new class extends Migration {
         // CATEGORIES TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY categories_select_policy ON categories
+            CREATE POLICY pos_categories_select_policy ON pos_categories
             FOR SELECT
             USING (true);
         ");
 
         DB::statement("
-            CREATE POLICY categories_modify_policy ON categories
+            CREATE POLICY pos_categories_modify_policy ON pos_categories
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -129,17 +129,17 @@ return new class extends Migration {
         // MENU_ITEMS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY menu_items_select_policy ON menu_items
+            CREATE POLICY pos_menu_items_select_policy ON pos_menu_items
             FOR SELECT
             USING (true);
         ");
 
         DB::statement("
-            CREATE POLICY menu_items_modify_policy ON menu_items
+            CREATE POLICY pos_menu_items_modify_policy ON pos_menu_items
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -150,17 +150,17 @@ return new class extends Migration {
         // MENU_ITEM_INGREDIENTS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY menu_item_ingredients_select_policy ON menu_item_ingredients
+            CREATE POLICY pos_menu_item_ingredients_select_policy ON pos_menu_item_ingredients
             FOR SELECT
             USING (true);
         ");
 
         DB::statement("
-            CREATE POLICY menu_item_ingredients_modify_policy ON menu_item_ingredients
+            CREATE POLICY pos_menu_item_ingredients_modify_policy ON pos_menu_item_ingredients
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'inventory')
                 )
@@ -171,17 +171,17 @@ return new class extends Migration {
         // MENU_ITEM_BRANCH TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY menu_item_branch_select_policy ON menu_item_branch
+            CREATE POLICY pos_menu_item_branch_select_policy ON pos_menu_item_branch
             FOR SELECT
             USING (true);
         ");
 
         DB::statement("
-            CREATE POLICY menu_item_branch_modify_policy ON menu_item_branch
+            CREATE POLICY pos_menu_item_branch_modify_policy ON pos_menu_item_branch
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -192,15 +192,15 @@ return new class extends Migration {
         // TABLES TABLE POLICIES (Restaurant Tables)
         // =====================================================
         DB::statement("
-            CREATE POLICY tables_select_policy ON tables
+            CREATE POLICY pos_tables_select_policy ON pos_tables
             FOR SELECT
             USING (
                 branch_id = (
-                    SELECT branch_id FROM users 
+                    SELECT branch_id FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint
                 )
                 OR EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -208,11 +208,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY tables_modify_policy ON tables
+            CREATE POLICY pos_tables_modify_policy ON pos_tables
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -223,15 +223,15 @@ return new class extends Migration {
         // ORDERS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY orders_select_policy ON orders
+            CREATE POLICY pos_orders_select_policy ON pos_orders
             FOR SELECT
             USING (
                 branch_id = (
-                    SELECT branch_id FROM users 
+                    SELECT branch_id FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint
                 )
                 OR EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -239,11 +239,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY orders_insert_policy ON orders
+            CREATE POLICY pos_orders_insert_policy ON pos_orders
             FOR INSERT
             WITH CHECK (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'cashier')
                 )
@@ -251,11 +251,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY orders_update_policy ON orders
+            CREATE POLICY pos_orders_update_policy ON pos_orders
             FOR UPDATE
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'cashier')
                 )
@@ -263,11 +263,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY orders_delete_policy ON orders
+            CREATE POLICY pos_orders_delete_policy ON pos_orders
             FOR DELETE
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -278,19 +278,19 @@ return new class extends Migration {
         // ORDER_ITEMS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY order_items_select_policy ON order_items
+            CREATE POLICY pos_order_items_select_policy ON pos_order_items
             FOR SELECT
             USING (
                 EXISTS (
-                    SELECT 1 FROM orders 
-                    WHERE orders.id = order_items.order_id
+                    SELECT 1 FROM pos_orders 
+                    WHERE pos_orders.id = pos_order_items.order_id
                     AND (
-                        orders.branch_id = (
-                            SELECT branch_id FROM users 
+                        pos_orders.branch_id = (
+                            SELECT branch_id FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint
                         )
                         OR EXISTS (
-                            SELECT 1 FROM users 
+                            SELECT 1 FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint 
                             AND role = 'admin'
                         )
@@ -300,11 +300,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY order_items_modify_policy ON order_items
+            CREATE POLICY pos_order_items_modify_policy ON pos_order_items
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'cashier')
                 )
@@ -315,19 +315,19 @@ return new class extends Migration {
         // PAYMENTS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY payments_select_policy ON payments
+            CREATE POLICY pos_payments_select_policy ON pos_payments
             FOR SELECT
             USING (
                 EXISTS (
-                    SELECT 1 FROM orders 
-                    WHERE orders.id = payments.order_id
+                    SELECT 1 FROM pos_orders 
+                    WHERE pos_orders.id = pos_payments.order_id
                     AND (
-                        orders.branch_id = (
-                            SELECT branch_id FROM users 
+                        pos_orders.branch_id = (
+                            SELECT branch_id FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint
                         )
                         OR EXISTS (
-                            SELECT 1 FROM users 
+                            SELECT 1 FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint 
                             AND role = 'admin'
                         )
@@ -337,11 +337,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY payments_modify_policy ON payments
+            CREATE POLICY pos_payments_modify_policy ON pos_payments
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'cashier')
                 )
@@ -352,15 +352,15 @@ return new class extends Migration {
         // INVENTORIES TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY inventories_select_policy ON inventories
+            CREATE POLICY pos_inventory_select_policy ON pos_inventory
             FOR SELECT
             USING (
                 branch_id = (
-                    SELECT branch_id FROM users 
+                    SELECT branch_id FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint
                 )
                 OR EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -368,11 +368,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY inventories_modify_policy ON inventories
+            CREATE POLICY pos_inventory_modify_policy ON pos_inventory
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'inventory')
                 )
@@ -383,19 +383,19 @@ return new class extends Migration {
         // INVENTORY_ADJUSTMENTS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY inventory_adjustments_select_policy ON inventory_adjustments
+            CREATE POLICY pos_inventory_adjustments_select_policy ON pos_inventory_adjustments
             FOR SELECT
             USING (
                 EXISTS (
-                    SELECT 1 FROM inventories 
-                    WHERE inventories.id = inventory_adjustments.inventory_id
+                    SELECT 1 FROM pos_inventory 
+                    WHERE pos_inventory.id = pos_inventory_adjustments.inventory_id
                     AND (
-                        inventories.branch_id = (
-                            SELECT branch_id FROM users 
+                        pos_inventory.branch_id = (
+                            SELECT branch_id FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint
                         )
                         OR EXISTS (
-                            SELECT 1 FROM users 
+                            SELECT 1 FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint 
                             AND role = 'admin'
                         )
@@ -406,11 +406,11 @@ return new class extends Migration {
 
 
         DB::statement("
-            CREATE POLICY inventory_adjustments_modify_policy ON inventory_adjustments
+            CREATE POLICY pos_inventory_adjustments_modify_policy ON pos_inventory_adjustments
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'inventory')
                 )
@@ -421,13 +421,13 @@ return new class extends Migration {
         // ACTIVITIES TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY activities_select_policy ON activities
+            CREATE POLICY pos_activities_select_policy ON pos_activities
             FOR SELECT
             USING (true);
         ");
 
         DB::statement("
-            CREATE POLICY activities_insert_policy ON activities
+            CREATE POLICY pos_activities_insert_policy ON pos_activities
             FOR INSERT
             WITH CHECK (true);
         ");
@@ -436,19 +436,19 @@ return new class extends Migration {
         // VOID_REQUESTS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY void_requests_select_policy ON void_requests
+            CREATE POLICY pos_void_requests_select_policy ON pos_void_requests
             FOR SELECT
             USING (
                 EXISTS (
-                    SELECT 1 FROM orders 
-                    WHERE orders.id = void_requests.order_id
+                    SELECT 1 FROM pos_orders 
+                    WHERE pos_orders.id = pos_void_requests.order_id
                     AND (
-                        orders.branch_id = (
-                            SELECT branch_id FROM users 
+                        pos_orders.branch_id = (
+                            SELECT branch_id FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint
                         )
                         OR EXISTS (
-                            SELECT 1 FROM users 
+                            SELECT 1 FROM pos_users 
                             WHERE id = current_setting('app.user_id')::bigint 
                             AND role = 'admin'
                         )
@@ -459,11 +459,11 @@ return new class extends Migration {
 
 
         DB::statement("
-            CREATE POLICY void_requests_insert_policy ON void_requests
+            CREATE POLICY pos_void_requests_insert_policy ON pos_void_requests
             FOR INSERT
             WITH CHECK (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager', 'cashier')
                 )
@@ -471,11 +471,11 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY void_requests_update_policy ON void_requests
+            CREATE POLICY pos_void_requests_update_policy ON pos_void_requests
             FOR UPDATE
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -486,16 +486,16 @@ return new class extends Migration {
         // SHIFT_REPORTS TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY shift_reports_select_policy ON shift_reports
+            CREATE POLICY pos_shift_reports_select_policy ON pos_shift_reports
             FOR SELECT
             USING (
                 user_id = current_setting('app.user_id')::bigint
                 OR branch_id = (
-                    SELECT branch_id FROM users 
+                    SELECT branch_id FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint
                 )
                 OR EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -503,12 +503,12 @@ return new class extends Migration {
         ");
 
         DB::statement("
-            CREATE POLICY shift_reports_modify_policy ON shift_reports
+            CREATE POLICY pos_shift_reports_modify_policy ON pos_shift_reports
             FOR ALL
             USING (
                 user_id = current_setting('app.user_id')::bigint
                 OR EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role IN ('admin', 'manager')
                 )
@@ -519,11 +519,11 @@ return new class extends Migration {
         // DELETED_DATA TABLE POLICIES
         // =====================================================
         DB::statement("
-            CREATE POLICY deleted_data_admin_only ON deleted_data
+            CREATE POLICY pos_deleted_data_admin_only ON pos_deleted_data
             FOR ALL
             USING (
                 EXISTS (
-                    SELECT 1 FROM users 
+                    SELECT 1 FROM pos_users 
                     WHERE id = current_setting('app.user_id')::bigint 
                     AND role = 'admin'
                 )
@@ -541,28 +541,28 @@ return new class extends Migration {
             return;
         }
 
-        // List of tables to disable RLS
-        $tables = [
-            'users',
-            'branches',
-            'categories',
-            'menu_items',
-            'menu_item_ingredients',
-            'menu_item_branch',
-            'tables',
-            'orders',
-            'order_items',
-            'payments',
-            'inventories',
-            'inventory_adjustments',
-            'activities',
-            'void_requests',
-            'shift_reports',
-            'deleted_data',
+        // List of pos_tables to disable RLS
+        $pos_tables = [
+            'pos_users',
+            'pos_branches',
+            'pos_categories',
+            'pos_menu_items',
+            'pos_menu_item_ingredients',
+            'pos_menu_item_branch',
+            'pos_tables',
+            'pos_orders',
+            'pos_order_items',
+            'pos_payments',
+            'pos_inventory',
+            'pos_inventory_adjustments',
+            'pos_activities',
+            'pos_void_requests',
+            'pos_shift_reports',
+            'pos_deleted_data',
         ];
 
         // Drop all policies and disable RLS
-        foreach ($tables as $table) {
+        foreach ($pos_tables as $table) {
             // Drop all policies for the table
             $policies = DB::select("
                 SELECT policyname 

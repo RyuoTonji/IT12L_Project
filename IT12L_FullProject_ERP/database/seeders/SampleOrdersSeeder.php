@@ -18,8 +18,8 @@ class SampleOrdersSeeder extends Seeder
         $this->command->info('Seeding 20 sample pending orders...');
 
         // Get existing users (excluding admin)
-        $users = User::where('is_admin', false)->get();
-        
+        $users = User::where('role', '!=', 'admin')->get();
+
         if ($users->isEmpty()) {
             $this->command->error('No non-admin users found! Please seed users first.');
             return;
@@ -27,7 +27,7 @@ class SampleOrdersSeeder extends Seeder
 
         // Get existing branches
         $branches = Branch::all();
-        
+
         if ($branches->isEmpty()) {
             $this->command->error('No branches found! Please seed branches first.');
             return;
@@ -35,7 +35,7 @@ class SampleOrdersSeeder extends Seeder
 
         // Get available products
         $products = Product::where('is_available', 1)->get();
-        
+
         if ($products->isEmpty()) {
             $this->command->error('No products found! Please seed products first.');
             return;
@@ -76,17 +76,17 @@ class SampleOrdersSeeder extends Seeder
             // Randomly select user, branch
             $user = $users->random();
             $branch = $branches->random();
-            
+
             // Get random products from this branch
             $branchProducts = $products->where('branch_id', $branch->id);
-            
+
             if ($branchProducts->isEmpty()) {
                 continue;
             }
 
             // Randomly select 1-5 products
             $orderProducts = $branchProducts->random(rand(1, min(5, $branchProducts->count())));
-            
+
             $totalAmount = 0;
             $orderItems = [];
 
@@ -102,7 +102,7 @@ class SampleOrdersSeeder extends Seeder
                     'product_name' => $product->name,
                     'product_image' => $product->image,
                     'quantity' => $quantity,
-                    'price' => $price,
+                    'unit_price' => $price,
                     'subtotal' => $subtotal,
                     'created_at' => now(),
                     'updated_at' => now()
@@ -113,16 +113,16 @@ class SampleOrdersSeeder extends Seeder
             $randomMonth = $months[array_rand($months)];
             $month = $randomMonth['month'];
             $monthName = $randomMonth['name'];
-            
+
             // Get random day in that month
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, 2025);
             $day = rand(1, $daysInMonth);
-            
+
             // Create date in 2025
             $orderDate = \Carbon\Carbon::create(2025, $month, $day, rand(8, 20), rand(0, 59), 0);
 
             // Create the order (pickup only - no address)
-            $orderId = DB::table('orders')->insertGetId([
+            $orderId = DB::table('crm_orders')->insertGetId([
                 'user_id' => $user->id,
                 'branch_id' => $branch->id,
                 'total_amount' => $totalAmount,
@@ -140,7 +140,7 @@ class SampleOrdersSeeder extends Seeder
                 $item['created_at'] = $orderDate;
                 $item['updated_at'] = $orderDate;
             }
-            DB::table('order_items')->insert($orderItems);
+            DB::table('crm_order_items')->insert($orderItems);
 
             $this->command->info("✓ Order #{$orderId} created for {$user->name} - ₱{$totalAmount} ({$monthName} {$day}, 2025)");
         }

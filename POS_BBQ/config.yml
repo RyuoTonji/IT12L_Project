@@ -3,5 +3,7 @@ credentials-file: C:\Users\User\.cloudflared\ff360f22-dea6-4c83-b5d9-3749f56207c
 
 ingress:
   - hostname: ulasbbqlagao.dpdns.org
+    service: http://127.0.0.1:8001
+  - hostname: crm.ulasbbqlagao.dpdns.org
     service: http://127.0.0.1:8000
   - service: http_status:404

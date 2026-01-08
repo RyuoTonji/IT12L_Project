@@ -43,7 +43,7 @@ class InventoryController extends Controller
         // Check if menu_item_id is provided (new feature matched from Inventory User)
         if ($request->has('menu_item_id')) {
             $request->validate([
-                'menu_item_id' => 'required|exists:menu_items,id',
+                'menu_item_id' => 'required|exists:pos_menu_items,id',
                 'quantity' => 'required|numeric|min:0.01',
                 'reason' => 'nullable|string',
             ]);
@@ -175,7 +175,13 @@ class InventoryController extends Controller
             'Others' => $inventoryByCategory->get('Others'),
         ]);
 
-        return view('admin.inventory.index', compact('inventoryItems', 'inventoryByCategory'));
+        // Fetch forecasting data for the top div
+        $forecastingController = app(ForecastingController::class);
+        $forecastingData = $forecastingController->index($request);
+        $nextDayForecast = $forecastingData->getData()['nextDayForecast'];
+        $dailyTrends = $forecastingData->getData()['dailyTrends'];
+
+        return view('admin.inventory.index', compact('inventoryItems', 'inventoryByCategory', 'nextDayForecast', 'dailyTrends'));
     }
 
     public function create()
