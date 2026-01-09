@@ -261,12 +261,13 @@
                     datasets: [{
                         label: 'Daily Sales (₱)',
                         data: salesData.map(d => d.total),
-                        borderColor: '#111827',
-                        backgroundColor: 'rgba(17, 24, 39, 0.1)',
+                        borderColor: 'rgba(17,24,39,0.95)',
+                        backgroundColor: 'rgba(17,24,39,0.08)',
                         borderWidth: 3,
                         tension: 0.4,
                         fill: true,
-                        pointBackgroundColor: '#111827',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(17,24,39,0.95)',
                         pointBorderColor: '#fff',
                         pointHoverRadius: 6
                     }]

@@ -699,7 +699,7 @@
         $brandRoute = $isAdmin ? route('admin.dashboard') : route('home');
     @endphp
 
-    <nav class="navbar navbar-expand-lg">
+    <nav class="navbar navbar-expand-lg sticky-top" style="position: sticky; top: 0; z-index: 1050;">
         <div class="{{ $containerClass }}">
             <a class="navbar-brand" href="{{ $brandRoute }}">
                 <img src="{{ asset('images/logo2.jpg') }}" alt="BBQ-Lagao Logo"

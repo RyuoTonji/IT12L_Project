@@ -68,7 +68,12 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td class="price-cell">₱{{ number_format($item->price, 2) }}</td>
+                                            @php
+                                                $displayPrice = $item->unit_price > 0 ? $item->unit_price : ($item->quantity ? ($item->getOriginal('subtotal') / $item->quantity) : 0);
+                                                $originalSubtotal = $item->getOriginal('subtotal');
+                                                $subtotalDisplay = $originalSubtotal !== null && $originalSubtotal > 0 ? $originalSubtotal : ($displayPrice * $item->quantity);
+                                            @endphp
+                                            <td class="price-cell">₱{{ number_format($displayPrice, 2) }}</td>
                                             <td>
                                                 <span class="quantity-badge">{{ $item->quantity }}</span>
                                             </td>

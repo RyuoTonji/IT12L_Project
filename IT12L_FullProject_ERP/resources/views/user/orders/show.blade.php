@@ -85,8 +85,13 @@
                                                 </div>
                                             </td>
                                             <td class="text-center">{{ $item->quantity }}</td>
-                                            <td class="text-end">₱{{ number_format($item->price, 2) }}</td>
-                                            <td class="text-end">₱{{ number_format($item->price * $item->quantity, 2) }}</td>
+                                            @php
+                                                $displayPrice = $item->unit_price > 0 ? $item->unit_price : ($item->quantity ? ($item->getOriginal('subtotal') / $item->quantity) : 0);
+                                                $originalSubtotal = $item->getOriginal('subtotal');
+                                                $subtotalDisplay = $originalSubtotal !== null && $originalSubtotal > 0 ? $originalSubtotal : ($displayPrice * $item->quantity);
+                                            @endphp
+                                            <td class="text-end">₱{{ number_format($displayPrice, 2) }}</td>
+                                            <td class="text-end">₱{{ number_format($subtotalDisplay, 2) }}</td>
                                         </tr>
                                     @empty
                                         <tr>

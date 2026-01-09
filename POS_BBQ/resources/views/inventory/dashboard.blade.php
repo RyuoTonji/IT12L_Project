@@ -27,11 +27,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-gray-100">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Predicted Sales</p>
-                        <p class="text-3xl font-black text-gray-900 line-height-tight">₱{{ number_format($nextDayForecast['total_predicted_sales'], 2) }}</p>
+                        <p class="text-3xl font-black text-gray-900 line-height-tight text-right">₱{{ number_format($nextDayForecast['total_predicted_sales'], 2) }}</p>
                     </div>
                     <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-gray-100">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Stock Shortfalls</p>
-                        <p class="text-3xl font-black text-gray-900 line-height-tight">{{ collect($nextDayForecast['ingredients'])->where('to_buy', '>', 0)->count() }} Items</p>
+                        <p class="text-3xl font-black text-gray-900 line-height-tight text-right">{{ collect($nextDayForecast['ingredients'])->where('to_buy', '>', 0)->count() }} Items</p>
                     </div>
                 </div>
 
@@ -84,9 +84,14 @@
                     labels: salesData.map(d => d.date),
                     datasets: [{
                         data: salesData.map(d => d.total),
-                        borderColor: '#111827',
-                        backgroundColor: 'rgba(17, 24, 39, 0.05)',
-                        borderWidth: 2,
+                        borderColor: 'rgba(17,24,39,0.95)',
+                        backgroundColor: 'rgba(17,24,39,0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(17,24,39,0.95)',
+                        pointBorderColor: '#fff',
                         label: 'Sales'
                     }]
                 },
